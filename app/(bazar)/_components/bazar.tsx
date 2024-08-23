@@ -121,7 +121,7 @@ export default function Bazar() {
                       <p className="text-gray-600 mb-4">{tool.description}</p>
                       <div className="flex w-full space-x-2">
                         <Button className="w-full" asChild size="sm">
-                          <Link href={`/tool/${tool._id}`}>Купить</Link>
+                          <Link href={`/https://t.me/aiBazar1`}>Купить</Link>
                         </Button>
                         <Button className="w-full" asChild size="sm" variant="outline">
                           <Link href={tool.url} target="_blank" rel="noopener noreferrer">
@@ -168,7 +168,7 @@ export default function Bazar() {
                             <p className="text-gray-600 mb-4">{tool.description}</p>
                             <div className="flex w-full space-x-2">
                               <Button className="w-full" asChild size="sm">
-                                <Link href={`/tool/${tool._id}`}>Купить</Link>
+                                <Link href={`/https://t.me/aiBazar1`}>Купить</Link>
                               </Button>
                               <Button className="w-full" asChild size="sm" variant="outline">
                                 <Link href={tool.url} target="_blank" rel="noopener noreferrer">
