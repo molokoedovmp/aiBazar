@@ -1,7 +1,4 @@
 import Link from "next/link";
-
-import Spline from '@splinetool/react-spline/next';
-
 import SubmitPage from "@/app/(marketing)/_components/submit";
 import FeaturePage from "./FeatureSection";
 import ContentPage from "./ContentSection";
@@ -14,8 +11,10 @@ export function Landingsecond() {
 
         {/* Hero Section */}
         <section className="relative w-full h-screen overflow-hidden">
-          <Spline
-            scene="https://prod.spline.design/xasN6jN3w1ggRc6p/scene.splinecode"
+          {/* Заменяем Spline на изображение */}
+          <img
+            src="/3.png" // Замените на URL вашего изображения
+            alt="Background Image"
             className="absolute inset-0 w-full h-full object-cover z-0"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0.4)] z-5" />
@@ -35,6 +34,7 @@ export function Landingsecond() {
             </Link>
           </div>
         </section>
+
 
         {/* Designer Services Section */}
         <div >
