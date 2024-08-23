@@ -69,7 +69,7 @@ export default function About() {
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white p-6">
           <h1 className="text-4xl font-bold mb-4 text-center">aiBazar</h1>
           <p className="text-xl mb-8 text-center max-w-2xl">
-            "Наша Миссия — Вдохновлять и Раскрывать Потенциал AI в Жизни Каждого"
+            Наша Миссия — Вдохновлять и Раскрывать Потенциал AI в Жизни Каждого
           </p>
           <div className="flex items-center gap-x-2">
             {isLoading && <Spinner />}
