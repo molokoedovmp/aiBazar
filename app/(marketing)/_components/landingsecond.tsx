@@ -13,7 +13,7 @@ export function Landingsecond() {
         <section className="relative w-full h-screen overflow-hidden">
           {/* Заменяем Spline на изображение */}
           <img
-            src="/3.png" // Замените на URL вашего изображения
+            src="/landing.jpg" // Замените на URL вашего изображения
             alt="Background Image"
             className="absolute inset-0 w-full h-full object-cover z-0"
           />
