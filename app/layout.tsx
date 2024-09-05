@@ -40,17 +40,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ConvexClientProvider>
           <EdgeStoreProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-              storageKey="jotion-theme-2"
-            >
               <Toaster position="bottom-center" />
               <ModalProvider />
               {children}
-            </ThemeProvider>
           </EdgeStoreProvider>
         </ConvexClientProvider>
       </body>

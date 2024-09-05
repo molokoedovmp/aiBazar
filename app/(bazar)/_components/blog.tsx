@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton"; // Импортируем Skeleton
 
-const ITEMS_PER_PAGE = 10; // Количество элементов на странице
+const ITEMS_PER_PAGE = 12; // Количество элементов на странице
 
 export default function Blog() {
   const [searchTerm, setSearchTerm] = useState<string>("");

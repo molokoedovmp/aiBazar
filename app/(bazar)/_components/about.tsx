@@ -111,7 +111,7 @@ export default function About() {
         <h2 className="text-2xl font-semibold mb-4 text-left">Наши соцсети</h2>
         <div className="flex space-x-4">
           <a 
-            href="#" 
+            href="https://t.me/aiBazar1" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full hover:bg-primary/90"
@@ -120,7 +120,7 @@ export default function About() {
             <span className="sr-only">Telegram</span>
           </a>
           <a 
-            href="#" 
+            href="https://www.instagram.com/aibazaru/" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full hover:bg-primary/90"

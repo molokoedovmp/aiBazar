@@ -153,6 +153,7 @@ export const restore = mutation({
       throw new Error("Unauthorized");
     }
 
+
     const recursiveRestore = async (documentId: Id<"documents">) => {
       const children = await ctx.db
         .query("documents")
@@ -378,4 +379,10 @@ export const removeCoverImage = mutation({
   }
 });
 
+export const get = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("documents").collect();
+  },
+});
 

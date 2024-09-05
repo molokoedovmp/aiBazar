@@ -49,4 +49,13 @@ export default defineSchema({
     message: v.string(),         // Текст сообщения
   })
     .index("by_email", ["email"]), // Индекс для быстрого поиска по email
+
+    // Таблица для хранения отзывов
+  reviews: defineTable({
+    documentId: v.id("documents"),    // ID документа, к которому относится отзыв
+    author: v.string(),               // Имя автора отзыва
+    content: v.string(),              // Текст отзыва
+    rating: v.number(),               // Рейтинг отзыва
+  })
+    .index("by_document", ["documentId"]),
 });

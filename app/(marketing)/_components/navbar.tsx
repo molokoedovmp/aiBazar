@@ -55,12 +55,12 @@ export const Navbar = () => {
         {isAuthenticated && !isLoading && (
           <>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/documents">Войти в чат</Link>
+              <Link href="/documents">Войти</Link>
             </Button>
             <UserButton afterSignOutUrl="/" />
           </>
         )}
-        <ModeToggle />
+        {/* <ModeToggle /> */}
 
         {/* Кнопка для открытия бургер-меню на мобильных устройствах */}
         <Button

@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Logo } from "./logo";
+import { Button } from "@/components/ui/button"
+import { Logo } from "./logo"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -9,16 +9,26 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog"
+import { Instagram, Send } from "lucide-react"
+import Link from "next/link"
 
 export const Footer = () => {
   return (
     <div className="flex items-center w-full p-6 bg-background z-50 dark:bg-[#1F1F1F]">
       <Logo />
       <div className="md:ml-auto w-full justify-between md:justify-end flex items-center gap-x-2 text-muted-foreground">
+        <Link href="https://www.instagram.com/aibazaru/" target="_blank" rel="noopener noreferrer">
+          <Button variant="ghost" size="icon">
+            <Instagram className="h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="https://t.me/aiBazar1" target="_blank" rel="noopener noreferrer">
+          <Button variant="ghost" size="icon">
+            <Send className="h-5 w-5" />
+          </Button>
+        </Link>
 
-        {/* Политика конфиденциальности */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm">
@@ -44,8 +54,6 @@ export const Footer = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-
-        {/* Правила и условия */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm">
@@ -74,7 +82,7 @@ export const Footer = () => {
                 <p>Мы можем изменять условия использования сайта в любое время.</p>
 
                 <p><strong>Регулирующее законодательство</strong></p>
-                <p>Эти условия регулируются законодательством Российской Федерации.</p>
+                <p>Эти условия регулируются законодательством Российской Федерации.</p>
 
                 <p><strong>Свяжитесь с нами</strong></p>
                 <p>Для вопросов свяжитесь с нами по адресу mpmolokoedov@gmail.com.</p>
@@ -85,10 +93,7 @@ export const Footer = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-
-
       </div>
     </div>
-  );
-};
+  )
+}

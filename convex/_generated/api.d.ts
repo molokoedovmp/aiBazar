@@ -18,6 +18,7 @@ import type * as aiTools from "../aiTools";
 import type * as categories from "../categories";
 import type * as documents from "../documents";
 import type * as feedback from "../feedback";
+import type * as reviews from "../reviews";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   documents: typeof documents;
   feedback: typeof feedback;
+  reviews: typeof reviews;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

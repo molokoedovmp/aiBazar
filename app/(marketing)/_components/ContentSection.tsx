@@ -12,10 +12,11 @@ export default function ContentPage() {
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32">
-      <div className="container max-w-5xl px-4 md:px-6">
+      <div className="container max-w-5xl px-4 md:px-6">\
+        
         <div className="space-y-6 text-center">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Наши Услуги</h2>
-          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+          <h2 className="text-white text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">Наши Услуги</h2>
+          <p className="text-white max-w-3xl text-lg md:text-xl"  >
             Ознакомьтесь с нашим ассортиментом услуг, которые помогут вам улучшить бизнес и онлайн-присутствие.
           </p>
         </div>
