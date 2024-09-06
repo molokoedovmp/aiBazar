@@ -11,20 +11,36 @@ import { Id } from '@/convex/_generated/dataModel'
 
 export default function ReviewsPage() {
   const { documentId } = useParams()
-  const documents = useQuery(api.documents.get)
-  const reviews = useQuery(api.reviews.get)
-  const documentConvexId = documentId as unknown as Id<"documents">
+  const document = useQuery(api.documents.getById, {
+    documentId: documentId as Id<"documents">
+  })
+  const reviews = useQuery(api.reviews.getByDocumentId, {
+    documentId: documentId as Id<"documents">
+  })
   const [searchTerm, setSearchTerm] = useState<string>("")
 
   const filteredReviews = reviews?.filter(review =>
     review.content.toLowerCase().includes(searchTerm.toLowerCase())
   ) || []
 
+  if (!document) {
+    return <div>Loading document...</div>
+  }
+
   return (
     <div className="mt-16">
-      <h2 className="text-2xl font-bold mb-4">Отзывы</h2>
+      <h2 className="text-2xl font-bold mb-4">Отзывы для {document.title}</h2>
+      <input
+        type="text"
+        placeholder="Поиск отзывов..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full p-2 mb-4 border rounded-md"
+      />
       {!reviews ? (
-        Array(8).fill(0).map((_, index) => <SkeletonReview key={index} />)
+        Array(3).fill(0).map((_, index) => <SkeletonReview key={index} />)
+      ) : filteredReviews.length === 0 ? (
+        <p>Нет отзывов для этого документа.</p>
       ) : (
         filteredReviews.map((review) => (
           <Card key={review._id} className="mb-4">

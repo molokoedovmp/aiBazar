@@ -103,55 +103,7 @@ const DocumentIdPage = ({ params }: DocumentIdPageProps) => {
           </Button>
         </div>
         <ReviewForm/>
-        {/* <form onSubmit={handleReviewSubmit} className="mt-8">
-          <h3 className="text-xl font-semibold mb-4">Оставить отзыв</h3>
-          <Input
-            placeholder="Ваше имя"
-            value={newReview.author}
-            onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
-            className="mb-4"
-          />
-          <Textarea
-            placeholder="Ваш отзыв"
-            value={newReview.content}
-            onChange={(e) => setNewReview({ ...newReview, content: e.target.value })}
-            className="mb-4"
-          />
-          <div className="flex items-center mb-4">
-            <span className="mr-2">Рейтинг:</span>
-            {[...Array(5)].map((_, i) => (
-              <StarIcon
-                key={i}
-                className={`w-6 h-6 cursor-pointer ${
-                  i < newReview.rating ? "text-yellow-400" : "text-gray-300"
-                }`}
-                onClick={() => setNewReview({ ...newReview, rating: i + 1 })}
-              />
-            ))}
-          </div>
-          <Button type="submit">Отправить отзыв</Button>
-        </form> */}
-        {/* <div className="mt-16">
-          <h2 className="text-2xl font-bold mb-4">Отзывы</h2>
-          {reviews.map((review) => (
-            <Card key={review.id} className="mb-4">
-              <CardContent className="pt-4">
-                <div className="flex items-center mb-2">
-                  <span className="font-semibold mr-2">{review.author}</span>
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <StarIcon
-                        key={i}
-                        className={`w-4 h-4 ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <p>{review.content}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div> */}
+        
         <ReviewsPage/>
       </div>
     </div>

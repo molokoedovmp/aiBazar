@@ -21,4 +21,13 @@ export const getById = query({
 });
 
 
+export const getByCategory = query({
+  args: { categoryId: v.id("categories") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("aiTools")
+      .filter((q) => q.eq(q.field("categoryId"), args.categoryId))
+      .collect();
+  },
+});
 

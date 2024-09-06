@@ -31,9 +31,11 @@ export default defineSchema({
     url: v.optional(v.string()),
     type: v.string(),
     isActive: v.boolean(),
+    rating: v.optional(v.number()),
     categoryId: v.id("categories"),  // Ссылка на категорию
   })
-    .index("by_category", ["categoryId"]),
+    .index("by_category", ["categoryId"])  // Add this index
+    .index("by_rating", ["rating"]), // Add this index
   // Таблица для хранения избранного
   favorites: defineTable({
     userId: v.string(),               // ID пользователя, которому принадлежит избранное

@@ -48,3 +48,14 @@ export const getByDocumentId = query({
     return reviews.filter(tool => tool.documentId === documentId);
   },
 });
+
+
+// export const getByAiTool = query({
+//   args: { aiToolId: v.id("aiTools") },
+//   handler: async (ctx, args) => {
+//     return await ctx.db
+//       .query("reviews")
+//       .filter((q) => q.eq(q.field("documentId"), args.aiToolId))
+//       .collect();
+//   },
+// });
