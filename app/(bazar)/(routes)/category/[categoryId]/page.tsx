@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from 'next/navigation'
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,9 @@ import Link from "next/link"
 import { useState, useMemo } from 'react'
 import { Skeleton } from "@/components/ui/skeleton"
 import { Id } from "@/convex/_generated/dataModel"
-import { StarIcon, ClockIcon, Sparkles, Filter } from 'lucide-react'
+import { Star, Filter, Heart } from 'lucide-react'
+import { useAuth } from "@clerk/clerk-react"
+import { SignInButton } from "@clerk/clerk-react"
 import {
   Select,
   SelectContent,
@@ -17,6 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 function SkeletonCard() {
   return (
@@ -41,9 +53,12 @@ export default function CategoryPage() {
   const aiTools = useQuery(api.aiTools.getByCategory, { 
     categoryId: categoryId as unknown as Id<"categories">
   })
+  const { isSignedIn } = useAuth()
+  const favorites = useQuery(api.favorites.getByUser)
+  const toggleFavorite = useMutation(api.favorites.toggleFavorite)
+  const [isAlertOpen, setIsAlertOpen] = useState(false)
 
   const categoryConvexId = categoryId as unknown as Id<"categories">
-
   const currentCategory = categories?.find(category => category._id === categoryConvexId)
 
   const filteredTools = useMemo(() => {
@@ -55,11 +70,7 @@ export default function CategoryPage() {
 
     switch (filterType) {
       case "high-rated":
-        return filtered.sort((a, b) => {
-          const ratingA = a.rating ?? 0
-          const ratingB = b.rating ?? 0
-          return ratingB - ratingA
-        })
+        return filtered.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
       case "new":
         return filtered.sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0))
       case "old":
@@ -68,6 +79,64 @@ export default function CategoryPage() {
         return filtered
     }
   }, [aiTools, searchTerm, filterType])
+
+  const ToolCard = ({ tool }: { tool: any }) => {
+    const isFavorite = favorites?.some(fav => fav.itemId === tool._id && fav.itemType === "aiTool")
+
+    const handleToggleFavorite = async () => {
+      if (!isSignedIn) {
+        setIsAlertOpen(true)
+        return
+      }
+      await toggleFavorite({ itemId: tool._id, itemType: "aiTool" })
+    }
+
+    return (
+      <Card key={tool._id} className="overflow-hidden flex flex-col">
+        <CardContent className="p-0 flex-grow">
+          <img
+            src={tool.coverImage || "/default.png?width=256&height=192"}
+            alt={tool.name}
+            className="w-full h-48 object-cover"
+          />
+          <div className="p-4">
+            <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
+            <p className="text-gray-600 mb-4 line-clamp-3">{tool.description}</p>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Star className="h-5 w-5 text-yellow-400 mr-1" />
+                <span>{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleToggleFavorite}
+                className={isFavorite ? "text-red-500" : ""}
+              >
+                <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="p-4 pt-0">
+          <div className="flex w-full space-x-2">
+            <Button className="w-full" asChild size="sm">
+              <Link href={`https://t.me/aiBazar1`}>Купить</Link>
+            </Button>
+            <Button className="w-full" asChild size="sm" variant="outline">
+              <Link 
+                href={tool.url ?? "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Смотреть
+              </Link>
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+    )
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -81,7 +150,7 @@ export default function CategoryPage() {
             className="p-2 pr-10 border rounded-md w-full"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <StarIcon className="h-5 w-5 text-gray-400" />
+            <Star className="h-5 w-5 text-gray-400" />
           </div>
         </div>
         <Select value={filterType} onValueChange={setFilterType}>
@@ -105,42 +174,29 @@ export default function CategoryPage() {
           Array(8).fill(0).map((_, index) => <SkeletonCard key={index} />)
         ) : (
           filteredTools.map((tool) => (
-            <Card key={tool._id} className="overflow-hidden flex flex-col">
-              <CardContent className="p-0 flex-grow">
-                <img
-                  src={tool.coverImage || "/default.png?width=256?height=192&width=256"}
-                  alt={tool.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
-                  <p className="text-gray-600 mb-4">{tool.description}</p>
-                  <div className="flex items-center mb-2">
-                    <StarIcon className="h-5 w-5 text-yellow-400 mr-1" />
-                    <span>{tool.rating?.toFixed(1) ?? 'N/A'}</span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="p-4 pt-0">
-                <div className="flex w-full space-x-2">
-                  <Button className="w-full" asChild size="sm">
-                    <Link href={`https://t.me/aiBazar1`}>Купить</Link>
-                  </Button>
-                  <Button className="w-full" asChild size="sm" variant="outline">
-                    <Link 
-                      href={tool.url ?? "#"} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      Смотреть
-                    </Link>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
+            <ToolCard key={tool._id} tool={tool} />
           ))
         )}
       </div>
+
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Требуется авторизация</AlertDialogTitle>
+            <AlertDialogDescription>
+              Для добавления инструмента в избранное необходимо войти в систему.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <SignInButton mode="modal">
+                <Button>Войти</Button>
+              </SignInButton>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -62,7 +62,7 @@ export default function About() {
         {/* Hero Section with Image and Mission Statement */}
       <section className="relative mb-16 rounded-lg overflow-hidden">
         <img 
-          src="/1.png" 
+          src="/default.png" 
           alt="AI Community collaboration" 
           className="w-full h-[400px] object-cover"
         />

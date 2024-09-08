@@ -37,14 +37,16 @@ export default defineSchema({
     .index("by_category", ["categoryId"])  // Add this index
     .index("by_rating", ["rating"]), // Add this index
   // Таблица для хранения избранного
+  // In your schema file
   favorites: defineTable({
-    userId: v.string(),               // ID пользователя, которому принадлежит избранное
-    itemId: v.union(v.id("aiTools"), v.id("documents")), // ID элемента (инструмента или поста)
-    itemType: v.string(),             // Тип элемента ("aiTool" или "document")
+    userId: v.string(),
+    itemId: v.union(v.id("aiTools"), v.id("documents")),
+    itemType: v.string(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_item", ["userId", "itemId"]),
-    // Новая таблица для хранения сообщений от формы обратной связи
+    .index("by_user_item", ["userId", "itemId"])
+    .index("by_user_item_type", ["userId", "itemId", "itemType"]), // Add this new index
+    
   feedbackMessages: defineTable({
     name: v.string(),            // Имя отправителя
     email: v.string(),           // Email отправителя
@@ -60,4 +62,15 @@ export default defineSchema({
     rating: v.number(),               // Рейтинг отзыва
   })
     .index("by_document", ["documentId"]),
+  
+  // New table for services
+  services: defineTable({
+    title: v.string(),
+    description: v.string(),
+    icon: v.string(),
+    price: v.string(),
+    features: v.array(v.string()),
+  })
+    .index("by_title", ["title"])
+    .index("by_price", ["price"]),
 });

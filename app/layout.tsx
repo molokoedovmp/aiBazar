@@ -18,13 +18,13 @@ export const metadata: Metadata = {
     icon: [
       {
         media: "(prefers-color-scheme: light)",
-        url: "/logo.svg",
-        href: "/logo.svg",
+        url: "/Logo2.png",
+        href: "/Logo2.png",
       },
       {
         media: "(prefers-color-scheme: dark)",
-        url: "/logo.svg",
-        href: "/logo.svg",
+        url: "/Logo2.png",
+        href: "/Logo2.png",
       }
     ]
   }
@@ -40,16 +40,20 @@ export default function RootLayout({
       <body className={inter.className}>
         <ConvexClientProvider>
           <EdgeStoreProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+              storageKey="jotion-theme-2"
+            >
               <Toaster position="bottom-center" />
               <ModalProvider />
               {children}
+            </ThemeProvider>
           </EdgeStoreProvider>
         </ConvexClientProvider>
       </body>
     </html>
   )
 }
-
-// body {
-//   padding-top: 4rem; /* Пример для высоты 4rem, измените по необходимости */
-// }

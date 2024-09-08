@@ -9,7 +9,7 @@ import {
   Settings,
   Trash,
   Users,
-  KanbanSquareIcon,
+  Star,
   BotIcon
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -186,6 +186,11 @@ export const Navigation = () => {
             label="Сообщество"
             icon={Users}
             onClick={()=>router.push('/blog')}
+          />
+          <Item
+            label="Избранное"
+            icon={Star}
+            onClick={()=>router.push('/favorites')}
           />
           <Item
             onClick={handleCreate}
