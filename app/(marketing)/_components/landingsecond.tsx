@@ -42,10 +42,11 @@ export function Landingsecond() {
             </Link>
           </div>
         </section>
+        
 
         {/* Designer Services Section */}
         <section className="relative py-12 md:py-24 lg:py-32 bg-muted">
-        <img
+          <img
             src="/3.png" // Замените на путь к вашему изображению
             alt="Featured AI Products"
             className="absolute inset-0 w-full h-full object-cover z-0"

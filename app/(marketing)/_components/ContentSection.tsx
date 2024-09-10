@@ -11,8 +11,8 @@ export default function ContentPage() {
   };
 
   return (
-    <section className="w-full py-12 md:py-24 lg:py-32">
-      <div className="container max-w-5xl px-4 md:px-6">\
+    <section >
+      <div className="container max-w-5xl px-4 md:px-6">
         
         <div className="space-y-6 text-center">
           <h2 className="text-white text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">Наши Услуги</h2>

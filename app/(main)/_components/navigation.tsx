@@ -33,6 +33,7 @@ import { Item } from "./item";
 import { DocumentList } from "./document-list";
 import { TrashBox } from "./trash-box";
 import { Navbar } from "./navbar";
+import { Button } from "@/components/ui/button";
 
 export const Navigation = () => {
   const router = useRouter();
@@ -177,6 +178,11 @@ export const Navigation = () => {
             icon={Settings}
             onClick={settings.onOpen}
           />
+            <Item
+              label="Избранное"
+              icon={Star}
+              onClick={()=>router.push('/favorites')}
+            />
           <Item
             label="Ai инструменты"
             icon={BotIcon}
@@ -186,11 +192,6 @@ export const Navigation = () => {
             label="Сообщество"
             icon={Users}
             onClick={()=>router.push('/blog')}
-          />
-          <Item
-            label="Избранное"
-            icon={Star}
-            onClick={()=>router.push('/favorites')}
           />
           <Item
             onClick={handleCreate}

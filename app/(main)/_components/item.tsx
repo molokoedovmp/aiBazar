@@ -107,14 +107,14 @@ export const Item = ({
         paddingLeft: level ? `${(level * 12) + 12}px` : "12px"
       }}
       className={cn(
-        "group min-h-[27px] text-sm py-1 pr-3 w-full hover:bg-primary/5 flex items-center text-muted-foreground font-medium",
-        active && "bg-primary/5 text-primary"
+        "group min-h-[40px] text-sm py-2 pr-3 w-full hover:bg-primary/10 flex items-center text-muted-foreground font-medium rounded-lg transition-all duration-200 ease-in-out",
+        active && "bg-primary/15 text-primary"
       )}
     >
       {!!id && (
         <div
           role="button"
-          className="h-full rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 mr-1"
+          className="h-full rounded-md hover:bg-primary/20 dark:hover:bg-primary/30 mr-1 p-1 transition-all duration-200 ease-in-out"
           onClick={handleExpand}
         >
           <ChevronIcon
@@ -148,7 +148,7 @@ export const Item = ({
             >
               <div
                 role="button"
-                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-md hover:bg-primary/20 dark:hover:bg-primary/30 p-1 transition-all duration-200 ease-in-out transform group-hover:scale-110"
               >
                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -172,7 +172,7 @@ export const Item = ({
           <div
             role="button"
             onClick={onCreate}
-            className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+            className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-md hover:bg-primary/20 dark:hover:bg-primary/30 p-1 transition-all duration-200 ease-in-out transform group-hover:scale-110"
           >
             <Plus className="h-4 w-4 text-muted-foreground" />
           </div>
