@@ -6,6 +6,8 @@ import Link from "next/link";
 import SubmitPage from "@/app/(marketing)/_components/submit";
 import FeaturePage from "./FeatureSection";
 import ContentPage from "./ContentSection";
+import Spline from '@splinetool/react-spline/next';
+
 
 export function Landingsecond() {
   const router = useRouter();
@@ -19,10 +21,32 @@ export function Landingsecond() {
       <main className="flex-1">
 
         {/* Hero Section */}
+        {/* <section className="relative w-full h-screen overflow-hidden bg-black">
+          <div className="absolute inset-0 w-full h-full">
+            <Spline
+              scene="https://prod.spline.design/qginy1ZJZJ7oILCT/scene.splinecode"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          <div className="relative z-10 container mx-auto h-full flex flex-col items-center justify-center text-center text-white space-y-6 px-4 md:px-6">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+              Мощь AI под вашим контролем
+            </h1>
+            <p className="max-w-3xl text-lg md:text-xl">
+              Здесь собрана большая библиотека из AI инструментов.
+            </p>
+            <Link
+              href="/bazar"
+              className="px-6 py-3 bg-white text-black font-semibold rounded-full hover:bg-opacity-90 transition-colors duration-300 button-custom"
+              prefetch={false}
+            >
+              Смотреть
+            </Link>
+          </div>
+        </section> */}
         <section className="relative w-full h-screen overflow-hidden">
-          <img
-            src="/2.png" // Замените на путь к вашему изображению
-            alt="Hero Image"
+          <Spline
+            scene="https://prod.spline.design/xasN6jN3w1ggRc6p/scene.splinecode"
             className="absolute inset-0 w-full h-full object-cover z-0"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0.4)] z-5" />
@@ -42,11 +66,10 @@ export function Landingsecond() {
             </Link>
           </div>
         </section>
-        
 
         {/* Designer Services Section */}
         <section className="relative py-12 md:py-24 lg:py-32 bg-muted">
-          <img
+        <img
             src="/3.png" // Замените на путь к вашему изображению
             alt="Featured AI Products"
             className="absolute inset-0 w-full h-full object-cover z-0"

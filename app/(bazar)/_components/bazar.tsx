@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input"
 import MenuBar from "./menubar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryCombobox } from "./category-combobox"
-import { Heart, Star } from "lucide-react"
+import { Heart, Star, ShoppingCart, ExternalLink } from "lucide-react"
 import { Id } from "@/convex/_generated/dataModel"
-import { SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignInButton } from "@clerk/clerk-react"
 import { useAuth } from "@clerk/clerk-react"
+import { Poppins } from "next/font/google"
+import { toast } from "sonner"
 
 import {
   AlertDialog,
@@ -25,8 +27,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+
+const font = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+})
 
 interface Tool {
   _id: Id<"aiTools">
@@ -52,14 +58,15 @@ interface Favorite {
 
 function SkeletonCard() {
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
-      <Skeleton className="w-full h-48 rounded-t-lg" />
-      <CardContent className="p-4 flex-grow flex flex-col">
-        <Skeleton className="h-6 w-3/4 mb-2" />
-        <Skeleton className="h-4 w-1/2 mb-4 flex-grow" />
+    <Card className="bg-card/50 backdrop-blur-sm">
+      <Skeleton className="h-48 w-full" />
+      <CardContent className="p-4">
+        <Skeleton className="h-5 w-3/4 mb-2" />
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-5/6" />
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-9 w-full" />
       </CardFooter>
     </Card>
   )
@@ -108,52 +115,60 @@ export default function Bazar() {
         setIsAlertOpen(true)
         return
       }
-      await toggleFavorite({ itemId: tool._id, itemType: "aiTool" })
+      try {
+        await toggleFavorite({ itemId: tool._id, itemType: "aiTool" })
+        toast.success(isFavorite ? "Удалено из избранного" : "Добавлено в избранное")
+      } catch (error) {
+        toast.error("Не удалось обновить избранное")
+      }
     }
 
     return (
-      <Card className="overflow-hidden flex flex-col">
-        <CardContent className="p-0 flex-grow">
+      <Card className="bg-card/50 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
+        <div className="relative">
           <img
-            src={tool.coverImage || "/default.png?width=256?height=192&width=256"}
+            src={tool.coverImage || "/default.png?height=192&width=400"}
             alt={tool.name}
             className="w-full h-48 object-cover"
           />
-          <div className="p-4">
-            <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
-            <p className="text-gray-600 mb-4">{tool.description}</p>
-            <div className="flex items-center mb-2">
-              <Star className="h-5 w-5 text-yellow-400 mr-1" />
-              <span>{tool.rating?.toFixed(1) ?? 'N/A'}</span>
-            </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleToggleFavorite}
+            className={`absolute top-2 right-2 ${isFavorite ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-background/50 backdrop-blur-sm rounded-full`}
+          >
+            <Heart className={isFavorite ? "fill-current" : ""} />
+            <span className="sr-only">Toggle favorite</span>
+          </Button>
+        </div>
+        <CardContent className="p-4 flex flex-col flex-grow">
+          <h3 className="text-xl font-semibold mb-2 text-card-foreground">{tool.name}</h3>
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-grow">{tool.description}</p>
+          <div className="flex items-center mt-auto">
+            <Star className="h-4 w-4 text-yellow-500 mr-1" />
+            <span className="text-sm text-muted-foreground">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
           </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
-          <div className="flex w-full space-x-2">
-            <Button className="w-full" asChild size="sm">
-              <Link href={`https://t.me/aiBazar1`}>Купить</Link>
-            </Button>
-            <Button className="w-full" asChild size="sm" variant="outline">
-              <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer">
-                Смотреть
-              </Link>
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleToggleFavorite}
-              className={isFavorite ? "text-red-500" : ""}
-            >
-              <Heart className={isFavorite ? "fill-current" : ""} />
-            </Button>
-          </div>
+        <CardFooter className="p-4 pt-0 grid grid-cols-2 gap-2">
+          <Button className="w-full" asChild>
+            <Link href={`https://t.me/aiBazar1`} className="flex items-center justify-center h-10">
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              <span className="font-medium">Купить</span>
+            </Link>
+          </Button>
+          <Button className="w-full" variant="outline" asChild>
+            <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-10">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              <span className="font-medium">Смотреть</span>
+            </Link>
+          </Button>
         </CardFooter>
       </Card>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col min-h-screen bg-background ${font.className}`}>
       <div className="flex flex-1 overflow-hidden">
         <MenuBar />
         <main className="flex-1 overflow-y-auto p-6">
@@ -182,13 +197,16 @@ export default function Bazar() {
           ) : (
             filteredCategories?.map((category) => {
               const toolsInCategory = aiTools.filter(tool => tool.categoryId === category._id)
-              const displayTools = toolsInCategory.slice(0, 5)
+              const displayTools = toolsInCategory.slice(0, 4)
               
               return (
                 <div key={category._id} className="mb-10">
                   <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl font-semibold">{category.name}</h2>
-                    {toolsInCategory.length > 5 && (
+                    <h2 className="text-xl font-semibold text-primary relative inline-block">
+                      {category.name}
+                      <span className="absolute -bottom-2 left-0 w-full h-1 bg-primary rounded-full"></span>
+                    </h2>
+                    {toolsInCategory.length > 4 && (
                       <Button 
                         variant="link" 
                         onClick={() => router.push(`/category/${category._id}`)}
@@ -197,7 +215,7 @@ export default function Bazar() {
                       </Button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">
                     {displayTools.map((tool) => (
                       <ToolCard key={tool._id} tool={tool} />
                     ))}

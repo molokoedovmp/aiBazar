@@ -23,11 +23,11 @@ const Error = () => {
         className="hidden dark:block"
       />
       <h2 className="text-xl font-medium">
-        Something went wrong!
+        Что-то пошло не так!
       </h2>
       <Button asChild>
         <Link href="/documents">
-          Go back
+          Вернуться на главную
         </Link>
       </Button>
     </div>

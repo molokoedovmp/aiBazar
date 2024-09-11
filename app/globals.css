@@ -95,7 +95,7 @@ body,
   body {
     padding-top: 4rem; /* Пример для высоты 4rem, измените по необходимости */
   }
-
+  
   
 }
  
@@ -104,6 +104,6 @@ body,
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen;
   }
 }

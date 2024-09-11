@@ -38,7 +38,7 @@ export default function ReviewForm() {
       setNewReview({ author: "", content: "", rating: 5 }); // Reset form
     } catch (error) {
       setDialogTitle("Ошибка!");
-      setDialogDescription("Произошла ошибка при отправке отзыва.");
+      setDialogDescription("Произошла ошибка при отправке отзыва Попробуйте авторизоваться.");
       console.error("Error submitting review:", error);
     } finally {
       setIsSubmitting(false);
