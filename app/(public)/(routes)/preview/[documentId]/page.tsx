@@ -97,11 +97,7 @@ const DocumentIdPage = ({ params }: DocumentIdPageProps) => {
         
         <Toolbar preview initialData={document} />
         <Editor editable={false} onChange={onChange} initialContent={document.content} />
-        <div className="mt-8">
-          <Button asChild className="w-full">
-            <Link href={`https://t.me/aiBazar1`}>Купить</Link>
-          </Button>
-        </div>
+        
         <ReviewForm/>
         
         <ReviewsPage/>
