@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { motion, AnimatePresence } from "framer-motion"
 import { Search, Calendar, Star } from "lucide-react"
 import { Id } from "@/convex/_generated/dataModel"
+import Image from "next/image" // Добавлен импорт для компонента Image
 
 const ITEMS_PER_PAGE = 12
 
@@ -102,24 +103,24 @@ export default function CommunityBlog() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-6">
-              <img
+              <Image
                 src="/comm2.png"
                 alt="Community sharing illustration"
                 className="rounded-lg shadow-md w-full md:w-1/2 h-auto object-cover" // Изменен размер с md:w-1/3 на md:w-1/2
-                style={{ aspectRatio: '1912/968' }}
+                width={956}
+                height={484}
               />
               <div className="w-full md:w-1/2">
                 <p className="mb-4">Как создать пост в сообщёстве?</p>
                 <ol className="list-decimal list-inside mb-4">
                   <li>Чтобы начать создавать посты, вам необходимо авторизоваться в своем аккаунте. Вы можете использовать один из нескольких способов авторизации</li>
                   <li>После авторизации вы попадаете в личный кабинет. Это ваша персональная страница, где отображаются ваша активность в сообществе, написанные посты, черновики, а также другие инструменты для взаимодействия с платформой.</li>
-                  <li>Найдите и нажмите на кнопку "Создать страницу". Обычно она находится на видном месте в вашем личном кабинете.</li>
+                  <li>Найдите и нажмите на кнопку &quot;Создать страницу&quot;. Обычно она находится на видном месте в вашем личном кабинете.</li>
                 </ol>
               </div>
             </div>
           </CardContent>
         </Card>
-
 
         <Card className="mb-8">
           <CardHeader>
@@ -132,20 +133,20 @@ export default function CommunityBlog() {
                 <ol className="list-decimal list-inside mb-4">
                   <li>Теперь, когда вы находитесь в редакторе, вы можете приступить к созданию вашего контента</li>
                   <li>Используйте заголовки, списки, выделение текста курсивом или жирным, а также добавляйте изображения и видео для улучшения восприятия.</li>
-                  <li>После того как вы закончили писать и проверять пост, нажмите на кнопку "Опубликовать".</li>
-                  <li>После того как вы опубликовали пост вы можете зайти в сообщество и убедиться что он появился на главной странице</li>
+                  <li>После того как вы закончили писать и проверять пост, нажмите на кнопку &quot;Опубликовать&quot;.</li>
+                  <li>После того как вы опубликовали пост вы можете зайти в сообщество и убедиться что он появился на главной странице.</li>
                 </ol>
               </div>
-              <img
+              <Image
                 src="/comm1.png"
                 alt="Community sharing illustration"
-                className="rounded-lg shadow-md w-full md:w-1/2 h-auto object-cover order-1 md:order-2" // Изменен размер с md:w-1/3 на md:w-1/2
-                style={{ aspectRatio: '1912/968' }}
+                className="rounded-lg shadow-md w-full md:w-1/2 h-auto object-cover order-1 md:order-2"
+                width={956}
+                height={484}
               />
             </div>
           </CardContent>
         </Card>
-
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <div className="relative w-full md:w-96">
@@ -250,10 +251,12 @@ function BlogCard({ doc }: { doc: Document }) {
     <Link href={`/preview/${doc._id}`} className="block h-full">
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
         <div className="relative pt-[56.25%]">
-          <img
+          <Image
             src={doc.coverImage || "/default.png"}
             alt={doc.title}
             className="absolute inset-0 w-full h-full object-cover"
+            width={500}
+            height={300}
           />
         </div>
         <CardContent className="p-4 flex flex-col flex-grow">
