@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { url } from "inspector";
 
 export default defineSchema({
   // Таблица для хранения документов (постов)
@@ -69,6 +70,7 @@ export default defineSchema({
     description: v.string(),
     icon: v.string(),
     price: v.string(),
+    url: v.optional(v.string()),
     features: v.array(v.string()),
   })
     .index("by_title", ["title"])
