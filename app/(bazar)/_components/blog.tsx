@@ -120,6 +120,7 @@ export default function CommunityBlog() {
           </CardContent>
         </Card>
 
+
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Создание поста</CardTitle>
