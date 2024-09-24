@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';  // Добавляем динамическую генерацию страницы
+
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -7,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Poppins } from 'next/font/google';
-import {Navbar} from '@/app/(marketing)/_components/navbar'; // Убедитесь, что путь к вашему Navbar правильный
+import { Navbar } from '@/app/(marketing)/_components/navbar'; // Убедитесь, что путь к вашему Navbar правильный
 
-const font = Poppins({    
+const font = Poppins({
   subsets: ['latin'],
   weight: ['400', '600'],
 });
@@ -49,7 +51,8 @@ export default function PaymentPage() {
               <div className="flex items-start space-x-2">
                 <RadioGroupItem value="option1" id="option1" />
                 <label htmlFor="option1" className="text-sm flex-1">
-                  Отправить нам пароль и логин для входа в аккаунт, и мы оплатим подписку.
+                  Отправить нам пароль и логин для входа в аккаунт, и мы оплатим
+                  подписку.
                 </label>
               </div>
               <div className="flex items-start space-x-2">
