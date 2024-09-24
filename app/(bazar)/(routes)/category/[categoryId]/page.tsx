@@ -136,12 +136,12 @@ export default function CategoryPage() {
           </div>
         </CardContent>
         <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2">
-          <Button className="w-full text-xs py-1" asChild>
-            <Link href={`https://t.me/aiBazar1`} className="flex items-center justify-center h-8">
-              <ShoppingCart className="h-3 w-3 mr-1" />
-              <span className="font-medium">Купить</span>
-            </Link>
-          </Button>
+            <Button className="w-full text-xs py-1" asChild>
+              <Link href={`/payment`} className="flex items-center justify-center h-8">
+                <ShoppingCart className="h-3 w-3 mr-1" />
+                <span className="font-medium">Купить</span>
+              </Link>
+            </Button>
           <Button className="w-full text-xs py-1" variant="outline" asChild>
             <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
               <ExternalLink className="h-3 w-3 mr-1" />

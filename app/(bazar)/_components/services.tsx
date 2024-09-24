@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 export default function Services() {
   const [name, setName] = useState("");
@@ -129,7 +130,12 @@ export default function Services() {
                   </ul>
                 </CardContent>
                 <CardFooter className="mt-auto">
-                  <Button className="w-full">{"Начать"}</Button>
+                  <Button className="w-full text-xs py-1" asChild>
+                    <Link href={`/payment`} className="flex items-center justify-center h-8">
+                      <ShoppingCart className="h-3 w-3 mr-1" />
+                      <span className="font-medium">Купить</span>
+                    </Link>
+                  </Button>
                 </CardFooter>
               </Card>
             ))}

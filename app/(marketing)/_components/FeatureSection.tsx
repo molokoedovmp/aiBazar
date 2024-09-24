@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ExternalLink, ShoppingCart } from "lucide-react"
 
 interface Tool {
   _id: string
@@ -80,12 +81,16 @@ export default function FeaturePage() {
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
                     <div className="flex w-full space-x-2">
-                      <Button className="w-full" asChild size="sm">
-                        <Link href={`https://t.me/aiBazar1`}>Купить</Link>
+                      <Button className="w-full text-xs py-1" asChild>
+                        <Link href={`/payment`} className="flex items-center justify-center h-8">
+                          <ShoppingCart className="h-3 w-3 mr-1" />
+                          <span className="font-medium">Купить</span>
+                        </Link>
                       </Button>
-                      <Button className="w-full" asChild size="sm" variant="outline">
-                        <Link href={tool.url} target="_blank" rel="noopener noreferrer">
-                          Смотреть
+                      <Button className="w-full text-xs py-1" variant="outline" asChild>
+                        <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          <span className="font-medium">Смотреть</span>
                         </Link>
                       </Button>
                     </div>

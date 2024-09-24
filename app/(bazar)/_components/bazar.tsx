@@ -185,7 +185,7 @@ export default function Bazar() {
         </CardContent>
         <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2">
           <Button className="w-full text-xs py-1" asChild>
-            <Link href={`https://t.me/aiBazar1`} className="flex items-center justify-center h-8">
+            <Link href={`/payment?toolId=${tool._id}`} className="flex items-center justify-center h-8">
               <ShoppingCart className="h-3 w-3 mr-1" />
               <span className="font-medium">Купить</span>
             </Link>

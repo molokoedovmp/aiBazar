@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Instagram, Send } from "lucide-react"
 import Link from "next/link"
+import { YandexZenIcon } from "@/components/YandexZenIcon" // Импортируем нашу иконку
 
 export const Footer = () => {
   return (
     <div className="flex items-center w-full p-6 bg-background z-50 dark:bg-[#1F1F1F]">
       <Logo />
       <div className="md:ml-auto w-full justify-between md:justify-end flex items-center gap-x-2 text-muted-foreground">
-        <Link href="https://www.instagram.com/aibazaru/" target="_blank" rel="noopener noreferrer">
+      <Link href="https://www.instagram.com/aibazaru/" target="_blank" rel="noopener noreferrer">
           <Button variant="ghost" size="icon">
             <Instagram className="h-5 w-5" />
           </Button>
@@ -26,6 +27,11 @@ export const Footer = () => {
         <Link href="https://t.me/aiBazar1" target="_blank" rel="noopener noreferrer">
           <Button variant="ghost" size="icon">
             <Send className="h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="https://dzen.ru/aibazar?share_to=link" target="_blank" rel="noopener noreferrer">
+          <Button variant="ghost" size="icon">
+            <YandexZenIcon className="h-5 w-5" />
           </Button>
         </Link>
 
