@@ -99,7 +99,7 @@ export default function Services() {
                   <CardTitle className="flex items-center">
                     <span className="text-3xl mr-2">{service.icon}</span>
                     {service.title}
-                  </CardTitle>
+                  </CardTitle>  
                 </CardHeader>
                 <CardContent>
                   <p>{service.description}</p>
@@ -122,9 +122,9 @@ export default function Services() {
                 <CardContent className="flex-grow">
                   <ul className="space-y-2">
                     {plan.features.map((feature, fIndex) => (
-                      <li key={fIndex} className="flex items-center">
-                        <CheckIcon className="mr-2 h-4 w-4 text-primary" />
-                        {feature}
+                      <li key={fIndex} className="flex items-start">
+                        <CheckIcon className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>
