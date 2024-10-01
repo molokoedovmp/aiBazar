@@ -1,52 +1,66 @@
-## "Приложение для совместной работы"
-##### Функциональность:
-1. Аутентификация пользователя 
-2. Редактирование профиля 
-3. Добавление медиа файлов 
-4. Создание документа
-5. Совместная работа
-6. Персонализация контента 
-7. Редактирование и форматирование текста
-8. Архивирование и восстановление документа
-9. Организация документов иерархией
-10. Экспорт, импорт данных
-11. Поддержка мобильных устройств
+# Code Documentation
 
-Приложение развернуто https://task-focus.vercel.app/
+## Overview
 
-![](./public/readme/1.png)
-![](./public/readme/2.png)
+This codebase appears to be for a Next.js web application with various components and features. It uses technologies like React, TypeScript, Tailwind CSS, and various UI libraries.
 
-### Установить пакеты
+## Key Components
 
-```shell
-npm i
-```
+### App Structure
+- Uses Next.js app directory structure with routes defined in `app` folder
+- Has separate layouts for different sections (main, marketing, payment, etc.)
+- Uses server and client components
 
-### Настроить .env file
+### UI Components  
+- Extensive use of Radix UI primitives and components
+- Custom UI components built on top of Radix (buttons, dropdowns, modals, etc.)
+- Tailwind CSS for styling
 
+### State Management
+- Uses Zustand for global state management
+- React context for theming and other shared state
 
-```js
-# Deployment used by `npx convex dev`
-CONVEX_DEPLOYMENT=
-NEXT_PUBLIC_CONVEX_URL=
+### Authentication
+- Uses Clerk for authentication and user management
 
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
+### Data Fetching
+- Uses Convex as a backend/API layer
+- SWR for data fetching and caching on the client
 
-EDGE_STORE_ACCESS_KEY=
-EDGE_STORE_SECRET_KEY=
-```
+### Editor Functionality
+- TipTap editor for rich text editing
+- BlockNote for block-based editing
 
-### Ввести в терминал
+### File Uploads
+- EdgeStore for file uploads and storage
+- UploadThing for file upload UI
 
-```shell
-npx convex dev
+## Key Features
 
-```
+- Document editing and collaboration
+- User authentication and profiles  
+- File uploads and management
+- Dark mode / theming
+- Search functionality
+- Responsive design
 
-### Запустить приложение
+## Inputs
 
-```shell
-npm run dev
-```
+- User authentication credentials
+- Document content (text, images, etc.)  
+- User preferences and settings
+- Search queries
+
+## Outputs
+
+- Rendered web pages and UI
+- Edited and saved documents
+- User profile information
+- Search results
+- Uploaded files and media
+
+## Usage
+
+This appears to be a full-featured document editing and collaboration platform, likely similar to tools like Notion. Users can create accounts, create and edit documents, collaborate in real-time, upload files, and organize their information.
+
+The modular architecture allows for easy extension of functionality through new components and API integrations. The use of modern React patterns and libraries provides a solid foundation for a performant and maintainable web application.
