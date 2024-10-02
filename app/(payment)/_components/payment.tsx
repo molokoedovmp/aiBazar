@@ -23,9 +23,12 @@ export default function PaymentPage() {
   return (
     <div
       className={`flex flex-col min-h-screen bg-background items-center p-6 ${font.className}`}
+      style={{
+        backgroundImage: "url('/landing/land.png')", // Замените на правильный путь к изображению
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
     >
-
-
       {/* Оборачиваем Card, чтобы центрировать его с учетом Navbar */}
       <div className="flex-1 flex items-center justify-center w-full">
         <Card className="max-w-xl w-full">

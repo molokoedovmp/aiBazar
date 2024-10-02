@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+
 export default function MenuBar() {
   const router = useRouter()
   const categories = useQuery(api.categories.get)
@@ -46,11 +47,11 @@ export default function MenuBar() {
               }
             }}
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-primary"
+            className="w-full justify-start text-muted-foreground hover:text-primary p-2" // Уменьшен padding
             aria-label={`Go to ${category.name} category`}
           >
             {category.icon && (
-              <div className="mr-2 h-5 w-5 relative">
+              <div className="mr-1 h-5 w-5 relative"> {/* Уменьшено расстояние справа */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -89,7 +90,7 @@ export default function MenuBar() {
             </DialogContent>
           </Dialog>
         ) : (
-          <nav className="bg-muted/40 border-r p-6 hidden lg:block w-64">
+          <nav className="bg-muted/40 border-r p-2 hidden lg:block w-auto"> {/* Уменьшен padding */}
             <CategoryList />
           </nav>
         )}
