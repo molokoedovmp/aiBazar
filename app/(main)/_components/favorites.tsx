@@ -15,6 +15,23 @@ const font = Poppins({
   subsets: ["latin"],
   weight: ["400", "600"],
 });
+
+function SkeletonCard() {
+  return (
+    <Card className="bg-card/90 backdrop-blur-sm border border-primary/20">
+      <Skeleton className="h-32 w-full" />
+      <CardContent className="p-3 bg-background/40">
+        <Skeleton className="h-4 w-3/4 mb-2" />
+        <Skeleton className="h-3 w-full mb-2" />
+        <Skeleton className="h-3 w-5/6" />
+      </CardContent>
+      <CardFooter className="p-3 pt-0 bg-background/40">
+        <Skeleton className="h-8 w-full" />
+      </CardFooter>
+    </Card>
+  )
+}
+
 export default function FavoritesPage() {
   const favorites = useQuery(api.favorites.getByUser)
   const aiTools = useQuery(api.aiTools.get)
@@ -48,17 +65,7 @@ export default function FavoritesPage() {
         {favorites === undefined ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, index) => (
-              <Card key={index} className="bg-card/50 backdrop-blur-sm">
-                <Skeleton className="h-48 w-full" />
-                <CardContent className="p-4">
-                  <Skeleton className="h-5 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-5/6" />
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Skeleton className="h-9 w-full" />
-                </CardFooter>
-              </Card>
+              <SkeletonCard key={index} />
             ))}
           </div>
         ) : favoritedTools.length === 0 ? (
@@ -66,41 +73,44 @@ export default function FavoritesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {favoritedTools.map((tool) => (
-              <Card key={tool._id} className="bg-card/50 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
+              <Card key={tool._id} className="bg-card/90 backdrop-blur-sm border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col hover:scale-[1.02] hover:bg-card">
                 <div className="relative">
                   <img
-                    src={tool.coverImage || "/default.png?height=192&width=400"}
+                    src={tool.coverImage || "/default.png?height=128&width=256"}
                     alt={tool.name}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-32 object-cover"
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveFavorite(tool._id)}
-                    className="absolute top-2 right-2 text-destructive hover:text-destructive/90 bg-background/50 backdrop-blur-sm rounded-full"
+                    className={`absolute top-2 right-2 hover:bg-transparent text-destructive hover:text-destructive/90 shadow-sm backdrop-blur-[2px] rounded-full p-1.5 transition-colors duration-200`}
                   >
-                    <Trash2 className="h-5 w-5" />
+                    <Trash2 className="w-5 h-5 stroke-[2px]" />
                     <span className="sr-only">Удалить из избранного</span>
                   </Button>
                 </div>
-                <CardContent className="p-4 flex flex-col flex-grow">
-                  <h3 className="text-xl font-semibold mb-2 text-card-foreground">{tool.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-grow">{tool.description}</p>
+                <CardContent className="p-3 flex flex-col flex-grow bg-background/40">
+                  <h3 className="text-base font-semibold mb-1 text-foreground line-clamp-1">{tool.name}</h3>
+                  <p className="text-xs text-muted-foreground/90 mb-2 line-clamp-2 flex-grow">{tool.description}</p>
                   <div className="flex items-center mt-auto">
-                    <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                    <span className="text-sm text-muted-foreground">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                    <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+                    <span className="ml-auto text-xs font-semibold text-primary/90">
+                      {tool.price === undefined || tool.price === 0 ? 'Бесплатно' : `от ${tool.price.toLocaleString('ru-RU')} ₽`}
+                    </span>
                   </div>
                 </CardContent>
-                <CardFooter className="p-4 pt-0 grid grid-cols-2 gap-2">
-                  <Button className="w-full" asChild>
-                    <Link href={`https://t.me/aiBazar1`} className="flex items-center justify-center h-10">
-                      <ShoppingCart className="h-4 w-4 mr-2" />
+                <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2 bg-background/40">
+                  <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary" asChild>
+                    <Link href={`/payment`} className="flex items-center justify-center h-8">
+                      <ShoppingCart className="h-3 w-3 mr-1" />
                       <span className="font-medium">Купить</span>
                     </Link>
                   </Button>
-                  <Button className="w-full" variant="outline" asChild>
-                    <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-10">
-                      <ExternalLink className="h-4 w-4 mr-2" />
+                  <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+                    <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
+                      <ExternalLink className="h-3 w-3 mr-1" />
                       <span className="font-medium">Смотреть</span>
                     </Link>
                   </Button>

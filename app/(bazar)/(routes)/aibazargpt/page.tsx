@@ -25,16 +25,16 @@ const services = [
     title: "AI Курсовая Работа",
     description: "Интеллектуальный помощник для написания курсовых работ",
     price: 1500,
-    image: "/landing/course.png",
-    articleUrl: "https://www.ai-bazar.ru/preview/j57etj43t4t6ktwmb84mzct1m17ahg0m",
+    icon: "/landing/course.png",
+    url: "https://www.ai-bazar.ru/preview/j57etj43t4t6ktwmb84mzct1m17ahg0m",
   },
   {
     id: "thesis",
     title: "AI Дипломная Работа",
     description: "Помощь в написании и структурировании дипломных работ",
     price: 3000,
-    image: "/aibazargpt/diploma.png",
-    articleUrl: "https://www.ai-bazar.ru/preview/j574tjma2wa2gygktrnvqdqg7x7agxz2",
+    icon: "/aibazargpt/diploma.png",
+    url: "https://www.ai-bazar.ru/preview/j574tjma2wa2gygktrnvqdqg7x7agxz2",
   },
     
 ]

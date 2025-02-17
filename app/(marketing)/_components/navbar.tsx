@@ -84,7 +84,7 @@ export const Navbar = () => {
             <Link href="/bazar" onClick={toggleMobileMenu}>Магазин Нейросетей</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild className="text-white hover:text-white/80">
-            <Link href="/bazar" onClick={toggleMobileMenu}>aiBazar gpt</Link>
+            <Link href="/aibazargpt" onClick={toggleMobileMenu}>aiBazar gpt</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild className="text-white hover:text-white/80">
             <Link href="/services" onClick={toggleMobileMenu}>Услуги</Link>

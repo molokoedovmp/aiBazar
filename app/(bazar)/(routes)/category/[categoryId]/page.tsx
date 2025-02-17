@@ -41,14 +41,14 @@ const font = Poppins({
 
 function SkeletonCard() {
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border border-primary/10">
+    <Card className="bg-card/90 backdrop-blur-sm border border-primary/20">
       <Skeleton className="h-32 w-full" />
-      <CardContent className="p-3">
+      <CardContent className="p-3 bg-background/40">
         <Skeleton className="h-4 w-3/4 mb-2" />
         <Skeleton className="h-3 w-full mb-2" />
         <Skeleton className="h-3 w-5/6" />
       </CardContent>
-      <CardFooter className="p-3 pt-0">
+      <CardFooter className="p-3 pt-0 bg-background/40">
         <Skeleton className="h-8 w-full" />
       </CardFooter>
     </Card>
@@ -108,8 +108,13 @@ export default function CategoryPage() {
       }
     }
 
+    const formatPrice = (price?: number) => {
+      if (price === undefined || price === 0) return 'Бесплатно'
+      return `от ${price.toLocaleString('ru-RU')} ₽`
+    }
+
     return (
-      <Card className="bg-card/50 backdrop-blur-sm border border-primary/10 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
+      <Card className="bg-card/90 backdrop-blur-sm border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col hover:scale-[1.02] hover:bg-card">
         <div className="relative">
           <img
             src={tool.coverImage || "/default.png?height=128&width=256"}
@@ -120,29 +125,39 @@ export default function CategoryPage() {
             variant="ghost"
             size="icon"
             onClick={handleToggleFavorite}
-            className={`absolute top-1 right-1 ${isFavorite ? 'text-red-500' : 'text-white'} hover:text-red-400 bg-background/50 backdrop-blur-sm rounded-full p-1`}
+            className={`absolute top-2 right-2 hover:bg-transparent ${
+              isFavorite 
+                ? 'text-red-500 hover:text-red-600' 
+                : 'text-neutral-800 hover:text-red-500 dark:text-white'
+            } shadow-sm backdrop-blur-[2px] rounded-full p-1.5 transition-colors duration-200`}
           >
-            <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+            <Heart 
+              className={`w-5 h-5 ${
+                isFavorite 
+                  ? "fill-current stroke-[1.5px]" 
+                  : "stroke-[2px] fill-white/80 dark:fill-transparent"
+              }`} 
+            />
             <span className="sr-only">Toggle favorite</span>
           </Button>
         </div>
-        <CardContent className="p-3 flex flex-col flex-grow">
-          <h3 className="text-base font-semibold mb-1 text-card-foreground line-clamp-1">{tool.name}</h3>
-          <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow">{tool.description}</p>
+        <CardContent className="p-3 flex flex-col flex-grow bg-background/40">
+          <h3 className="text-base font-semibold mb-1 text-foreground line-clamp-1">{tool.name}</h3>
+          <p className="text-xs text-muted-foreground/90 mb-2 line-clamp-2 flex-grow">{tool.description}</p>
           <div className="flex items-center mt-auto">
             <Star className="h-3 w-3 text-yellow-500 mr-1" />
-            <span className="text-xs text-muted-foreground">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
-            <span className="ml-auto text-xs font-semibold">{tool.isActive ? 'Free' : 'Paid'}</span>
+            <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+            <span className="ml-auto text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
           </div>
         </CardContent>
-        <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2">
-            <Button className="w-full text-xs py-1" asChild>
-              <Link href={`/payment`} className="flex items-center justify-center h-8">
-                <ShoppingCart className="h-3 w-3 mr-1" />
-                <span className="font-medium">Купить</span>
-              </Link>
-            </Button>
-          <Button className="w-full text-xs py-1" variant="outline" asChild>
+        <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2 bg-background/40">
+          <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary" asChild>
+            <Link href={`/payment`} className="flex items-center justify-center h-8">
+              <ShoppingCart className="h-3 w-3 mr-1" />
+              <span className="font-medium">Купить</span>
+            </Link>
+          </Button>
+          <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
             <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
               <ExternalLink className="h-3 w-3 mr-1" />
               <span className="font-medium">Смотреть</span>
