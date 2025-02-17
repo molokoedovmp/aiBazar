@@ -70,12 +70,12 @@ export default defineSchema({
   services: defineTable({
     title: v.string(),
     description: v.string(),
-    fullDescription: v.string(),
+    fullDescription: v.optional(v.string()),
     price: v.optional(v.number()),
     image: v.optional(v.string()),
     features: v.array(v.string()),
     articleUrl: v.optional(v.string()),
-    isActive: v.boolean(),
+    isActive: v.optional(v.boolean()),
   })
     .index("by_title", ["title"]),
 
