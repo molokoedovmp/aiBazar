@@ -33,10 +33,12 @@ export default defineSchema({
     type: v.string(),
     isActive: v.boolean(),
     rating: v.optional(v.number()),
-    categoryId: v.id("categories"),  // Ссылка на категорию
+    price: v.optional(v.number()),
+    categoryId: v.id("categories"),
   })
-    .index("by_category", ["categoryId"])  // Add this index
-    .index("by_rating", ["rating"]), // Add this index
+    .index("by_category", ["categoryId"])
+    .index("by_rating", ["rating"]),
+
   // Таблица для хранения избранного
   // In your schema file
   favorites: defineTable({
@@ -64,15 +66,44 @@ export default defineSchema({
   })
     .index("by_document", ["documentId"]),
   
-  // New table for services
+  // Таблица сервисов
   services: defineTable({
     title: v.string(),
     description: v.string(),
-    icon: v.string(),
-    price: v.string(),
-    url: v.optional(v.string()),
+    fullDescription: v.string(),
+    price: v.optional(v.number()),
+    image: v.optional(v.string()),
     features: v.array(v.string()),
+    articleUrl: v.optional(v.string()),
+    isActive: v.boolean(),
   })
-    .index("by_title", ["title"])
-    .index("by_price", ["price"]),
+    .index("by_title", ["title"]),
+
+  // Новая таблица для корзины покупок
+  cart: defineTable({
+    userId: v.string(),
+    toolId: v.id("aiTools"),
+    quantity: v.number(),
+    addedAt: v.number(), // timestamp
+    status: v.string(), // например: 'in_cart', 'purchased', 'cancelled'
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_status", ["userId", "status"]),
+
+  // Новая таблица для заказов
+  orders: defineTable({
+    userId: v.string(),
+    items: v.array(v.object({
+      toolId: v.id("aiTools"),
+      quantity: v.number(),
+      priceAtPurchase: v.number(),
+    })),
+    totalAmount: v.number(),
+    status: v.string(), // например: 'pending', 'completed', 'failed'
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    paymentId: v.optional(v.string()), // для хранения ID платежа от платежной системы
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_status", ["userId", "status"]),
 });

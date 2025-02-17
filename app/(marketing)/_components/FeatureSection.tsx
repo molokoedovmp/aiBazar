@@ -17,6 +17,7 @@ interface Tool {
   categoryId: string
   url: string
   rating?: number
+  price?: number
 }
 
 function SkeletonCard() {
@@ -57,6 +58,11 @@ export default function FeaturePage() {
         .slice(0, 4)
     : []
 
+  const formatPrice = (price?: number) => {
+    if (price === undefined) return 'Бесплатно'
+    return `${price.toLocaleString('ru-RU')} ₽`
+  }
+
   return (
     <div className="flex flex-col">
       <main className="flex-1 p-6">
@@ -89,17 +95,33 @@ export default function FeaturePage() {
                       </div>
                     </div>
                     <p className="text-gray-600 mb-4 flex-grow">{tool.description}</p>
+                    <div className="flex justify-end mb-2">
+                      <span className="text-sm font-semibold text-primary">
+                        {formatPrice(tool.price)}
+                      </span>
+                    </div>
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
                     <div className="flex w-full space-x-2">
-                      <Button className="w-full text-xs py-1" asChild>
+                      <Button 
+                        className="w-full text-xs py-1" 
+                        variant={tool.price ? "default" : "secondary"}
+                        asChild
+                      >
                         <Link href={`/payment`} className="flex items-center justify-center h-8">
                           <ShoppingCart className="h-3 w-3 mr-1" />
-                          <span className="font-medium">Купить</span>
+                          <span className="font-medium">
+                            {tool.price ? 'Купить' : 'Получить'}
+                          </span>
                         </Link>
                       </Button>
                       <Button className="w-full text-xs py-1" variant="outline" asChild>
-                        <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
+                        <Link 
+                          href={tool.url ?? "#"} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center justify-center h-8"
+                        >
                           <ExternalLink className="h-3 w-3 mr-1" />
                           <span className="font-medium">Смотреть</span>
                         </Link>

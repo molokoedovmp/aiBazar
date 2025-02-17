@@ -51,6 +51,7 @@ interface Tool {
   url: string
   rating?: number
   isActive: boolean
+  price?: number
   _creationTime: number
 }
 
@@ -156,6 +157,11 @@ export default function Bazar() {
       }
     }
 
+    const formatPrice = (price?: number) => {
+      if (price === undefined) return 'Бесплатно'
+      return `${price.toLocaleString('ru-RU')} ₽`
+    }
+
     return (
       <Card className="bg-card/50 backdrop-blur-sm border border-primary/10 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
         <div className="relative">
@@ -177,17 +183,25 @@ export default function Bazar() {
         <CardContent className="p-3 flex flex-col flex-grow">
           <h3 className="text-base font-semibold mb-1 text-card-foreground line-clamp-1">{tool.name}</h3>
           <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow">{tool.description}</p>
-          <div className="flex items-center mt-auto">
-            <Star className="h-3 w-3 text-yellow-500 mr-1" />
-            <span className="text-xs text-muted-foreground">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
-            <span className="ml-auto text-xs font-semibold">{tool.isActive ? 'Free' : 'Paid'}</span>
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center">
+              <Star className="h-3 w-3 text-yellow-500 mr-1" />
+              <span className="text-xs text-muted-foreground">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+            </div>
+            <span className="text-xs font-semibold text-primary">{formatPrice(tool.price)}</span>
           </div>
         </CardContent>
         <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2">
-          <Button className="w-full text-xs py-1" asChild>
+          <Button 
+            className="w-full text-xs py-1" 
+            asChild
+            variant={tool.price ? "default" : "secondary"}
+          >
             <Link href={`/payment`} className="flex items-center justify-center h-8">
               <ShoppingCart className="h-3 w-3 mr-1" />
-              <span className="font-medium">Купить</span>
+              <span className="font-medium">
+                {tool.price ? 'Купить' : 'Получить'}
+              </span>
             </Link>
           </Button>
           <Button className="w-full text-xs py-1" variant="outline" asChild>

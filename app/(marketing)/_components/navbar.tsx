@@ -32,7 +32,10 @@ export const Navbar = () => {
 
       <nav className="hidden md:flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild className="text-white hover:text-black/80">
-          <Link href="/bazar">AI</Link>
+          <Link href="/bazar">Магазин Нейросетей</Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild className="text-white hover:text-black/80">
+          <Link href="/aibazargpt">aiBazar gpt</Link>
         </Button>
         <Button variant="ghost" size="sm" asChild className="text-white hover:text-black/80">
           <Link href="/services">Услуги</Link>
@@ -78,7 +81,10 @@ export const Navbar = () => {
             <Link href="/" onClick={toggleMobileMenu}>Главная</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild className="text-white hover:text-white/80">
-            <Link href="/bazar" onClick={toggleMobileMenu}>AI</Link>
+            <Link href="/bazar" onClick={toggleMobileMenu}>Магазин Нейросетей</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild className="text-white hover:text-white/80">
+            <Link href="/bazar" onClick={toggleMobileMenu}>aiBazar gpt</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild className="text-white hover:text-white/80">
             <Link href="/services" onClick={toggleMobileMenu}>Услуги</Link>
