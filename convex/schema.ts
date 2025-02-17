@@ -70,14 +70,13 @@ export default defineSchema({
   services: defineTable({
     title: v.string(),
     description: v.string(),
-    fullDescription: v.optional(v.string()),
-    price: v.optional(v.number()),
-    image: v.optional(v.string()),
+    icon: v.string(),
+    price: v.string(),
+    url: v.optional(v.string()),
     features: v.array(v.string()),
-    articleUrl: v.optional(v.string()),
-    isActive: v.optional(v.boolean()),
   })
-    .index("by_title", ["title"]),
+    .index("by_title", ["title"])
+    .index("by_price", ["price"]),
 
   // Новая таблица для корзины покупок
   cart: defineTable({

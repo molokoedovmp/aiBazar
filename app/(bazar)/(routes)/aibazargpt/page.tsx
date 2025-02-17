@@ -16,8 +16,9 @@ const services = [
     title: "AI Поиск",
     description: "Умный поиск нейросетей по запросу",
     price: "Бесплатно",
-    image: "/aibazargpt/search.png",
-    articleUrl: "https://www.ai-bazar.ru/preview/j57f0vz48aps4c2ahh5amk2c4h7agktd",
+    icon: "/aibazargpt/search.png",
+    url: "https://www.ai-bazar.ru/preview/j57f0vz48aps4c2ahh5amk2c4h7agktd",
+    features: [/* ... */],
   },
   {
     id: "coursework",
@@ -35,7 +36,7 @@ const services = [
     image: "/aibazargpt/diploma.png",
     articleUrl: "https://www.ai-bazar.ru/preview/j574tjma2wa2gygktrnvqdqg7x7agxz2",
   },
-  
+    
 ]
 
 export default function Home() {
@@ -119,7 +120,7 @@ function ServiceCard({ service }: { service: (typeof services)[0] }) {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col bg-card/50 backdrop-blur-sm border border-primary/10">
         <div className="relative w-full h-40 bg-background/50">
           <Image
-            src={service.image || "/placeholder.svg"}
+            src={service.icon || "/placeholder.svg"}
             alt={service.title}
             fill
             className="absolute inset-0 object-contain p-2"
