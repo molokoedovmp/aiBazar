@@ -97,23 +97,34 @@ export default function FavoritesPage() {
                     <Star className="h-3 w-3 text-yellow-500 mr-1" />
                     <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
                     <span className="ml-auto text-xs font-semibold text-primary/90">
-                      {tool.price === undefined || tool.price === 0 ? 'Бесплатно' : `от ${tool.price.toLocaleString('ru-RU')} ₽`}
+                      {tool.price === undefined || tool.price === 0 ? 'Бесплатно' : `${tool.price.toLocaleString('ru-RU')} ₽`}
                     </span>
                   </div>
                 </CardContent>
-                <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2 bg-background/40">
-                  <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary" asChild>
-                    <Link href={`/payment`} className="flex items-center justify-center h-8">
-                      <ShoppingCart className="h-3 w-3 mr-1" />
-                      <span className="font-medium">Купить</span>
-                    </Link>
-                  </Button>
-                  <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
-                    <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      <span className="font-medium">Смотреть</span>
-                    </Link>
-                  </Button>
+                <CardFooter className="p-3 pt-0 grid grid-cols-1 gap-2 bg-background/40">
+                  {tool.price && tool.price > 0 ? (
+                    <>
+                      <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary" asChild>
+                        <Link href={`/payment`} className="flex items-center justify-center h-8">
+                          <ShoppingCart className="h-3 w-3 mr-1" />
+                          <span className="font-medium">Купить</span>
+                        </Link>
+                      </Button>
+                      <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+                        <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          <span className="font-medium">Смотреть</span>
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+                      <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <span className="font-medium">Смотреть</span>
+                      </Link>
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}
