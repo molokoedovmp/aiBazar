@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import Image from 'next/image';
 
 // Импортируйте новый компонент
 import HowItWorksSection from './steps';
@@ -59,7 +60,7 @@ export function Landingsecond() {
         {/* Designer Services Section */}
           {/* <ContentPage /> */}
         <section className="relative py-12 md:py-24 lg:py-32 bg-muted">
-          <img
+          <Image
             src="/landing/crev.png"
             alt="Featured AI Products"
             className="absolute inset-0 w-full h-full object-cover z-0"
@@ -71,7 +72,7 @@ export function Landingsecond() {
 
         {/* Featured AI Products Section */}
         <section className="relative py-12 md:py-24 lg:py-32 bg-muted">
-          <img
+          <Image
             src="/landing/circle.png"
             alt="Featured AI Products"
             className="absolute inset-0 w-full h-full object-cover z-0"

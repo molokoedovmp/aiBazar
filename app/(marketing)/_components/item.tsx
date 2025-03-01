@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useState } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Id } from "@/convex/_generated/dataModel"; // Импорт Id из Convex
+import Image from 'next/image';
 
 // Компонент скелетона для карточек
 function SkeletonCard() {
@@ -56,9 +57,11 @@ export default function ItemPage() {
           filteredTools.map((tool) => (
             <Card key={tool._id} className="overflow-hidden">
               <CardContent className="p-0">
-                <img
+                <Image
                   src={tool.coverImage || "/default.png"}
                   alt={tool.name}
+                  width={300}
+                  height={200}
                   className="w-full h-48 object-cover"
                 />
               </CardContent>

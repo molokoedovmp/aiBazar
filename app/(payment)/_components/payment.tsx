@@ -16,9 +16,13 @@ import { ArrowLeft } from "lucide-react"
 export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const createOrder = useMutation(api.aiToolsOrders.create);
-  
   const toolId = searchParams.get('toolId');
+  const tool = useQuery(api.aiTools.getById, { aiToolsId: toolId as Id<"aiTools"> });
+  const [formData, setFormData] = useState({
+    details: '',
+    contactInfo: '',
+  });
+  const createOrder = useMutation(api.aiToolsOrders.create);
   
   // Если нет toolId, показываем ошибку
   if (!toolId) {
@@ -31,13 +35,6 @@ export default function PaymentPage() {
       </div>
     );
   }
-
-  const tool = useQuery(api.aiTools.getById, { aiToolsId: toolId as Id<"aiTools"> });
-  
-  const [formData, setFormData] = useState({
-    details: '',
-    contactInfo: '',
-  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
