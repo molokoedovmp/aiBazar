@@ -69,9 +69,9 @@ export default function PaymentPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
+        const errorData = await response.json();
         console.error('Payment error:', errorData);
-        throw new Error(`Payment failed: ${errorData}`);
+        throw new Error(errorData.error || 'Payment creation failed');
       }
 
       const payment = await response.json();
