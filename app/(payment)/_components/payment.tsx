@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Id } from '@/convex/_generated/dataModel';
 import { ArrowLeft } from "lucide-react"
+import Image from 'next/image';
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -103,10 +104,12 @@ export default function PaymentPage() {
             <h2 className="text-xl font-semibold">Оформление заказа</h2>
             <div className="mt-4 p-4 bg-muted rounded-lg">
               <div className="mb-4 rounded-lg overflow-hidden">
-                <img 
-                  src={tool.coverImage || "/default.png?height=128&width=256"}
+                <Image
+                  src={tool.coverImage || "/default.png"}
                   alt={tool.name}
-                  className="w-full h-48 object-cover"
+                  width={300}
+                  height={200}
+                  className="w-full h-32 object-cover"
                 />
               </div>
               <h3 className="font-medium">{tool.name}</h3>
