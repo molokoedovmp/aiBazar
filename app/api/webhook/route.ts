@@ -17,6 +17,13 @@ export async function POST(req: Request) {
     console.log('Metadata:', body.object.metadata)
     console.log('========================')
 
+    console.log('Webhook received:', {
+      event: body.event,
+      paymentId: body.object.id,
+      status: body.object.status,
+      metadata: body.object.metadata
+    });
+
     // Обрабатываем уведомление
     if (body.event === 'payment.succeeded') {
       const convexId = body.object.metadata.convexId

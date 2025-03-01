@@ -11,40 +11,34 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { amount, description, paymentId } = body
 
-    console.log('Creating payment with:', { amount, description, paymentId }) // Для отладки
+    console.log('Creating payment with amount:', amount)
 
     const payment = await yooKassa.createPayment({
       amount: {
-        value: amount.toFixed(2),
+        value: amount.toString(),
         currency: "RUB"
       },
       capture: true,
       confirmation: {
         type: "redirect",
-        return_url: `http://localhost:3000/payment/success?convexId=${paymentId}`
+        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?convexId=${paymentId}`
       },
-      description: `Оплата ${description}`,
+      description: description,
       metadata: {
         convexId: paymentId
       }
     })
 
-    console.log('YooKassa response:', payment) // Для отладки
+    console.log('Payment created:', payment)
 
     if (!payment.confirmation?.confirmation_url) {
       throw new Error('No confirmation URL in response')
     }
 
-    return NextResponse.json({
-      confirmation_url: payment.confirmation.confirmation_url,
-      payment_id: payment.id
-    })
+    return NextResponse.json(payment)
 
   } catch (error) {
-    console.error("YooKassa error details:", error)
-    return new NextResponse(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), 
-      { status: 500 }
-    )
+    console.error('YooKassa error:', error)
+    return new NextResponse('Payment creation failed', { status: 500 })
   }
 } 

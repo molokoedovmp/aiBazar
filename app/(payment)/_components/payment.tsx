@@ -68,16 +68,27 @@ export default function PaymentPage() {
         }),
       });
 
-      if (!response.ok) throw new Error('Payment creation failed');
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Payment error:', errorData);
+        throw new Error(`Payment failed: ${errorData}`);
+      }
 
       const payment = await response.json();
+      console.log('Payment response:', payment);
       
       if (payment.confirmation_url) {
         window.location.href = payment.confirmation_url;
+      } else {
+        throw new Error('No confirmation URL received');
       }
     } catch (error) {
-      toast.error('Ошибка при создании заказа');
-      console.error(error);
+      console.error('Payment error:', error);
+      if (error instanceof Error) {
+        toast.error(`Ошибка при создании заказа: ${error.message}`);
+      } else {
+        toast.error('Произошла неизвестная ошибка');
+      }
     }
   };
 
