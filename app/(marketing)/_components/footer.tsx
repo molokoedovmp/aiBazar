@@ -45,11 +45,11 @@ export const Footer = () => {
                 Пользовательское соглашение
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-w-[800px] max-h-[80vh]">
+            <AlertDialogContent className="max-w-2xl max-h-[80vh]">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl">Пользовательское соглашение</AlertDialogTitle>
+                <AlertDialogTitle className="text-left">Пользовательское соглашение</AlertDialogTitle>
                 <ScrollArea className="h-[60vh] pr-4">
-                  <AlertDialogDescription className="space-y-4 text-base">
+                  <AlertDialogDescription className="text-left space-y-4">
                     <div className="space-y-4">
                       <h3 className="font-bold text-lg">1. ТЕРМИНЫ И ОПРЕДЕЛЕНИЯ</h3>
                       <p>1.1. Сайт – интернет-сайт, расположенный на доменном имени www.ai-bazar.ru, осуществляющий свою деятельность посредством Интернет-ресурса и сопутствующих ему сервисов.</p>
@@ -103,7 +103,7 @@ export const Footer = () => {
                   </AlertDialogDescription>
                 </ScrollArea>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter className="sm:justify-end">
                 <AlertDialogCancel>Закрыть</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -115,16 +115,16 @@ export const Footer = () => {
                 Политика конфиденциальности
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-w-[800px] max-h-[80vh]">
+            <AlertDialogContent className="max-w-2xl max-h-[80vh]">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl">Политика конфиденциальности</AlertDialogTitle>
+                <AlertDialogTitle className="text-left">Политика конфиденциальности</AlertDialogTitle>
                 <ScrollArea className="h-[60vh] pr-4">
-                  <AlertDialogDescription className="space-y-4 text-base">
+                  <AlertDialogDescription className="text-left space-y-4">
                     <div className="space-y-4">
                       <p>Настоящая Политика конфиденциальности для веб-сайта (далее – Политика) определяет условия получения и обработки ИП БАТУЛИН ИЛЬЯ НИКОЛАЕВИЧ (ИНН 771483032370, адрес местонахождения: 125252, Россия, г. Москва, ул. Гризодубовой, д.2) (далее – Оператор) персональных данных пользователя, обратившегося к веб-сайту www.ai-bazar.ru (далее – Сайт).</p>
                       
                       <p>Настоящая Политика действует в отношении всей персональной информации пользователя, которую Сайт может получить о пользователе во время использования последним Сайта и каких-либо функций, предложенных на Сайте.</p>
-    
+            
                       <h3 className="font-bold text-lg">1. ТЕРМИНОЛОГИЯ</h3>
                       <p>В настоящей Политике используются следующие термины:</p>
                       <ul className="list-disc pl-6 space-y-2">
@@ -179,7 +179,7 @@ export const Footer = () => {
                   </AlertDialogDescription>
                 </ScrollArea>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter className="sm:justify-end">
                 <AlertDialogCancel>Закрыть</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -191,11 +191,11 @@ export const Footer = () => {
                 Правила и условия
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-w-[800px] max-h-[80vh]">
+            <AlertDialogContent className="max-w-2xl max-h-[80vh]">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl">Правила и условия</AlertDialogTitle>
+                <AlertDialogTitle className="text-left">Правила и условия</AlertDialogTitle>
                 <ScrollArea className="h-[60vh] pr-4">
-                  <AlertDialogDescription className="space-y-4 text-base">
+                  <AlertDialogDescription className="text-left space-y-4">
                     <p>Добро пожаловать на aiBazar. Используя наш сайт, вы соглашаетесь с этими условиями. Если вы не согласны, пожалуйста, не используйте сайт.</p>
 
                     <p><strong>Авторские права</strong></p>
@@ -221,7 +221,7 @@ export const Footer = () => {
                   </AlertDialogDescription>
                 </ScrollArea>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter className="sm:justify-end">
                 <AlertDialogCancel>Закрыть</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>

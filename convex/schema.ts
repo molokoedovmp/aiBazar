@@ -105,4 +105,64 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_status", ["userId", "status"]),
+
+  aibazargpt: defineTable({
+    title: v.string(),
+    description: v.string(),
+    icon: v.string(),
+    coverImage: v.optional(v.string()),
+    price: v.union(v.number(), v.literal("Бесплатно")),
+    type: v.string(),
+    status: v.string(),
+    features: v.array(v.string()),
+    previewUrl: v.optional(v.string()),
+    details: v.object({
+      overview: v.string(),
+      capabilities: v.array(v.object({
+        title: v.string(),
+        description: v.string(),
+        icon: v.optional(v.string()),
+      })),
+      requirements: v.array(v.string()),
+      useCases: v.array(v.string()),
+    }),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_type", ["type"]),
+
+  // Таблица для отслеживания доступа к инструментам aibazargpt
+  aibazargptAccess: defineTable({
+    userId: v.string(),
+    toolId: v.id("aibazargpt"),
+    accessType: v.string(), // "trial", "purchased"
+    expiresAt: v.optional(v.number()),
+    purchasedAt: v.number(),
+    status: v.string(), // "active", "expired"
+  }).index("by_user", ["userId"])
+    .index("by_tool", ["toolId"])
+    .index("by_user_and_tool", ["userId", "toolId"]),
+
+  payments: defineTable({
+    serviceId: v.id("aibazargpt"),
+    amount: v.number(),
+    status: v.string(), // "pending" | "completed" | "failed"
+    userId: v.string(),
+    createdAt: v.number(),
+    serviceName: v.string(),
+    serviceCover: v.string(),
+  }).index("by_user", ["userId"]),
+
+  aiToolsOrders: defineTable({
+    userId: v.string(),
+    serviceId: v.id("aiTools"),
+    details: v.string(),
+    contactInfo: v.string(),
+    amount: v.number(),
+    status: v.string(),
+    createdAt: v.string(),
+    serviceName: v.optional(v.string()),
+    serviceCover: v.optional(v.string()),
+  })
+  .index("by_user", ["userId"])
+  .index("by_status", ["status"]),
 });

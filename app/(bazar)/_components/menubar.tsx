@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Icon } from '@iconify/react'
 
 export default function MenuBar() {
   const router = useRouter()
@@ -34,67 +35,50 @@ export default function MenuBar() {
     return null
   }
 
-  const CategoryList = () => (
-    <ScrollArea className="h-[calc(100vh-8rem)]">
-      <div className="flex flex-col gap-2 pr-4">
-        {categories?.map((category) => (
-          <Button
-            key={category._id}
-            onClick={() => {
-              router.push(`/category/${category._id}`)
-              if (isMobile) {
-                setIsOpen(false)
-              }
-            }}
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-primary p-2" // Уменьшен padding
-            aria-label={`Go to ${category.name} category`}
-          >
-            {category.icon && (
-              <div className="mr-1 h-5 w-5 relative"> {/* Уменьшено расстояние справа */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={theme === 'dark' ? 'white' : 'black'}
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-full h-full"
-                  dangerouslySetInnerHTML={{ __html: atob(category.icon.split(',')[1]) }}
-                />
-              </div>
-            )}
-            <span>{category.name}</span>
-          </Button>
-        ))}
-      </div>
-    </ScrollArea>
-  )
-
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-1 flex">
-        {isMobile ? (
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="lg:hidden fixed top-4 left-4 z-50">
-                <ChevronsUpDown className="h-4 w-4 mr-2" />
-                Выбрать категорию
+    <div className="h-full hidden xl:block w-48">
+      <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r h-full w-48">
+        <div className="p-2">
+          <ScrollArea className="h-[calc(100vh-1rem)]">
+            <div className="flex flex-col gap-1 pr-2">
+              {categories?.map((category) => (
+                <Button
+                  key={category._id}
+                  onClick={() => router.push(`/category/${category._id}`)}
+                  variant="ghost"
+                  className="w-full justify-start text-sm text-muted-foreground hover:text-primary px-2 py-1.5 truncate"
+                  aria-label={`Go to ${category.name} category`}
+                >
+                  {category.icon && (
+                    <div className="mr-2 h-4 w-4 flex-shrink-0">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={theme === 'dark' ? 'white' : 'black'}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-full h-full"
+                        dangerouslySetInnerHTML={{ __html: atob(category.icon.split(',')[1]) }}
+                      />
+                    </div>
+                  )}
+                  <span className="truncate">{category.name}</span>
+                </Button>
+              ))}
+              
+              <Button
+                onClick={() => router.push('/bazar')}
+                variant="ghost"
+                className="w-full justify-start text-sm text-muted-foreground hover:text-primary px-2 py-1.5 mt-1"
+              >
+                <span>Все категории</span>
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <nav className="mt-4">
-                <CategoryList />
-              </nav>
-            </DialogContent>
-          </Dialog>
-        ) : (
-          <nav className="bg-muted/40 border-r p-2 hidden lg:block w-auto"> {/* Уменьшен padding */}
-            <CategoryList />
-          </nav>
-        )}
-      </div>
+            </div>
+          </ScrollArea>
+        </div>
+      </nav>
     </div>
   )
 }

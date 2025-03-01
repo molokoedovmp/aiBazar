@@ -10,13 +10,15 @@ import {
   Trash,
   Users,
   Star,
-  BotIcon
+  BotIcon,
+  ShoppingBag
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
+import { UserButton, useUser } from "@clerk/clerk-react"
 
 import { cn } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
@@ -36,6 +38,7 @@ import { Navbar } from "./navbar";
 import { Button } from "@/components/ui/button";
 
 export const Navigation = () => {
+  const { user } = useUser();
   const router = useRouter();
   const settings = useSettings();
   const search = useSearch();
@@ -166,7 +169,29 @@ export const Navigation = () => {
           <ChevronsLeft className="h-6 w-6" />
         </div>
         <div>
-          <UserItem />
+          <div className="flex items-center gap-x-4 p-4">
+            <div 
+              className="flex items-center gap-x-4 w-full cursor-pointer"
+              onClick={() => document.querySelector<HTMLElement>('[data-clerk-trigger]')?.click()}
+            >
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8",
+                    userButtonPopoverCard: "z-[99999] fixed top-[60px] left-[200px] shadow-md",
+                    userButtonPopoverActions: "p-2",
+                    userButtonPopoverActionButton: "text-sm",
+                    userButtonPopoverFooter: "p-2"
+                  }
+                }}
+              />
+              <div className="flex flex-col flex-1 text-sm">
+                <span className="font-medium">{user?.fullName}</span>
+                <span className="text-xs text-muted-foreground">{user?.emailAddresses[0].emailAddress}</span>
+              </div>
+            </div>
+          </div>
           <Item
             label="Поиск"
             icon={Search}
@@ -178,10 +203,15 @@ export const Navigation = () => {
             icon={Settings}
             onClick={settings.onOpen}
           />
-            <Item
-              label="Избранное"
-              icon={Star}
-              onClick={()=>router.push('/favorites')}
+          <Item
+            label="Избранное"
+            icon={Star}
+            onClick={()=>router.push('/favorites')}
+          />
+          <Item
+              label="Мои покупки"
+              icon={ShoppingBag}
+              onClick={() => router.push('/purchases')}
             />
           <Item
             label="Ai инструменты"

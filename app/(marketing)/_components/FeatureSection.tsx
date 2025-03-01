@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExternalLink, ShoppingCart, Star } from "lucide-react"
+import { PaymentDialog } from "@/components/payment-dialog"
 
 interface Tool {
   _id: string
@@ -101,32 +102,36 @@ export default function FeaturePage() {
                       </span>
                     </div>
                   </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <div className="flex w-full space-x-2">
-                      <Button 
-                        className="w-full text-xs py-1" 
-                        variant={tool.price ? "default" : "secondary"}
-                        asChild
-                      >
-                        <Link href={`/payment`} className="flex items-center justify-center h-8">
-                          <ShoppingCart className="h-3 w-3 mr-1" />
-                          <span className="font-medium">
-                            {tool.price ? 'Купить' : 'Получить'}
-                          </span>
-                        </Link>
-                      </Button>
-                      <Button className="w-full text-xs py-1" variant="outline" asChild>
-                        <Link 
-                          href={tool.url ?? "#"} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="flex items-center justify-center h-8"
+                  <CardFooter className="p-3 pt-0 grid grid-cols-1 gap-2 bg-background/40">
+                    {tool.price && tool.price > 0 ? (
+                      <>
+                        <PaymentDialog 
+                          price={tool.price} 
+                          title="aitools"
+                          tool={tool}
                         >
+                          <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary">
+                            <div className="flex items-center justify-center h-8">
+                              <ShoppingCart className="h-3 w-3 mr-1" />
+                              <span className="font-medium">Купить</span>
+                            </div>
+                          </Button>
+                        </PaymentDialog>
+                        <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+                          <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            <span className="font-medium">Смотреть</span>
+                          </Link>
+                        </Button>
+                      </>
+                    ) : (
+                      <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+                        <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
                           <ExternalLink className="h-3 w-3 mr-1" />
                           <span className="font-medium">Смотреть</span>
                         </Link>
                       </Button>
-                    </div>
+                    )}
                   </CardFooter>
                 </Card>
               ))}

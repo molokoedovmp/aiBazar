@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import MenuBar from "./menubar"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -17,6 +17,7 @@ import { useAuth } from "@clerk/clerk-react"
 import { Poppins } from "next/font/google"
 import { toast } from "sonner"
 import { Icon } from '@iconify/react'
+import { PaymentDialog } from "@/components/payment-dialog"
 
 import {
   AlertDialog,
@@ -53,6 +54,7 @@ interface Tool {
   isActive: boolean
   price?: number
   _creationTime: number
+  title: string
 }
 
 interface Category {
@@ -165,7 +167,7 @@ export default function Bazar() {
     return (
       <Card className="bg-card/90 backdrop-blur-sm border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col hover:scale-[1.02] hover:bg-card">
         <div className="relative">
-          <img
+          <img 
             src={tool.coverImage || "/default.png?height=128&width=256"}
             alt={tool.name}
             className="w-full h-32 object-cover"
@@ -202,12 +204,18 @@ export default function Bazar() {
         <CardFooter className="p-3 pt-0 grid grid-cols-1 gap-2 bg-background/40">
           {tool.price && tool.price > 0 ? (
             <>
-              <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary" asChild>
-                <Link href={`/payment`} className="flex items-center justify-center h-8">
-                  <ShoppingCart className="h-3 w-3 mr-1" />
-                  <span className="font-medium">Купить</span>
-                </Link>
-              </Button>
+              <PaymentDialog 
+                price={tool.price} 
+                title="aitools"
+                tool={tool}
+              >
+                <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary">
+                  <div className="flex items-center justify-center h-8">
+                    <ShoppingCart className="h-3 w-3 mr-1" />
+                    <span className="font-medium">Купить</span>
+                  </div>
+                </Button>
+              </PaymentDialog>
               <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
                 <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
                   <ExternalLink className="h-3 w-3 mr-1" />
@@ -231,28 +239,58 @@ export default function Bazar() {
   return (
     <div className={`flex flex-col min-h-screen bg-background ${font.className}`}>
       <div className="flex flex-1 overflow-hidden">
-        <MenuBar />
+        <div className="hidden xl:block">
+          <MenuBar />
+        </div>
+        
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="flex justify-between items-center mb-6">
-            <Input
-              placeholder="Искать AI..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[180px] flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-gray-500" />
-                <SelectValue placeholder="Фильтр" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все</SelectItem>
-                <SelectItem value="free">Бесплатные</SelectItem>
-                <SelectItem value="paid">Платные</SelectItem>
-                <SelectItem value="high-rated">С высоким рейтингом</SelectItem>
-                <SelectItem value="new">Новые</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-6 w-full mb-8">
+            <div className="flex w-full gap-4 items-center">
+              <Input
+                placeholder="Искать AI..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-[180px] flex items-center space-x-2">
+                  <Filter className="h-5 w-5 text-gray-500" />
+                  <SelectValue placeholder="Фильтр" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все</SelectItem>
+                  <SelectItem value="free">Бесплатные</SelectItem>
+                  <SelectItem value="paid">Платные</SelectItem>
+                  <SelectItem value="high-rated">С высоким рейтингом</SelectItem>
+                  <SelectItem value="new">Новые</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full xl:hidden">
+              <Select 
+                value={selectedCategory?.toString() || 'all'} 
+                onValueChange={(value) => {
+                  if (value === 'all') {
+                    router.push('/bazar');
+                  } else {
+                    router.push(`/category/${value}`);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выбрать категорию" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все категории</SelectItem>
+                  {categories?.map((category) => (
+                    <SelectItem key={category._id} value={category._id.toString()}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {(!categories || !aiTools) ? (
@@ -262,7 +300,7 @@ export default function Bazar() {
           ) : (
             filteredCategories?.map((category) => {
               const toolsInCategory = filteredTools.filter(tool => tool.categoryId === category._id)
-              const displayTools = toolsInCategory.slice(0, 5)
+              const displayTools = toolsInCategory.slice(0, 6)
               
               if (displayTools.length === 0) return null
 
@@ -286,7 +324,7 @@ export default function Bazar() {
                       </Button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-3">
                     {displayTools.map((tool) => (
                       <ToolCard key={tool._id} tool={tool} />
                     ))}

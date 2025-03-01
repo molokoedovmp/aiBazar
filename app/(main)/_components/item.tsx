@@ -36,6 +36,7 @@ interface ItemProps {
   label: string;
   onClick?: () => void;
   icon: LucideIcon;
+  className?: string;
 };
 
 export const Item = ({
@@ -49,6 +50,7 @@ export const Item = ({
   level = 0,
   onExpand,
   expanded,
+  className,
 }: ItemProps) => {
   const { user } = useUser();
   const router = useRouter();
@@ -108,7 +110,8 @@ export const Item = ({
       }}
       className={cn(
         "group min-h-[40px] text-sm py-2 pr-3 w-full hover:bg-primary/10 flex items-center text-muted-foreground font-medium rounded-lg transition-all duration-200 ease-in-out",
-        active && "bg-primary/15 text-primary"
+        active && "bg-primary/15 text-primary",
+        className
       )}
     >
       {!!id && (
