@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExternalLink, ShoppingCart, Star } from "lucide-react"
 import { PaymentDialog } from "@/components/payment-dialog"
+import Image from 'next/image'
 
 interface Tool {
   _id: string
@@ -81,9 +82,11 @@ export default function FeaturePage() {
               {toolsToShow.map((tool) => (
                 <Card key={tool._id} className="overflow-hidden flex flex-col h-full">
                   <CardContent className="p-0 flex-shrink-0">
-                    <img
+                    <Image
                       src={tool.coverImage || "/default.png?height=192&width=256"}
                       alt={tool.name}
+                      width={256}
+                      height={192}
                       className="w-full h-48 object-cover"
                     />
                   </CardContent>

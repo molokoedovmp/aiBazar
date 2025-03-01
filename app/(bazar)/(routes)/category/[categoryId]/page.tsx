@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { PaymentDialog } from "@/components/payment-dialog"
+import Image from 'next/image'
 
 const font = Poppins({
   subsets: ["latin"],
@@ -118,9 +119,11 @@ export default function CategoryPage() {
     return (
       <Card className="bg-card/90 backdrop-blur-sm border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col hover:scale-[1.02] hover:bg-card">
         <div className="relative">
-          <img
+          <Image
             src={tool.coverImage || "/default.png?height=128&width=256"}
             alt={tool.name}
+            width={256}
+            height={128}
             className="w-full h-32 object-cover"
           />
           <Button

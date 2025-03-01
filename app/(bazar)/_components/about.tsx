@@ -24,6 +24,7 @@ import {
 import { useConvexAuth } from "convex/react";
 import { SignInButton, UserButton } from "@clerk/clerk-react";
 import Link from "next/link";
+import Image from 'next/image'
 
 export default function About() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -63,10 +64,12 @@ export default function About() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Hero Section with Image and Mission Statement */}
         <section className="relative mb-16 rounded-lg overflow-hidden">
-          <img
+          <Image
             src="/default.png"
             alt="AI Community collaboration"
             className="w-full h-[400px] object-cover"
+            width={1000}
+            height={500}
           />
           <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white p-6">
             <h1 className="text-4xl font-bold mb-4 text-center">aiBazar</h1>
