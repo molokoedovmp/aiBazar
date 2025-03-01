@@ -26,6 +26,24 @@ export async function POST(req: Request) {
       description: description,
       metadata: {
         convexId: paymentId
+      },
+      receipt: {
+        customer: {
+          email: "customer@example.com" // Можно передавать email пользователя из формы
+        },
+        items: [
+          {
+            description: description,
+            quantity: "1",
+            amount: {
+              value: amount.toFixed(2),
+              currency: "RUB"
+            },
+            vat_code: "1", // НДС 20%
+            payment_subject: "service",
+            payment_mode: "full_prepayment"
+          }
+        ]
       }
     })
 

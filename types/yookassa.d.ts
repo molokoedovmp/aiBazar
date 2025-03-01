@@ -13,6 +13,22 @@ declare module 'yookassa' {
       };
       description: string;
       metadata?: any;
+      receipt?: {
+        customer: {
+          email: string;
+        };
+        items: Array<{
+          description: string;
+          quantity: string;
+          amount: {
+            value: string;
+            currency: string;
+          };
+          vat_code: string;
+          payment_subject: string;
+          payment_mode: string;
+        }>;
+      };
     }): Promise<any>;
     
     getPayment(paymentId: string): Promise<{
