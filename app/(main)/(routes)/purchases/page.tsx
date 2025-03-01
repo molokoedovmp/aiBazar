@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
+import { Spinner } from "@/components/spinner"
 
 const font = Poppins({
   subsets: ["latin"],
@@ -152,15 +153,6 @@ export default function PurchasesPage() {
     </div>
   );
 
-  if ((!aiToolsOrders || aiToolsOrders.length === 0) && (!payments || payments.length === 0)) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">Мои покупки</h1>
-        <p className="text-muted-foreground">У вас пока нет покупок</p>
-      </div>
-    )
-  }
-
   return (
     <div className={`min-h-screen bg-background ${font.className}`}>
       <div className="container mx-auto px-4 py-8">
@@ -181,84 +173,94 @@ export default function PurchasesPage() {
           />
         </div>
 
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="all">Все покупки</TabsTrigger>
-            <TabsTrigger value="aitools">AI инструменты</TabsTrigger>
-            <TabsTrigger value="payments">Bazarius</TabsTrigger>
-          </TabsList>
+        <div className="h-full p-4 space-y-4">
+          <div className="max-w-6xl mx-auto">
+            {isLoading ? (
+              <div className="h-full flex items-center justify-center min-h-[200px]">
+                <Spinner size="lg" />
+              </div>
+            ) : (
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="all">Все покупки</TabsTrigger>
+                  <TabsTrigger value="aitools">AI инструменты</TabsTrigger>
+                  <TabsTrigger value="payments">Bazarius</TabsTrigger>
+                </TabsList>
 
-          <TabsContent value="all">
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Показываем AI инструменты только если они есть */}
-              {filteredAiToolsOrders && filteredAiToolsOrders.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">AI инструменты</h2>
-                  <div className="space-y-4">
-                    {isLoading ? (
-                      <SkeletonCards count={2} />
-                    ) : (
-                      filteredAiToolsOrders.map(order => (
+                <TabsContent value="all">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Показываем AI инструменты только если они есть */}
+                    {filteredAiToolsOrders && filteredAiToolsOrders.length > 0 && (
+                      <div>
+                        <h2 className="text-xl font-semibold mb-4">AI инструменты</h2>
+                        <div className="space-y-4">
+                          {isLoading ? (
+                            <SkeletonCards count={2} />
+                          ) : (
+                            filteredAiToolsOrders.map(order => (
+                              <OrderCard key={order._id} order={order} type="aiTool" />
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Показываем Bazarius только если есть покупки */}
+                    {filteredPayments && filteredPayments.length > 0 && (
+                      <div>
+                        <h2 className="text-xl font-semibold mb-4">Bazarius</h2>
+                        <div className="space-y-4">
+                          {isLoading ? (
+                            <SkeletonCards count={2} />
+                          ) : (
+                            filteredPayments.map(payment => (
+                              <OrderCard key={payment._id} order={payment} type="payment" />
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Показываем сообщение, если нет покупок */}
+                    {(!filteredAiToolsOrders?.length && !filteredPayments?.length) && (
+                      <div className="col-span-2">
+                        <EmptyState message="Покупок не найдено" />
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="aitools">
+                  {isLoading ? (
+                    <SkeletonCards count={4} />
+                  ) : filteredAiToolsOrders && filteredAiToolsOrders.length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredAiToolsOrders.map(order => (
                         <OrderCard key={order._id} order={order} type="aiTool" />
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState message="У вас пока нет покупок AI инструментов" />
+                  )}
+                </TabsContent>
 
-              {/* Показываем Bazarius только если есть покупки */}
-              {filteredPayments && filteredPayments.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">Bazarius</h2>
-                  <div className="space-y-4">
-                    {isLoading ? (
-                      <SkeletonCards count={2} />
-                    ) : (
-                      filteredPayments.map(payment => (
+                <TabsContent value="payments">
+                  {isLoading ? (
+                    <SkeletonCards count={4} />
+                  ) : filteredPayments && filteredPayments.length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredPayments.map(payment => (
                         <OrderCard key={payment._id} order={payment} type="payment" />
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Показываем сообщение, если нет покупок */}
-              {(!filteredAiToolsOrders?.length && !filteredPayments?.length) && (
-                <div className="col-span-2">
-                  <EmptyState message="Покупок не найдено" />
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="aitools">
-            {isLoading ? (
-              <SkeletonCards count={4} />
-            ) : filteredAiToolsOrders && filteredAiToolsOrders.length > 0 ? (
-              <div className="space-y-4">
-                {filteredAiToolsOrders.map(order => (
-                  <OrderCard key={order._id} order={order} type="aiTool" />
-                ))}
-              </div>
-            ) : (
-              <EmptyState message="У вас пока нет покупок AI инструментов" />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState message="У вас пока нет покупок в Bazarius" />
+                  )}
+                </TabsContent>
+              </Tabs>
             )}
-          </TabsContent>
-
-          <TabsContent value="payments">
-            {isLoading ? (
-              <SkeletonCards count={4} />
-            ) : filteredPayments && filteredPayments.length > 0 ? (
-              <div className="space-y-4">
-                {filteredPayments.map(payment => (
-                  <OrderCard key={payment._id} order={payment} type="payment" />
-                ))}
-              </div>
-            ) : (
-              <EmptyState message="У вас пока нет покупок в Bazarius" />
-            )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   )

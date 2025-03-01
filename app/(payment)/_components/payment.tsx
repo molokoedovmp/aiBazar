@@ -65,6 +65,7 @@ export default function PaymentPage() {
           paymentId: order,
           serviceName: tool.name,
           serviceCover: tool.coverImage,
+          contactInfo: formData.contactInfo
         }),
       });
 

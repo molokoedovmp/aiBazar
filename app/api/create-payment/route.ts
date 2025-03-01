@@ -9,9 +9,12 @@ const yooKassa = new YooKassa({
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { amount, description, paymentId } = body
+    const { amount, description, paymentId, contactInfo } = body
 
     console.log('Creating payment:', { amount, description, paymentId })
+
+    // Извлекаем email из contactInfo или используем email из Clerk
+    const email = contactInfo.includes('@') ? contactInfo : "customer@example.com"
 
     const payment = await yooKassa.createPayment({
       amount: {
@@ -29,7 +32,7 @@ export async function POST(req: Request) {
       },
       receipt: {
         customer: {
-          email: "customer@example.com" // Можно передавать email пользователя из формы
+          email: email
         },
         items: [
           {

@@ -171,17 +171,31 @@ export default function ServicePage({ params }: { params: { id: string } }) {
               <div className="text-3xl font-bold mb-4">
                 {service.price === "Бесплатно" ? "Бесплатно" : `${service.price} ₽`}
               </div>
-              <Button 
-                onClick={handlePayment}
-                className="w-full"
-              >
-                Получить доступ
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                {service.status === "coming_soon" 
-                  ? "Мы уведомим вас, когда сервис станет доступен" 
-                  : "Мгновенный доступ после оплаты"}
-              </div>
+              {service.status === "coming_soon" ? (
+                <>
+                  <Button 
+                    disabled
+                    className="w-full mb-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
+                  >
+                    Скоро будет доступен
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    Мы уведомим вас, когда сервис станет доступен
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    onClick={handlePayment}
+                    className="w-full"
+                  >
+                    Получить доступ
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    Мгновенный доступ после оплаты
+                  </div>
+                </>
+              )}
             </Card>
           </div>
         </div>
