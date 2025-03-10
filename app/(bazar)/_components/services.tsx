@@ -134,38 +134,18 @@ export default function Services() {
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter className="flex gap-3 pt-6 mt-auto">
-                  <a 
-                    href="https://t.me/aibazaru" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="flex-1"
+                <CardFooter className="flex gap-3 pt-6 mt-auto relative z-20">
+                  <Button 
+                    className="w-full bg-primary/90 hover:bg-primary flex items-center justify-center gap-2 relative z-20" 
+                    size="lg"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Останавливаем всплытие события
+                      window.open('https://t.me/aibazaru', '_blank');
+                    }}
                   >
-                    <Button 
-                      className="w-full bg-primary/90 hover:bg-primary flex items-center justify-center gap-2" 
-                      size="lg"
-                      type="button"
-                    >
-                      <MessageSquareMore className="w-4 h-4" />
-                      Написать
-                    </Button>
-                  </a>
-                  {plan.url && (
-                    <a 
-                      href={plan.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      <Button 
-                        variant="outline" 
-                        size="lg"
-                        className="border-primary/20 hover:bg-primary/10 flex items-center gap-2"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Подробнее
-                      </Button>
-                    </a>
-                  )}
+                    <MessageSquareMore className="w-4 h-4" />
+                    Написать
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
