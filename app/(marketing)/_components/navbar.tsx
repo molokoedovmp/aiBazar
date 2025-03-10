@@ -12,6 +12,29 @@ import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { Menu, X } from "lucide-react";
 
+const routes = [
+  {
+    label: 'Главная',
+    href: '/',
+  },
+  {
+    label: 'О нас',
+    href: '/about',
+  },
+  {
+    label: 'Блог',
+    href: '/blog',
+  },
+  {
+    label: 'Сервисы',
+    href: '/services',
+  },
+  {
+    label: 'AI Гаджеты',
+    href: '/gadgets',
+  },
+];
+
 export const Navbar = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const scrolled = useScrollTop();
@@ -77,6 +100,14 @@ export const Navbar = () => {
           className="text-white hover:text-gray-300"
         >
           <Link href="/about">О нас</Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="text-white hover:text-gray-300"
+        >
+          <Link href="/gadgets">AI Гаджеты</Link>
         </Button>
       </nav>
 
@@ -185,6 +216,16 @@ export const Navbar = () => {
           >
             <Link href="/about" onClick={toggleMobileMenu}>
               О нас
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-white hover:text-gray-300"
+          >
+            <Link href="/gadgets" onClick={toggleMobileMenu}>
+              AI Гаджеты
             </Link>
           </Button>
         </div>

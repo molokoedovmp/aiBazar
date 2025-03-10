@@ -165,4 +165,22 @@ export default defineSchema({
   })
   .index("by_user", ["userId"])
   .index("by_status", ["status"]),
+
+  aiGadgets: defineTable({
+    name: v.string(),
+    description: v.string(),
+    price: v.number(),
+    coverImage: v.optional(v.string()),
+    features: v.array(v.string()),
+    status: v.string(), // "available" | "coming_soon" | "sold_out"
+    category: v.string(), // "smart_home" | "wearables" | "robots" | "other"
+    specifications: v.optional(v.object({
+      dimensions: v.optional(v.string()),
+      weight: v.optional(v.string()),
+      battery: v.optional(v.string()),
+      connectivity: v.optional(v.string()),
+    })),
+    createdAt: v.number(),
+  }).index("by_category", ["category"])
+    .index("by_status", ["status"]),
 });

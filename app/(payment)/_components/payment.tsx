@@ -11,20 +11,50 @@ import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Id } from '@/convex/_generated/dataModel';
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Image from 'next/image';
+import { useUser } from "@clerk/clerk-react";
+import { Label } from "@/components/ui/label";
 
 export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toolId = searchParams.get('toolId');
+  const { user, isLoaded } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Получаем данные инструмента
   const tool = useQuery(api.aiTools.getById, { aiToolsId: toolId as Id<"aiTools"> });
+  
+  // Состояние формы с автоматическим заполнением email из Clerk
   const [formData, setFormData] = useState({
     details: '',
     contactInfo: '',
+    email: ''  // Новое поле для email
   });
+  
   const createOrder = useMutation(api.aiToolsOrders.create);
   
+  // Заполняем email из Clerk, когда данные пользователя загружены
+  useEffect(() => {
+    if (isLoaded && user) {
+      setFormData(prev => ({
+        ...prev,
+        email: user.primaryEmailAddress?.emailAddress || ""
+      }));
+    }
+  }, [isLoaded, user]);
+
+  // Заполняем contactInfo из Clerk, когда данные пользователя загружены
+  useEffect(() => {
+    if (isLoaded && user) {
+      setFormData(prev => ({
+        ...prev,
+        contactInfo: user.primaryEmailAddress?.emailAddress || ""
+      }));
+    }
+  }, [isLoaded, user]);
+
   // Если нет toolId, показываем ошибку
   if (!toolId) {
     return (
@@ -46,11 +76,13 @@ export default function PaymentPage() {
     }
 
     try {
+      setIsLoading(true);
+      
       const order = await createOrder({
         serviceId: toolId as Id<"aiTools">,
         details: formData.details,
         contactInfo: formData.contactInfo,
-        amount: tool.price as number,
+        amount: tool.price || 0,
         status: 'processing'
       });
 
@@ -60,12 +92,12 @@ export default function PaymentPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: tool.price,
+          amount: tool.price || 0,
           description: `Оплата ${tool.name}`,
           paymentId: order,
           serviceName: tool.name,
           serviceCover: tool.coverImage,
-          contactInfo: formData.contactInfo
+          contactInfo: formData.contactInfo,
         }),
       });
 
@@ -90,14 +122,22 @@ export default function PaymentPage() {
       } else {
         toast.error('Произошла неизвестная ошибка');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (!tool) {
-    return <div>Загрузка...</div>;
+  // Показываем спиннер при загрузке данных
+  if (!tool || !isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Загрузка данных...</p>
+        </div>
+      </div>
+    );
   }
-
-  console.log('Tool data:', tool); // Для отладки
 
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-background">
@@ -127,25 +167,30 @@ export default function PaymentPage() {
               <h3 className="font-medium">{tool.name}</h3>
               <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
               <div className="mt-2 text-primary font-semibold">
-                Стоимость: {tool.price} ₽
+                Стоимость: {tool.price ? tool.price.toLocaleString('ru-RU') : 0} ₽
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4 p-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Детали заказа</label>
+              <Label htmlFor="details" className="text-sm font-medium">Детали заказа</Label>
               <Textarea
+                id="details"
                 placeholder="Опишите подробности вашего заказа (например, какой тип аккаунта вам нужен)"
                 value={formData.details}
                 onChange={(e) => setFormData({...formData, details: e.target.value})}
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                Укажите ваш Telegram или другой способ связи, чтобы мы могли с вами связаться
+              </p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Контактная информация</label>
+              <Label htmlFor="contactInfo" className="text-sm font-medium">Контактная информация</Label>
               <Input
+                id="contactInfo"
                 placeholder="Telegram/Email/Phone"
                 value={formData.contactInfo}
                 onChange={(e) => setFormData({...formData, contactInfo: e.target.value})}
@@ -155,8 +200,15 @@ export default function PaymentPage() {
           </CardContent>
 
           <CardFooter className="p-6">
-            <Button type="submit" className="w-full">
-              Оплатить {tool.price} ₽
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  Обработка...
+                </div>
+              ) : (
+                `Оплатить ${tool.price ? tool.price.toLocaleString('ru-RU') : 0} ₽`
+              )}
             </Button>
           </CardFooter>
         </form>

@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as aibazargpt from "../aibazargpt.js";
+import type * as aiGadgets from "../aiGadgets.js";
 import type * as aiTools from "../aiTools.js";
 import type * as aiToolsOrders from "../aiToolsOrders.js";
 import type * as categories from "../categories.js";
@@ -35,6 +36,7 @@ import type * as services from "../services.js";
  */
 declare const fullApi: ApiFromModules<{
   aibazargpt: typeof aibazargpt;
+  aiGadgets: typeof aiGadgets;
   aiTools: typeof aiTools;
   aiToolsOrders: typeof aiToolsOrders;
   categories: typeof categories;
