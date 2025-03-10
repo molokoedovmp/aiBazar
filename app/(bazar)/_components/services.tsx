@@ -46,23 +46,25 @@ export default function Services() {
   const pricingPlans = services?.filter(service => service.price);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
+    <div className="min-h-screen relative">
+      {/* Декоративные линии */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+        <div className="absolute top-1/3 right-0 w-full h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent"></div>
+        <div className="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+        
+        <div className="absolute top-0 left-1/4 w-px h-screen bg-gradient-to-b from-transparent via-primary/10 to-transparent"></div>
+        <div className="absolute top-0 right-1/4 w-px h-screen bg-gradient-to-b from-transparent via-primary/10 to-transparent"></div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative py-16">
-        <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: "url('/landing/circle.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
         <div className="relative container mx-auto px-4">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground dark:text-white">
               AI Услуги для вашего бизнеса
             </h1>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            <p className="text-xl text-foreground/80 dark:text-white/80 max-w-2xl mx-auto">
               Инновационные решения на базе искусственного интеллекта
             </p>
           </div>
@@ -72,17 +74,19 @@ export default function Services() {
             {GENERAL_SERVICES.map((service, index) => (
               <Card 
                 key={index} 
-                className="group relative overflow-hidden border border-primary/10 bg-gradient-to-b from-card/50 to-card hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300"
+                className="group relative overflow-hidden border border-primary/10 bg-card/80 dark:bg-black/40 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
                 <CardHeader className="relative">
                   <div className="flex items-start gap-4">
                     <div className="p-2 rounded-lg bg-primary/10">
                       {service.icon && <service.icon className="w-6 h-6 text-primary" />}
                     </div>
                     <div>
-                      <CardTitle className="text-xl mb-3">{service.title}</CardTitle>
-                      <CardDescription className="text-base leading-relaxed">
+                      <CardTitle className="text-xl mb-3 text-foreground dark:text-white">{service.title}</CardTitle>
+                      <CardDescription className="text-base leading-relaxed text-foreground/80 dark:text-white/80">
                         {service.description}
                       </CardDescription>
                     </div>
@@ -95,61 +99,72 @@ export default function Services() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-16 relative">
-        <div className="absolute inset-0 bg-primary/5" />
+      <section className="py-24 relative mt-12">
         <div className="relative container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary/60">
+          <h2 className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary/60">
             Тарифные планы
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {pricingPlans?.map((plan, index) => (
               <Card 
                 key={index} 
-                className="relative group border border-primary/10 bg-gradient-to-b from-card/90 to-card hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300"
+                className="relative group border border-primary/10 bg-card/80 dark:bg-black/40 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 flex flex-col"
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+                <div className="absolute top-0 left-0 h-full w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent"></div>
+                <div className="absolute top-0 right-0 h-full w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent"></div>
                 <CardHeader className="relative pb-0">
                   <div className="mb-6">
-                    <CardTitle className="text-2xl mb-2">{plan.title}</CardTitle>
+                    <CardTitle className="text-2xl mb-2 text-foreground dark:text-white">{plan.title}</CardTitle>
                     <CardDescription className="text-2xl font-semibold text-primary">
                       {plan.price} ₽
                     </CardDescription>
                   </div>
-                  <p className="text-muted-foreground/90">{plan.description}</p>
+                  <p className="text-muted-foreground/90 dark:text-white/70">{plan.description}</p>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 flex-grow">
                   <ul className="space-y-4">
                     {plan.features.map((feature, fIndex) => (
                       <li key={fIndex} className="flex items-start gap-3">
                         <CheckIcon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-foreground/90">{feature}</span>
+                        <span className="text-sm text-foreground/90 dark:text-white/80">{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter className="flex gap-3 pt-6">
-                  <Button 
-                    className="flex-1 bg-primary/90 hover:bg-primary" 
-                    size="lg"
-                    asChild
+                <CardFooter className="flex gap-3 pt-6 mt-auto">
+                  <a 
+                    href="https://t.me/aibazaru" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex-1"
                   >
-                    <Link href="/payment" className="flex items-center justify-center gap-2">
-                      <ShoppingCart className="w-4 h-4" />
-                      Купить
-                    </Link>
-                  </Button>
-                  {plan.url && (
                     <Button 
-                      variant="outline" 
+                      className="w-full bg-primary/90 hover:bg-primary flex items-center justify-center gap-2" 
                       size="lg"
-                      className="border-primary/20 hover:bg-primary/10"
-                      asChild
+                      type="button"
                     >
-                      <Link href={plan.url} className="flex items-center gap-2">
+                      <MessageSquareMore className="w-4 h-4" />
+                      Написать
+                    </Button>
+                  </a>
+                  {plan.url && (
+                    <a 
+                      href={plan.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="border-primary/20 hover:bg-primary/10 flex items-center gap-2"
+                      >
                         <ExternalLink className="w-4 h-4" />
                         Подробнее
-                      </Link>
-                    </Button>
+                      </Button>
+                    </a>
                   )}
                 </CardFooter>
               </Card>
