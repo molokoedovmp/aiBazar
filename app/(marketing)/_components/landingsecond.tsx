@@ -29,6 +29,7 @@ export function Landingsecond() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
       <main className="flex-1">
+      <meta name="yandex-verification" content="31f9fbf9bddca189" />
         {/* Hero Section - с оригинальными цветами */}
         <section className="relative w-full min-h-[80vh] overflow-hidden bg-white dark:bg-black">
           {/* Декоративные элементы (звёзды, линии, круги) */}

@@ -37,6 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <meta name="yandex-verification" content="31f9fbf9bddca189" />
       <body className="bg-background min-h-screen">
         <ConvexClientProvider>
           <EdgeStoreProvider>
