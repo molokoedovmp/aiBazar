@@ -126,7 +126,7 @@ export function Landingsecond() {
               </div>
               
               {/* Правая колонка с 3D моделью */}
-              <div className="relative h-[400px] md:h-[450px] lg:h-[500px] order-first lg:order-last">
+              <div className="relative h-[500px] md:h-[550px] lg:h-[600px] order-first lg:order-last">
                 {/* Декоративная рамка вокруг робота */}
                 <div className="absolute inset-0 z-0">
                   <div className="absolute inset-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl opacity-40"></div>
@@ -150,14 +150,16 @@ export function Landingsecond() {
                 
                 {/* Градиентный фон за роботом */}
                 <div className="absolute inset-0 flex items-center justify-center z-0">
-                  <div className="w-[80%] h-[80%] rounded-full bg-gradient-to-br from-purple-50 via-transparent to-blue-50 dark:from-purple-900/20 dark:via-transparent dark:to-blue-900/20 opacity-60 blur-xl"></div>
+                  <div className="w-[90%] h-[90%] rounded-full bg-gradient-to-br from-purple-50 via-transparent to-blue-50 dark:from-purple-900/20 dark:via-transparent dark:to-blue-900/20 opacity-60 blur-xl"></div>
                 </div>
                 
-                {/* 3D модель робота */}
-                <Spline
-                  scene="https://prod.spline.design/xasN6jN3w1ggRc6p/scene.splinecode"
-                  className="absolute inset-0 w-full h-full object-contain z-10"
-                />
+                {/* 3D модель робота - увеличиваем размер и добавляем закругление */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 overflow-hidden rounded-3xl">
+                  <Spline
+                    scene="https://prod.spline.design/xasN6jN3w1ggRc6p/scene.splinecode"
+                    className="w-[110%] h-[110%] object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
