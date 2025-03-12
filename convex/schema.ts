@@ -34,6 +34,7 @@ export default defineSchema({
     isActive: v.boolean(),
     rating: v.optional(v.number()),
     price: v.optional(v.number()),
+    startPrice: v.optional(v.number()),
     categoryId: v.id("categories"),
   })
     .index("by_category", ["categoryId"])

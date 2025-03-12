@@ -20,6 +20,7 @@ interface Tool {
   url: string
   rating?: number
   price?: number
+  startPrice?: number
 }
 
 function SkeletonFeature() {
@@ -50,7 +51,7 @@ export default function FeaturePage() {
     : []
 
   const formatPrice = (price?: number) => {
-    if (price === undefined) return 'Бесплатно'
+    if (price === undefined || price === 0) return 'Бесплатно'
     return `${price.toLocaleString('ru-RU')} ₽`
   }
 
@@ -101,10 +102,21 @@ export default function FeaturePage() {
                 <p className="text-gray-200 dark:text-gray-300 mb-4">
                   {tool.description}
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-white dark:text-white">
-                    {formatPrice(tool.price)}
-                  </span>
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center">
+                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                    <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+                  </div>
+                  
+                  <div>
+                    {tool.startPrice && tool.startPrice > 0 ? (
+                      <span className="text-xs font-medium">
+                        Подписка <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex gap-4 mt-4">

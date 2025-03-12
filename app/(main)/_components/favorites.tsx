@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Star, Trash2, ShoppingCart, ExternalLink } from "lucide-react"
+import { Star, Trash2, ShoppingCart, ExternalLink, Heart } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { Id } from "@/convex/_generated/dataModel"
@@ -45,6 +45,7 @@ interface Tool {
   isActive: boolean
   price?: number
   _creationTime: number
+  startPrice?: number
 }
 
 export default function FavoritesPage() {
@@ -106,9 +107,16 @@ export default function FavoritesPage() {
             <span className="text-xs text-foreground/80">
               {tool.rating?.toFixed(1) ?? "N/A"}
             </span>
-            <span className="ml-auto text-xs font-semibold text-primary/90">
-              {formatPrice(tool.price)}
-            </span>
+            
+            <div className="ml-auto">
+              {tool.startPrice && tool.startPrice > 0 ? (
+                <span className="text-xs font-medium">
+                  Подписка <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
+              )}
+            </div>
           </div>
         </CardContent>
         <CardFooter className="p-3 pt-0 grid grid-cols-1 gap-2 bg-background/40">

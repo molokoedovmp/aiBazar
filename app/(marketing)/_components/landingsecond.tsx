@@ -26,6 +26,11 @@ const Spline = dynamic(() => import('@splinetool/react-spline/next'), {
 });
 
 export function Landingsecond() {
+  const formatPrice = (price?: number) => {
+    if (price === undefined || price === 0) return 'Бесплатно'
+    return `${price.toLocaleString('ru-RU')} ₽`
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
       <main className="flex-1">

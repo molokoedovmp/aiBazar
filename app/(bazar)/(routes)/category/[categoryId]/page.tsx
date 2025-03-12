@@ -152,7 +152,16 @@ export default function CategoryPage() {
           <div className="flex items-center mt-auto">
             <Star className="h-3 w-3 text-yellow-500 mr-1" />
             <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
-            <span className="ml-auto text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
+            
+            <div className="ml-auto">
+              {tool.startPrice && tool.startPrice > 0 ? (
+                <span className="text-xs font-medium">
+                  Подписка <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
+              )}
+            </div>
           </div>
         </CardContent>
         <CardFooter className="p-3 pt-0 grid grid-cols-1 gap-2 bg-background/40">
