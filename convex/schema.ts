@@ -184,4 +184,6 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_category", ["category"])
     .index("by_status", ["status"]),
+
+
 });

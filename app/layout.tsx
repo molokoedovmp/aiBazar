@@ -39,8 +39,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <meta name="yandex-verification" content="31f9fbf9bddca189" />
       <body className="bg-background min-h-screen">
-        <ConvexClientProvider>
-          <EdgeStoreProvider>
+        <EdgeStoreProvider>
+          <ConvexClientProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
@@ -52,8 +52,8 @@ export default function RootLayout({
               <ModalProvider />
               {children}
             </ThemeProvider>
-          </EdgeStoreProvider>
-        </ConvexClientProvider>
+          </ConvexClientProvider>
+        </EdgeStoreProvider>
       </body>
     </html>
   )

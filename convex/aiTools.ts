@@ -43,50 +43,55 @@ export const create = mutation({
     isActive: v.boolean(),
     rating: v.optional(v.number()),
     price: v.optional(v.number()),
-    startPrice: v.optional(v.number()), // Добавляем новое поле
+    startPrice: v.optional(v.number()),
     categoryId: v.id("categories"),
+    exchangeRate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("aiTools", {
-      name: args.name,
-      description: args.description,
-      coverImage: args.coverImage,
-      url: args.url,
-      type: args.type,
-      isActive: args.isActive,
-      rating: args.rating,
-      price: args.price,
-      startPrice: args.startPrice, // Включаем новое поле
-      categoryId: args.categoryId,
-    });
+    const { exchangeRate, ...toolData } = args;
+    
+    // Если указана стартовая цена, но не указана основная, рассчитываем её
+    if (toolData.startPrice && !toolData.price) {
+      const rate = exchangeRate || 90; // Курс по умолчанию
+      const commission = 750;
+      toolData.price = Math.round(toolData.startPrice * rate + commission);
+    }
+    
+    return await ctx.db.insert("aiTools", toolData);
   },
 });
 
 export const update = mutation({
   args: {
     id: v.id("aiTools"),
-    name: v.optional(v.string()),
-    description: v.optional(v.string()),
-    coverImage: v.optional(v.string()),
+    name: v.string(),
+    description: v.string(),
     url: v.optional(v.string()),
     type: v.optional(v.string()),
-    isActive: v.optional(v.boolean()),
+    isActive: v.boolean(),
     rating: v.optional(v.number()),
     price: v.optional(v.number()),
-    startPrice: v.optional(v.number()), // Добавляем новое поле
-    categoryId: v.optional(v.id("categories")),
+    startPrice: v.optional(v.number()),
+    categoryId: v.id("categories"),
+    coverImage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { id, ...rest } = args;
+    const { id, name, description, url, type, isActive, rating, price, startPrice, categoryId, coverImage } = args;
     
-    // Получаем текущий документ
-    const existingTool = await ctx.db.get(id);
-    if (!existingTool) {
-      throw new Error(`AI Tool with ID ${id} not found`);
-    }
+    await ctx.db.patch(id, {
+      name,
+      description,
+      url: url || "",
+      type: type || "tool",
+      isActive,
+      rating: rating || 0,
+      price: price || 0,
+      startPrice,
+      categoryId,
+      coverImage: coverImage || "",
+    });
     
-    // Обновляем только предоставленные поля
-    return await ctx.db.patch(id, rest);
+    return id;
   },
 });
 
@@ -97,6 +102,97 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
     return { success: true };
+  },
+});
+
+export const calculatePriceFromStartPrice = mutation({
+  args: {
+    id: v.optional(v.id("aiTools")),
+    startPrice: v.optional(v.number()),
+    exchangeRate: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const exchangeRate = args.exchangeRate || 90;
+    const commission = 750;
+    
+    if (args.id) {
+      const tool = await ctx.db.get(args.id);
+      if (!tool) {
+        throw new Error(`AI Tool with ID ${args.id} not found`);
+      }
+      
+      const startPrice = tool.startPrice || args.startPrice;
+      
+      if (startPrice) {
+        const priceInRubles = Math.round(startPrice * exchangeRate + commission);
+        
+        await ctx.db.patch(args.id, { price: priceInRubles });
+        
+        return { 
+          success: true, 
+          id: args.id, 
+          startPrice: startPrice, 
+          price: priceInRubles 
+        };
+      } else {
+        throw new Error("No startPrice available for calculation");
+      }
+    } 
+    else if (args.startPrice) {
+      const priceInRubles = Math.round(args.startPrice * exchangeRate + commission);
+      
+      return { 
+        success: true, 
+        startPrice: args.startPrice, 
+        price: priceInRubles 
+      };
+    } else {
+      throw new Error("Either id or startPrice must be provided");
+    }
+  },
+});
+
+// Добавляем новую мутацию для обновления цен всех существующих инструментов
+
+export const updateAllPricesFromStartPrice = mutation({
+  args: {
+    exchangeRate: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const exchangeRate = args.exchangeRate || 90; // Курс по умолчанию
+    const commission = 750; // Фиксированная комиссия
+    
+    // Получаем все инструменты, у которых есть startPrice
+    const tools = await ctx.db
+      .query("aiTools")
+      .filter((q) => q.neq(q.field("startPrice"), undefined))
+      .collect();
+    
+    const results = [];
+    
+    // Обновляем цену для каждого инструмента
+    for (const tool of tools) {
+      if (tool.startPrice) {
+        const priceInRubles = Math.round(tool.startPrice * exchangeRate + commission);
+        
+        // Обновляем цену в базе данных
+        await ctx.db.patch(tool._id, { price: priceInRubles });
+        
+        results.push({
+          id: tool._id,
+          name: tool.name,
+          startPrice: tool.startPrice,
+          oldPrice: tool.price,
+          newPrice: priceInRubles
+        });
+      }
+    }
+    
+    return {
+      success: true,
+      updatedCount: results.length,
+      details: results
+    };
   },
 });
 
