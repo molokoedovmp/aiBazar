@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 
 interface SidebarProps {
   onLogout: () => void;
+  
 }
 
 const routes = [
