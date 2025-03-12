@@ -17,12 +17,14 @@ interface EditorProps {
   onChange: (content: string) => void;
   initialContent?: string;
   editable?: boolean;
+  hideAiAssistant?: boolean;
 }
 
 const Editor: React.FC<EditorProps> = ({
   onChange,
   initialContent,
   editable = true,
+  hideAiAssistant = false,
 }) => {
   const { edgestore } = useEdgeStore();
   const { resolvedTheme } = useTheme();
@@ -222,72 +224,74 @@ const Editor: React.FC<EditorProps> = ({
 
   return (
     <div className="-mx-[54px] relative">
-      {/* AI кнопка и попап */}
-      <div className="absolute right-[60px] top-2 z-10">
-        <Popover open={isAiOpen} onOpenChange={setIsAiOpen}>
-          <PopoverTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1 bg-background/80 backdrop-blur-sm"
-            >
-              <Bot className="h-4 w-4 text-primary" />
-              <span>AI - ассистент</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-2" align="end">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium flex items-center">
-                  <Bot className="h-4 w-4 mr-1 text-primary" />
-                  Генерация текста с помощью AI
-                </h4>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 w-6 p-0" 
-                  onClick={() => setIsAiOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+      {/* AI кнопка и попап - показываем только если hideAiAssistant=false */}
+      {!hideAiAssistant && (
+        <div className="absolute right-[60px] top-2 z-10">
+          <Popover open={isAiOpen} onOpenChange={setIsAiOpen}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1 bg-background/80 backdrop-blur-sm"
+              >
+                <Bot className="h-4 w-4 text-primary" />
+                <span>AI - ассистент</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-2" align="end">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium flex items-center">
+                    <Bot className="h-4 w-4 mr-1 text-primary" />
+                    Генерация текста с помощью AI
+                  </h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0" 
+                    onClick={() => setIsAiOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2" onSubmit={(e) => e.preventDefault()}>
+                  <Input
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Опишите, что нужно сгенерировать..."
+                    className="flex-1"
+                    disabled={isGenerating}
+                  />
+                  <Button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      generateAiContent();
+                    }} 
+                    disabled={isGenerating || !aiPrompt.trim()}
+                    size="sm"
+                    className="whitespace-nowrap"
+                    type="button"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        <span>Генерация...</span>
+                      </>
+                    ) : (
+                      "Сгенерировать"
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Введите запрос для генерации текста с помощью искусственного интеллекта. 
+                  Результат будет добавлен в редактор.
+                </p>
               </div>
-              <div className="flex items-center gap-2" onSubmit={(e) => e.preventDefault()}>
-                <Input
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Опишите, что нужно сгенерировать..."
-                  className="flex-1"
-                  disabled={isGenerating}
-                />
-                <Button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    generateAiContent();
-                  }} 
-                  disabled={isGenerating || !aiPrompt.trim()}
-                  size="sm"
-                  className="whitespace-nowrap"
-                  type="button"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                      <span>Генерация...</span>
-                    </>
-                  ) : (
-                    "Сгенерировать"
-                  )}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Введите запрос для генерации текста с помощью искусственного интеллекта. 
-                Результат будет добавлен в редактор.
-              </p>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
       
       {/* Редактор */}
       <div className="my-4">
