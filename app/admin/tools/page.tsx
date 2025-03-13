@@ -32,19 +32,11 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog"
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { 
   Loader2, 
   RefreshCw, 
-  Edit, 
-  Trash, 
+  Edit,
   Plus,
-  X
+  Trash
 } from "lucide-react"
 import { toast } from "sonner"
 import { ImageUpload } from "@/app/admin/_components/image-upload"
@@ -53,8 +45,11 @@ import { Id } from "@/convex/_generated/dataModel"
 export default function ToolsPage() {
   const aiTools = useQuery(api.aiTools.get)
   const categories = useQuery(api.categories.get) || []
+  
   const updateAllPrices = useMutation(api.aiTools.updateAllPricesFromStartPrice)
   const updateTool = useMutation(api.aiTools.update)
+  const createTool = useMutation(api.aiTools.create)
+  const removeTool = useMutation(api.aiTools.remove)
   
   const [isUpdating, setIsUpdating] = useState(false)
   const [results, setResults] = useState<any>(null)
@@ -65,6 +60,7 @@ export default function ToolsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingTool, setEditingTool] = useState<any>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState("")
   
   // Получаем имя категории по ID
   const getCategoryName = (categoryId: string) => {
@@ -96,7 +92,7 @@ export default function ToolsPage() {
   const handleEditChange = (field: string, value: any) => {
     setEditingTool({
       ...editingTool,
-      [field]: value
+      [field]: value !== "" ? value : null
     })
     
     if (field === "categoryId") {
@@ -111,7 +107,7 @@ export default function ToolsPage() {
     }
     
     try {
-      // Проверяем размер данных перед отправкой
+      // Проверяем размер данных перед отправкой (для изображения)
       const imageSize = editingTool.coverImage ? 
         Math.round(editingTool.coverImage.length / 1024) : 0
       
@@ -122,21 +118,37 @@ export default function ToolsPage() {
         return
       }
       
-      await updateTool({
-        id: editingTool._id,
-        name: editingTool.name,
-        description: editingTool.description,
-        url: editingTool.url || "",
-        type: editingTool.type || "tool",
-        isActive: editingTool.isActive,
-        rating: editingTool.rating || 0,
-        price: editingTool.price || 0,
-        startPrice: editingTool.startPrice || null,
-        categoryId: selectedCategory as Id<"categories">,
-        coverImage: editingTool.coverImage || ""
-      })
+      if (editingTool._id) {
+        await updateTool({
+          id: editingTool._id,
+          name: editingTool.name,
+          description: editingTool.description,
+          url: editingTool.url || "",
+          type: editingTool.type || "tool",
+          isActive: editingTool.isActive,
+          rating: editingTool.rating || 0,
+          price: editingTool.price !== null ? editingTool.price : 0,
+          startPrice: editingTool.startPrice !== null ? editingTool.startPrice : 0,
+          categoryId: selectedCategory as Id<"categories">,
+          coverImage: editingTool.coverImage || ""
+        })
+        toast.success("Инструмент обновлен")
+      } else {
+        await createTool({
+          name: editingTool.name,
+          description: editingTool.description,
+          url: editingTool.url || "",
+          type: editingTool.type || "tool",
+          isActive: editingTool.isActive,
+          rating: editingTool.rating || 0,
+          price: editingTool.price !== null ? editingTool.price : 0,
+          startPrice: editingTool.startPrice !== null ? editingTool.startPrice : 0,
+          categoryId: selectedCategory as Id<"categories">,
+          coverImage: editingTool.coverImage || ""
+        })
+        toast.success("Инструмент создан")
+      }
       
-      toast.success("Инструмент обновлен")
       setIsEditDialogOpen(false)
     } catch (error) {
       console.error("Ошибка при обновлении инструмента:", error)
@@ -144,9 +156,19 @@ export default function ToolsPage() {
     }
   }
   
-  // Отладочная информация
-  console.log("Категории:", categories)
-  console.log("Выбранная категория:", selectedCategory)
+  const handleDeleteTool = async (id: string) => {
+    try {
+      await removeTool({ id: id as Id<"aiTools"> })
+      toast.success("Инструмент удален")
+    } catch (error) {
+      console.error("Ошибка при удалении инструмента:", error)
+      toast.error("Ошибка при удалении инструмента")
+    }
+  }
+  
+  const filteredTools = aiTools?.filter((tool) =>
+    tool.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
   
   return (
     <div className="p-6">
@@ -213,7 +235,11 @@ export default function ToolsPage() {
               <TableBody>
                 {results?.details?.map((item: any) => {
                   const diff = item.newPrice - item.oldPrice
-                  const diffClass = diff > 0 ? "text-green-600" : diff < 0 ? "text-red-600" : ""
+                  const diffClass = diff > 0 
+                    ? "text-green-600" 
+                    : diff < 0 
+                      ? "text-red-600" 
+                      : ""
                   
                   return (
                     <TableRow key={item.id}>
@@ -241,13 +267,25 @@ export default function ToolsPage() {
       
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Управление инструментами</h1>
+        <Button onClick={() => openEditDialog({})}>
+          <Plus className="mr-2 h-4 w-4" />
+          Добавить инструмент
+        </Button>
+      </div>
+      
+      <div className="mb-4">
+        <Input
+          placeholder="Поиск инструментов..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
       
       <Card>
         <CardHeader>
           <CardTitle>Список инструментов</CardTitle>
           <CardDescription>
-            Всего инструментов: {aiTools?.length || 0}
+            Всего инструментов: {filteredTools?.length || 0}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -264,15 +302,21 @@ export default function ToolsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {aiTools?.map((tool) => (
+              {filteredTools?.map((tool) => (
                 <TableRow key={tool._id}>
                   <TableCell>{tool.name}</TableCell>
                   <TableCell>{getCategoryName(tool.categoryId)}</TableCell>
-                  <TableCell>{tool.startPrice || "-"}</TableCell>
+                  <TableCell>{tool.startPrice ?? "-"}</TableCell>
                   <TableCell>{tool.price} ₽</TableCell>
                   <TableCell>{tool.rating}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${tool.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                    <span 
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        tool.isActive 
+                          ? "bg-green-100 text-green-800" 
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {tool.isActive ? "Активен" : "Неактивен"}
                     </span>
                   </TableCell>
@@ -283,6 +327,13 @@ export default function ToolsPage() {
                       onClick={() => openEditDialog(tool)}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteTool(tool._id)}
+                    >
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -296,9 +347,11 @@ export default function ToolsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Редактирование инструмента</DialogTitle>
+            <DialogTitle>
+              {editingTool?._id ? "Редактирование инструмента" : "Добавление нового инструмента"}
+            </DialogTitle>
             <DialogDescription>
-              Измените информацию об инструменте
+              {editingTool?._id ? "Измените информацию об инструменте" : "Введите информацию о новом инструменте"}
             </DialogDescription>
           </DialogHeader>
           
@@ -310,7 +363,7 @@ export default function ToolsPage() {
                 </Label>
                 <Input
                   id="name"
-                  value={editingTool.name}
+                  value={editingTool.name || ""}
                   onChange={(e) => handleEditChange("name", e.target.value)}
                   className="col-span-3"
                 />
@@ -322,7 +375,7 @@ export default function ToolsPage() {
                 </Label>
                 <Textarea
                   id="description"
-                  value={editingTool.description}
+                  value={editingTool.description || ""}
                   onChange={(e) => handleEditChange("description", e.target.value)}
                   className="col-span-3"
                 />
@@ -361,7 +414,11 @@ export default function ToolsPage() {
                   ) : (
                     <div className="text-sm text-muted-foreground">
                       Загрузка категорий... Если категории не появляются, 
-                      <Button variant="link" className="p-0 h-auto" onClick={() => window.location.reload()}>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto" 
+                        onClick={() => window.location.reload()}
+                      >
                         обновите страницу
                       </Button>
                     </div>
@@ -376,8 +433,15 @@ export default function ToolsPage() {
                 <Input
                   id="startPrice"
                   type="number"
-                  value={editingTool.startPrice !== null ? editingTool.startPrice : ""}
-                  onChange={(e) => handleEditChange("startPrice", e.target.value ? Number(e.target.value) : 0)}
+                  value={editingTool.startPrice !== null 
+                    ? editingTool.startPrice 
+                    : ""}
+                  onChange={(e) => 
+                    handleEditChange(
+                      "startPrice", 
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
                   className="col-span-3"
                   min={0}
                 />
@@ -390,8 +454,13 @@ export default function ToolsPage() {
                 <Input
                   id="price"
                   type="number"
-                  value={editingTool.price || ""}
-                  onChange={(e) => handleEditChange("price", e.target.value ? Number(e.target.value) : null)}
+                  value={editingTool.price !== null ? editingTool.price : ""}
+                  onChange={(e) => 
+                    handleEditChange(
+                      "price", 
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
                   className="col-span-3"
                   min={0}
                 />
@@ -405,7 +474,10 @@ export default function ToolsPage() {
                   id="rating"
                   type="number"
                   value={editingTool.rating || ""}
-                  onChange={(e) => handleEditChange("rating", e.target.value ? Number(e.target.value) : null)}
+                  onChange={(e) => handleEditChange("rating", e.target.value 
+                    ? Number(e.target.value) 
+                    : null
+                  )}
                   className="col-span-3"
                   min={0}
                   max={10}
@@ -453,4 +525,4 @@ export default function ToolsPage() {
       </Dialog>
     </div>
   )
-} 
+}

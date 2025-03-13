@@ -55,6 +55,16 @@ export const getByUser = query({
   },
 });
 
+export const remove = mutation({
+  args: {
+    id: v.id("aiToolsOrders"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return { success: true };
+  },
+});
+
 // Получение всех заказов пользователя (не только completed)
 export const getPaidByUser = query({
   handler: async (ctx) => {
