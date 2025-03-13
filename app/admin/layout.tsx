@@ -3,11 +3,12 @@
 import { useAuth, useUser } from "@clerk/clerk-react"
 import { redirect } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Sidebar } from "./_components/sidebar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AdminSidebar } from "@/app/admin/_components/sidebar"
 
 // Учетные данные администратора
 const ADMIN_CREDENTIALS = {
@@ -69,7 +70,8 @@ export default function AdminLayout({
   // Если пользователь не администратор, показываем форму входа
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <body className="bodyadmin">
+      <div className="flex items-center justify-center min-h-screen">
         <Card className="w-[400px]">
           <CardHeader>
             <CardTitle>Вход в панель администратора</CardTitle>
@@ -112,18 +114,18 @@ export default function AdminLayout({
           </CardContent>
         </Card>
       </div>
+      </body>
     )
   }
   
   // Если пользователь администратор, показываем панель управления
   return (
-    <div className="h-full">
-      <div className="hidden md:flex h-full w-72 flex-col fixed inset-y-0 z-50">
-        <Sidebar onLogout={handleLogout} />
-      </div>
-      <main className="md:pl-72 h-full">
+    <SidebarProvider>
+      <AdminSidebar onLogout={handleLogout} /> {/* Передаём проп onLogout */}
+      <main>
+        <SidebarTrigger />
         {children}
       </main>
-    </div>
-  )
+    </SidebarProvider>
+  );
 } 
