@@ -13,18 +13,18 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'aiBazar',
-  description: 'aiBazar',
+  description: 'aiBazar - это сервис, который предоставляет доступ к различным AI-инструментам и сервисам.',
   icons: {
     icon: [
       {
         media: "(prefers-color-scheme: light)",
-        url: "/Logo2.png",
-        href: "/Logo2.png",
+        url: "/logo-main.ico",
+        href: "/logo-main.ico",
       },
       {
         media: "(prefers-color-scheme: dark)",
-        url: "/Logo2.png",
-        href: "/Logo2.png",
+        url: "/logo-main.ico",
+        href: "/logo-main.ico",
       }
     ]
   }

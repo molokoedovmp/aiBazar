@@ -376,11 +376,10 @@ export default function ToolsPage() {
                 <Input
                   id="startPrice"
                   type="number"
-                  value={editingTool.startPrice || ""}
-                  onChange={(e) => handleEditChange("startPrice", e.target.value ? Number(e.target.value) : null)}
+                  value={editingTool.startPrice !== null ? editingTool.startPrice : ""}
+                  onChange={(e) => handleEditChange("startPrice", e.target.value ? Number(e.target.value) : 0)}
                   className="col-span-3"
                   min={0}
-                  step={0.01}
                 />
               </div>
               
