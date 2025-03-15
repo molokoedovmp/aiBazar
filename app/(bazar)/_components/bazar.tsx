@@ -199,17 +199,25 @@ export default function Bazar() {
         <CardContent className="p-3 flex flex-col flex-grow bg-background/40">
           <h3 className="text-base font-semibold mb-1 text-foreground line-clamp-1">{tool.name}</h3>
           <p className="text-xs text-muted-foreground/90 mb-2 line-clamp-2 flex-grow">{tool.description}</p>
-          <div className="flex items-center mt-auto">
-            <Star className="h-3 w-3 text-yellow-500 mr-1" />
-            <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+          <div className="flex items-center justify-between mt-auto flex-wrap gap-1">
+            <div className="flex items-center">
+              <Star className="h-3 w-3 text-yellow-500 mr-1" />
+              <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+            </div>
             
-            <div className="ml-auto">
+            <div className="text-xs font-medium">
               {tool.startPrice && tool.startPrice > 0 ? (
-                <span className="text-xs font-medium">
-                  Подписка <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                <span className="px-1.5 py-0.5 bg-primary/10 rounded-full">
+                  <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                </span>
+              ) : tool.price && tool.price > 0 ? (
+                <span className="px-1.5 py-0.5 bg-primary/10 rounded-full">
+                  <span className="font-semibold text-primary">{formatPrice(tool.price)}</span>
                 </span>
               ) : (
-                <span className="text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
+                <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+                  Бесплатно
+                </span>
               )}
             </div>
           </div>

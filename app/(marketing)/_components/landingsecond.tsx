@@ -36,6 +36,7 @@ export function Landingsecond() {
       <main className="flex-1">
       <meta name="yandex-verification" content="31f9fbf9bddca189" />
         {/* Hero Section - с оригинальными цветами */}
+        {/* Hero Section - с оригинальными цветами и исправленным позиционированием */}
         <section className="relative w-full min-h-[80vh] overflow-hidden bg-white dark:bg-black">
           {/* Декоративные элементы (звёзды, линии, круги) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -62,17 +63,17 @@ export function Landingsecond() {
             <div className="absolute h-px w-1/3 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent bottom-1/4 right-0"></div>
           </div>
           
-          {/* Основной контент */}
-          <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
-            {/* Верхняя метка */}
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-200 mb-6 w-fit">
-              AI-инструменты и сервисы
-            </div>
-            
+          {/* Основной контент - уменьшено верхнее padding */}
+          <div className="container mx-auto px-4 py-8 md:py-12 relative z-10">
             {/* Двухколоночный макет */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Левая колонка с текстом */}
               <div className="flex flex-col justify-center">
+                {/* Верхняя метка перемещена ближе к основной надписи */}
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-200 mb-2 w-fit">
+                  AI-инструменты и сервисы
+                </div>
+                
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 leading-tight text-black dark:text-white">
                   Мощь AI <span className="text-black dark:text-white">под вашим</span> контролем
                 </h1>
@@ -130,8 +131,8 @@ export function Landingsecond() {
                 </div>
               </div>
               
-              {/* Правая колонка с 3D моделью */}
-              <div className="relative h-[500px] md:h-[550px] lg:h-[600px] order-first lg:order-last">
+              {/* Правая колонка с 3D моделью - уменьшена высота */}
+              <div className="relative h-[450px] md:h-[500px] lg:h-[550px] order-first lg:order-last">
                 {/* Декоративная рамка вокруг робота */}
                 <div className="absolute inset-0 z-0">
                   <div className="absolute inset-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-3xl opacity-40"></div>
@@ -158,7 +159,7 @@ export function Landingsecond() {
                   <div className="w-[90%] h-[90%] rounded-full bg-gradient-to-br from-purple-50 via-transparent to-blue-50 dark:from-purple-900/20 dark:via-transparent dark:to-blue-900/20 opacity-60 blur-xl"></div>
                 </div>
                 
-                {/* 3D модель робота - увеличиваем размер и добавляем закругление */}
+                {/* 3D модель робота */}
                 <div className="absolute inset-0 flex items-center justify-center z-10 overflow-hidden rounded-3xl">
                   <Spline
                     scene="https://prod.spline.design/xasN6jN3w1ggRc6p/scene.splinecode"

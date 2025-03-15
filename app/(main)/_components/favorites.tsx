@@ -102,19 +102,27 @@ export default function FavoritesPage() {
           <p className="text-xs text-muted-foreground/90 mb-2 line-clamp-2 flex-grow">
             {tool.description}
           </p>
-          <div className="flex items-center mt-auto">
-            <Star className="h-3 w-3 text-yellow-500 mr-1" />
-            <span className="text-xs text-foreground/80">
-              {tool.rating?.toFixed(1) ?? "N/A"}
-            </span>
+          <div className="flex items-center justify-between mt-auto flex-wrap gap-1">
+            <div className="flex items-center">
+              <Star className="h-3 w-3 text-yellow-500 mr-1" />
+              <span className="text-xs text-foreground/80">
+                {tool.rating?.toFixed(1) ?? "N/A"}
+              </span>
+            </div>
             
-            <div className="ml-auto">
+            <div className="text-xs font-medium">
               {tool.startPrice && tool.startPrice > 0 ? (
-                <span className="text-xs font-medium">
-                  Подписка <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                <span className="px-1.5 py-0.5 bg-primary/10 rounded-full">
+                  <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
+                </span>
+              ) : tool.price && tool.price > 0 ? (
+                <span className="px-1.5 py-0.5 bg-primary/10 rounded-full">
+                  <span className="font-semibold text-primary">{formatPrice(tool.price)}</span>
                 </span>
               ) : (
-                <span className="text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
+                <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+                  Бесплатно
+                </span>
               )}
             </div>
           </div>
@@ -122,7 +130,11 @@ export default function FavoritesPage() {
         <CardFooter className="p-3 pt-0 grid grid-cols-1 gap-2 bg-background/40">
           {tool.price && tool.price > 0 ? (
             <>
-              <PaymentDialog price={tool.price} title="aitools" tool={tool}>
+              <PaymentDialog 
+                price={tool.price} 
+                title="aitools"
+                tool={tool}
+              >
                 <Button className="w-full text-xs py-1 bg-primary/90 hover:bg-primary">
                   <div className="flex items-center justify-center h-8">
                     <ShoppingCart className="h-3 w-3 mr-1" />
@@ -130,34 +142,16 @@ export default function FavoritesPage() {
                   </div>
                 </Button>
               </PaymentDialog>
-              <Button
-                className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary"
-                variant="outline"
-                asChild
-              >
-                <Link
-                  href={tool.url ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center h-8"
-                >
+              <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+                <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
                   <ExternalLink className="h-3 w-3 mr-1" />
                   <span className="font-medium">Смотреть</span>
                 </Link>
               </Button>
             </>
           ) : (
-            <Button
-              className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary"
-              variant="outline"
-              asChild
-            >
-              <Link
-                href={tool.url ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center h-8"
-              >
+            <Button className="w-full text-xs py-1 bg-secondary/90 hover:bg-secondary" variant="outline" asChild>
+              <Link href={tool.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-8">
                 <ExternalLink className="h-3 w-3 mr-1" />
                 <span className="font-medium">Смотреть</span>
               </Link>

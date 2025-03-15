@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { ChevronRight, Star, ExternalLink, ShoppingCart } from "lucide-react"
 import Image from "next/image"
@@ -102,23 +102,20 @@ export default function FeaturePage() {
                 <p className="text-gray-200 dark:text-gray-300 mb-4">
                   {tool.description}
                 </p>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center">
-                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
-                    <span className="text-xs text-foreground/80">{tool.rating?.toFixed(1) ?? 'N/A'}</span>
+                {/* Обновлённый блок отображения цены */}
+                {tool.startPrice && tool.startPrice > 0 ? (
+                  <div className="flex items-center space-x-2 mt-2">
+                    <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-3 py-1 rounded-full shadow-lg">
+                      <span className="text-xs font-medium text-white">Подписка</span>
+                      <span className="ml-1 text-xs font-semibold text-white">{tool.startPrice}$</span>
+                      <span className="ml-1 text-xs font-medium text-white">/ {formatPrice(tool.price)}</span>
+                    </div>
                   </div>
-                  
-                  <div>
-                    {tool.startPrice && tool.startPrice > 0 ? (
-                      <span className="text-xs font-medium">
-                        Подписка <span className="font-semibold text-primary">{tool.startPrice}$</span>/{formatPrice(tool.price)}
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-primary/90">{formatPrice(tool.price)}</span>
-                    )}
+                ) : (
+                  <div className="mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-3 py-1 rounded-full shadow-lg">
+                    <span className="text-xs font-semibold text-white">{formatPrice(tool.price)}</span>
                   </div>
-                </div>
-                
+                )}
                 <div className="flex gap-4 mt-4">
                   {tool.price && tool.price > 0 ? (
                     <>
@@ -186,14 +183,11 @@ export default function FeaturePage() {
               <p className={activeTab === index ? "text-gray-200 dark:text-gray-800" : "text-gray-600 dark:text-gray-400"}>
                 {tool.description}
               </p>
+              {/* Обновлённый блок отображения цены в табах */}
               <div className="flex justify-end mt-2">
-                <span className={`text-sm font-semibold ${
-                  activeTab === index
-                    ? "text-gray-200 dark:text-gray-800"
-                    : "text-gray-600 dark:text-gray-400"
-                }`}>
-                  {formatPrice(tool.price)}
-                </span>
+                <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-2 py-1 rounded-full shadow-lg">
+                  <span className="text-sm font-semibold text-white">{formatPrice(tool.price)}</span>
+                </div>
               </div>
             </div>
           ))}
