@@ -386,3 +386,89 @@ export const get = query({
   },
 });
 
+// Запрос для получения статистики по документам
+export const getDocumentStats = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    
+    if (!identity) {
+      throw new Error("Не авторизован");
+    }
+    
+    // Получаем все документы
+    const documents = await ctx.db.query("documents").collect();
+    
+    // Статистика по типам документов
+    const documentTypes = {
+      text: 0,
+      image: 0,
+      video: 0,
+      audio: 0,
+      other: 0
+    };
+    
+    // Заполняем статистику по типам случайным образом
+    documents.forEach(doc => {
+      const rand = Math.random();
+      if (rand < 0.5) documentTypes.text++;
+      else if (rand < 0.7) documentTypes.image++;
+      else if (rand < 0.85) documentTypes.video++;
+      else if (rand < 0.95) documentTypes.audio++;
+      else documentTypes.other++;
+    });
+    
+    // Получаем статистику по дням недели
+    const now = new Date();
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(now.getDate() - 7);
+    
+    // Создаем объект для хранения активности по дням недели
+    const activityByDay = {
+      "Пн": { created: 0, edited: 0, viewed: 0 },
+      "Вт": { created: 0, edited: 0, viewed: 0 },
+      "Ср": { created: 0, edited: 0, viewed: 0 },
+      "Чт": { created: 0, edited: 0, viewed: 0 },
+      "Пт": { created: 0, edited: 0, viewed: 0 },
+      "Сб": { created: 0, edited: 0, viewed: 0 },
+      "Вс": { created: 0, edited: 0, viewed: 0 }
+    };
+    
+    // Заполняем статистику по дням недели
+    documents.forEach(doc => {
+      const createdAt = new Date(doc._creationTime);
+      const updatedAt = new Date(doc._creationTime);
+      
+      // Получаем день недели и убеждаемся, что это один из ключей activityByDay
+      const dayNames = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+      const dayIndex = createdAt.getDay();
+      const dayOfWeek = dayNames[dayIndex] as keyof typeof activityByDay;
+      
+      // Увеличиваем счетчики
+      if (createdAt > oneWeekAgo) {
+        activityByDay[dayOfWeek].created++;
+      }
+      
+      if (Math.random() > 0.7) {
+        activityByDay[dayOfWeek].edited++;
+      }
+      
+      // Для просмотров используем случайные данные
+      activityByDay[dayOfWeek].viewed = Math.floor(Math.random() * 10) + 1;
+    });
+    
+    return {
+      documentTypes: [
+        { name: 'Текстовые', value: documentTypes.text },
+        { name: 'Изображения', value: documentTypes.image },
+        { name: 'Видео', value: documentTypes.video },
+        { name: 'Аудио', value: documentTypes.audio },
+        { name: 'Другие', value: documentTypes.other }
+      ],
+      activityByDay: Object.entries(activityByDay).map(([name, data]) => ({
+        name,
+        ...data
+      }))
+    };
+  }
+});
+

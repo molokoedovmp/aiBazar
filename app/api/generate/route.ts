@@ -14,9 +14,21 @@ const openai = new OpenAI({
 
 
 
+// Указываем, что этот маршрут должен быть динамическим
+
+export const dynamic = 'force-dynamic';
+
+export const maxDuration = 60; // Увеличиваем максимальную продолжительность до 60 секунд
+
+
+
 export async function POST(req: Request) {
 
   try {
+
+    console.log("API: Получен запрос на генерацию");
+
+    
 
     // Получаем данные из запроса
 
@@ -28,6 +40,8 @@ export async function POST(req: Request) {
 
     if (!prompt) {
 
+      console.error("API: Отсутствует запрос");
+
       return NextResponse.json(
 
         { error: 'Отсутствует запрос' },
@@ -37,6 +51,10 @@ export async function POST(req: Request) {
       );
 
     }
+
+
+
+    console.log(`API: Обработка запроса: "${prompt.substring(0, 50)}..." (${isEditing ? 'редактирование' : 'генерация'})`);
 
 
 
@@ -68,31 +86,101 @@ export async function POST(req: Request) {
 
 
 
-    // Отправляем запрос к OpenAI
+    console.log("API: Отправка запроса к OpenAI");
 
-    const response = await openai.chat.completions.create({
+    
 
-      model: 'gpt-4o-mini',
+    // Отправляем запрос к OpenAI с обработкой ошибок и повторными попытками
 
-      messages: [
+    let attempts = 0;
 
-        { role: 'system', content: context },
+    let generatedText = '';
 
-        { role: 'user', content: prompt }
+    let error = null;
 
-      ],
+    
 
-      temperature: 0.7,
+    while (attempts < 3 && !generatedText) {
 
-      max_tokens: 2500,
+      try {
 
-    });
+        attempts++;
+
+        console.log(`API: Попытка ${attempts}`);
+
+        
+
+        const response = await openai.chat.completions.create({
+
+          model: 'gpt-4o-mini',
+
+          messages: [
+
+            { role: 'system', content: context },
+
+            { role: 'user', content: prompt }
+
+          ],
+
+          temperature: 0.7,
+
+          max_tokens: 2500,
+
+        });
 
 
 
-    // Получаем ответ от API
+        // Получаем ответ от API
 
-    const generatedText = response.choices[0]?.message?.content || '';
+        generatedText = response.choices[0]?.message?.content || '';
+
+        
+
+        if (!generatedText) {
+
+          console.warn("API: Пустой ответ от OpenAI");
+
+          throw new Error("Пустой ответ от API");
+
+        }
+
+        
+
+        console.log(`API: Получен ответ от OpenAI (${generatedText.length} символов)`);
+
+      } catch (err) {
+
+        error = err;
+
+        console.error(`API: Ошибка при попытке ${attempts}:`, err);
+
+        // Ждем перед повторной попыткой
+
+        if (attempts < 3) {
+
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+
+        }
+
+      }
+
+    }
+
+    
+
+    if (!generatedText) {
+
+      console.error("API: Все попытки завершились неудачно:", error);
+
+      return NextResponse.json(
+
+        { error: `Не удалось получить ответ от API после ${attempts} попыток: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}` },
+
+        { status: 500 }
+
+      );
+
+    }
 
 
 
@@ -100,11 +188,11 @@ export async function POST(req: Request) {
 
   } catch (error) {
 
-    console.error('Ошибка при генерации текста:', error);
+    console.error('API: Критическая ошибка при генерации текста:', error);
 
     return NextResponse.json(
 
-      { error: 'Произошла ошибка при обработке запроса' },
+      { error: `Произошла ошибка при обработке запроса: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}` },
 
       { status: 500 }
 

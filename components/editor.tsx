@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Bot, Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 
 interface EditorProps {
   onChange: (content: string) => void;
@@ -96,6 +97,12 @@ const Editor: React.FC<EditorProps> = ({
                         aiPrompt.toLowerCase().includes("ошибк") ||
                         aiPrompt.toLowerCase().includes("проверь");
       
+      console.log("Отправка запроса к API:", { 
+        prompt: aiPrompt,
+        currentText: currentText.substring(0, 100) + "...", // Логируем только начало для отладки
+        isEditing 
+      });
+      
       // Отправляем запрос к API с текущим содержимым и запросом пользователя
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -107,17 +114,27 @@ const Editor: React.FC<EditorProps> = ({
           currentText: currentText,
           isEditing: isEditing // Передаем флаг редактирования
         }),
+        // Добавляем таймаут и другие параметры для повышения надежности
+        cache: 'no-store',
+        signal: AbortSignal.timeout(30000) // 30 секунд таймаут
       });
       
       if (!response.ok) {
-        throw new Error("Ошибка при запросе к API");
+        console.error("Ошибка API:", response.status, response.statusText);
+        throw new Error(`Ошибка при запросе к API: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      const aiText = data.text || "Не удалось сгенерировать текст";
+      
+      if (!data.text) {
+        console.error("Пустой ответ от API:", data);
+        throw new Error("API вернул пустой ответ");
+      }
+      
+      const aiText = data.text;
       
       // Добавляем логирование для отладки
-      console.log("Полученный текст от API:", aiText);
+      console.log("Получен ответ от API, длина:", aiText.length);
       
       // Если это редактирование, заменяем весь текст
       if (isEditing) {
@@ -132,19 +149,17 @@ const Editor: React.FC<EditorProps> = ({
       const lines = aiText.split(/\r?\n/).filter((line: string) => line.trim() !== "");
       const newBlocks: PartialBlock[] = [];
       
+      console.log(`Обработка ${lines.length} строк текста`);
+      
       // Обрабатываем каждую строку и преобразуем в соответствующий блок
       for (let line of lines as string[]) {
-        console.log("Обработка строки:", line);
-        
         if (line.startsWith('# ')) {
-          console.log("Определено как заголовок 1 уровня");
           newBlocks.push({
             type: "heading",
             props: { level: 1 },
             content: [{ type: "text", text: line.substring(2).trim(), styles: {} }],
           });
         } else if (line.startsWith('## ')) {
-          console.log("Определено как заголовок 2 уровня");
           newBlocks.push({
             type: "heading",
             props: { level: 2 },
@@ -180,32 +195,71 @@ const Editor: React.FC<EditorProps> = ({
         }
       }
       
-      // Вставляем новые блоки в редактор
-      const blocks = editor.topLevelBlocks;
+      console.log(`Создано ${newBlocks.length} новых блоков`);
       
-      if (isEditing || blocks.length === 0) {
-        // Если это редактирование или редактор пуст, вставляем в начало
-        console.log("Вставляем блоки в начало");
-        editor.insertBlocks(newBlocks, "start");
-      } else {
-        // Иначе добавляем после существующего содержимого
-        console.log("Добавляем блоки после существующего содержимого");
-        editor.insertBlocks(
-          newBlocks, 
-          blocks[blocks.length - 1].id, 
-          "after"
-        );
+      // Проверяем, что есть блоки для вставки
+      if (newBlocks.length === 0) {
+        console.warn("Нет блоков для вставки");
+        throw new Error("Не удалось создать блоки из ответа AI");
       }
       
-      // Обновляем содержимое и очищаем поле ввода
-      const content = JSON.stringify(editor.topLevelBlocks, null, 2);
-      onChange(content);
+      // Вставляем новые блоки в редактор
+      try {
+        const blocks = editor.topLevelBlocks;
+        
+        if (isEditing || blocks.length === 0) {
+          // Если это редактирование или редактор пуст, вставляем в начало
+          console.log("Вставляем блоки в начало");
+          editor.insertBlocks(newBlocks, "start");
+        } else {
+          // Иначе добавляем после существующего содержимого
+          console.log("Добавляем блоки после существующего содержимого");
+          editor.insertBlocks(
+            newBlocks, 
+            blocks[blocks.length - 1].id, 
+            "after"
+          );
+        }
+        
+        // Добавляем выделение для новых блоков
+        newBlocks.forEach(block => {
+          if (block.content && Array.isArray(block.content) && block.content[0]) {
+            const contentItem = block.content[0];
+            // Проверяем, что это объект, а не строка
+            if (typeof contentItem !== 'string' && contentItem.type === "text") {
+              // Добавляем стиль для выделения сгенерированного текста
+              contentItem.styles = {
+                ...(contentItem.styles || {}),
+                backgroundColor: "rgba(144, 202, 249, 0.2)" // Светло-голубой фон для выделения
+              };
+            }
+          }
+        });
+        
+        // Обновляем содержимое
+        const content = JSON.stringify(editor.topLevelBlocks, null, 2);
+        onChange(content);
+        
+        console.log("Блоки успешно вставлены и содержимое обновлено");
+        
+        // Показываем уведомление об успешной генерации
+        toast.success("Текст успешно сгенерирован и добавлен в документ", {
+          duration: 3000,
+          position: "bottom-center"
+        });
+      } catch (insertError) {
+        console.error("Ошибка при вставке блоков:", insertError);
+        throw new Error(`Ошибка при вставке блоков: ${insertError instanceof Error ? insertError.message : 'Неизвестная ошибка'}`);
+      }
+      
+      // Очищаем поле ввода и закрываем попап
       setAiPrompt("");
-      setIsAiOpen(false); // Закрываем попап после генерации
+      setIsAiOpen(false);
       
     } catch (error) {
       console.error("Ошибка при генерации текста:", error);
-      // Можно добавить уведомление об ошибке
+      // Показываем уведомление об ошибке
+      alert(`Ошибка при генерации текста: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setIsGenerating(false);
     }

@@ -196,3 +196,47 @@ export const updateAllPricesFromStartPrice = mutation({
   },
 });
 
+// Запрос для получения статистики по использованию инструментов
+export const getToolUsageStats = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    
+    if (!identity) {
+      throw new Error("Не авторизован");
+    }
+    
+    // Получаем все инструменты
+    const tools = await ctx.db.query("aiTools").collect();
+    
+    // Создаем статистику использования (в реальном приложении это должно быть из таблицы использований)
+    const toolUsage = tools.map(tool => ({
+      name: tool.name,
+      usage: Math.floor(Math.random() * 70) + 10 // Генерируем случайные данные для примера
+    }));
+    
+    return toolUsage;
+  }
+});
+
+// Запрос для получения статистики по покупкам по месяцам
+export const getPurchaseStats = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    
+    if (!identity) {
+      throw new Error("Не авторизован");
+    }
+    
+    // В реальном приложении здесь должен быть запрос к таблице покупок
+    // Для примера генерируем случайные данные
+    const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    
+    const purchaseData = months.map(name => ({
+      name,
+      purchases: Math.floor(Math.random() * 15) + 1
+    }));
+    
+    return purchaseData;
+  }
+});
+

@@ -31,7 +31,6 @@ export default function AdminLayout({
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   const [error, setError] = useState("")
-  const [theme, setTheme] = useState("dark") // По умолчанию тёмная тема
   
   // Проверяем, авторизован ли пользователь как администратор
   useEffect(() => {
@@ -41,106 +40,35 @@ export default function AdminLayout({
         setIsAdmin(true)
         setShowLoginForm(false)
       }
-      
-      // Проверяем текущую тему
-      const currentTheme = localStorage.getItem("theme") || "dark"
-      setTheme(currentTheme)
-      
-      // Добавляем слушатель для изменения темы
-      const handleThemeChange = (e: Event) => {
-        if (e instanceof CustomEvent && e.detail && e.detail.theme) {
-          setTheme(e.detail.theme)
-        }
-      }
-      
-      window.addEventListener("themeChange", handleThemeChange)
-      
-      return () => {
-        window.removeEventListener("themeChange", handleThemeChange)
-      }
     }
   }, [])
   
-  // Применяем глобальные стили для тёмной темы, а для светлой оставляем только отступы
+  // Удаляем все стили, которые могли быть добавлены ранее
   useEffect(() => {
-    let style = document.getElementById("admin-theme-style") as HTMLStyleElement | null;
-    if (!style) {
-      style = document.createElement("style");
-      style.id = "admin-theme-style";
-      document.head.appendChild(style);
+    const style = document.getElementById("admin-theme-style");
+    if (style) {
+      style.remove();
+    }
+  }, []);
+  
+  // Добавим стиль для компенсации отступа из globals.css
+  useEffect(() => {
+    const style = document.getElementById("admin-theme-style");
+    if (style) {
+      style.remove();
     }
     
-    if (theme === "dark") {
-      style.innerHTML = `
-        html, body {
-          overflow: hidden;
-          height: 100%;
-          margin: 0;
-          padding: 0;
-          background-color: #121212 !important;
-        }
-        
-        #__next, main, [data-overlay-container="true"] {
-          background-color: #121212 !important;
-        }
-        
-        .admin-content {
-          background-color: #121212 !important;
-          color: white;
-        }
-        
-        .admin-card {
-          background-color: #1e1e1e !important;
-          border: 1px solid #333;
-          color: white;
-        }
-        
-        .admin-main-container {
-          height: 100vh;
-          overflow: hidden;
-          background-color: #121212 !important;
-          width: 100%;
-        }
-        
-        .admin-content-scrollable {
-          height: 100%;
-          overflow-y: auto;
-          overflow-x: hidden;
-          background-color: #121212 !important;
-          width: 100%;
-        }
-        
-        body::after {
-          content: "";
-          position: fixed;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          width: 100vw;
-          background-color: #121212 !important;
-          z-index: -1;
-        }
-      `;
-    } else {
-      // Для светлой темы оставляем только сброс отступов
-      style.innerHTML = `
-        html, body {
-          margin: 0;
-          padding: 0;
-        }
-      `;
-    }
-  }, [theme]);
-  
-  // Функция для переключения темы
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark"
-    setTheme(newTheme)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("theme", newTheme)
-      window.dispatchEvent(new CustomEvent("themeChange", { detail: { theme: newTheme } }))
-    }
-  }
+    // Создаем новый стиль только для компенсации отступа
+    const compensationStyle = document.createElement("style");
+    compensationStyle.id = "admin-theme-style";
+    compensationStyle.innerHTML = `
+      .admin-layout-container {
+        margin-top: -4rem; /* Компенсируем padding-top: 4rem из globals.css */
+        min-height: calc(100vh + 4rem); /* Увеличиваем минимальную высоту */
+      }
+    `;
+    document.head.appendChild(compensationStyle);
+  }, []);
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -167,8 +95,8 @@ export default function AdminLayout({
   
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-[400px] admin-card">
+      <div className="admin-layout-container min-h-screen flex items-center justify-center bg-white dark:bg-[#121212]">
+        <Card className="w-[400px]">
           <CardHeader>
             <CardTitle>Вход в панель администратора</CardTitle>
             <CardDescription>
@@ -222,14 +150,14 @@ export default function AdminLayout({
         disableTransitionOnChange
         storageKey="jotion-theme-2"
       >
-        <div className="admin-main-container flex w-full">
+        <div className="admin-layout-container h-screen flex w-full bg-white dark:bg-[#121212]">
           <AdminSidebar onLogout={handleLogout} />
-          <div className="flex-1 admin-content w-full">
+          <div className="flex-1 w-full bg-white dark:bg-[#121212]">
             <div className="flex justify-between items-center p-2 border-b">
               <SidebarTrigger />
               <ThemeToggle />
             </div>
-            <div className="admin-content-scrollable">
+            <div className="h-[calc(100vh-41px)] overflow-y-auto overflow-x-hidden bg-white dark:bg-[#121212]">
               {children}
             </div>
           </div>
