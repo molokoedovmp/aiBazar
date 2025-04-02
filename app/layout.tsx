@@ -83,6 +83,7 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
+        <meta name="google-site-verification" content="HF0qat6HUMU9JgjhU408NBRBYEiZKuX-wSm91x24W0g" />
         <meta name="yandex-verification" content="31f9fbf9bddca189" />
         {/* JSON-LD разметка для поисковых систем */}
         <script
