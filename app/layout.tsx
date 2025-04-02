@@ -28,7 +28,51 @@ export const metadata: Metadata = {
         href: "/logo-main.ico",
       }
     ]
-  }
+  },
+  // Добавлены Open Graph метатеги
+  openGraph: {
+    title: 'aiBazar',
+    description: 'aiBazar - это сервис, который предоставляет доступ к различным AI-инструментам и сервисам.',
+    url: 'https://aibazar.com', // Замените на ваш реальный URL
+    siteName: 'aiBazar',
+    images: [
+      {
+        url: 'https://aibazar.com/og-image.jpg', // Замените на путь к вашему изображению для превью
+        width: 1200,
+        height: 630,
+        alt: 'aiBazar Preview',
+      },
+    ],
+    locale: 'ru_RU',
+    type: 'website',
+  },
+  // Добавлены Twitter Card метатеги
+  twitter: {
+    card: 'summary_large_image',
+    title: 'aiBazar',
+    description: 'aiBazar - это сервис, который предоставляет доступ к различным AI-инструментам и сервисам.',
+    images: ['https://aibazar.com/twitter-image.jpg'], // Замените на путь к вашему изображению для Twitter
+  },
+  // Добавлен canonical URL
+  alternates: {
+    canonical: 'https://aibazar.com', // Замените на ваш реальный URL
+  },
+  // Добавлены дополнительные важные метатеги
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'verification_token', // Замените на ваш токен верификации Google
+    yandex: '31f9fbf9bddca189',
+  },
 }
 
 export default function RootLayout({
@@ -37,9 +81,29 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning>
       <head>
         <meta name="yandex-verification" content="31f9fbf9bddca189" />
+        {/* JSON-LD разметка для поисковых систем */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: `
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "url": "https://aibazar.com/",
+                "name": "aiBazar",
+                "description": "aiBazar - это сервис, который предоставляет доступ к различным AI-инструментам и сервисам.",
+                "potentialAction": {
+                  "@type": "SearchAction",
+                  "target": "https://aibazar.com/search?q={search_term_string}",
+                  "query-input": "required name=search_term_string"
+                }
+              }
+            `
+          }}
+        />
         {/* Yandex.Metrika counter */}
         <script
           type="text/javascript"
@@ -89,6 +153,15 @@ export default function RootLayout({
           </div>
         </noscript>
         {/* /Top.Mail.Ru counter */}
+        
+        {/* Favicon для всех устройств */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+        <meta name="msapplication-TileColor" content="#da532c" />
+        <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={`bg-gray-100 ${inter.className}`}>
         <EdgeStoreProvider>

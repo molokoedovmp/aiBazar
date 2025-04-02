@@ -10,20 +10,21 @@ export const create = mutation({
     name: v.string(),
     email: v.string(),
     message: v.string(),
+    service: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Убираем проверку авторизации, чтобы любой мог отправить заявку
+    // Получаем идентификатор пользователя, если он авторизован
     const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const userId = identity.subject;
+    const userId = identity?.subject;
 
     const document = await ctx.db.insert("feedbackMessages", {
       name: args.name,
       email: args.email,
       message: args.message,
+      service: args.service,
+      userId: userId || "anonymous", // Сохраняем ID пользователя или "anonymous"
+      createdAt: new Date().toISOString(),
     });
 
     return document;
@@ -34,5 +35,24 @@ export const get = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("feedbackMessages").collect();
+  },
+});
+
+// Алиас для совместимости с существующим кодом
+export const submitFeedback = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    message: v.string(),
+    service: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("feedbackMessages", {
+      name: args.name,
+      email: args.email,
+      message: args.message,
+      service: args.service,
+      createdAt: new Date().toISOString(),
+    });
   },
 });

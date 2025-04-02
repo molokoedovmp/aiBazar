@@ -52,9 +52,12 @@ export default defineSchema({
     .index("by_user_item_type", ["userId", "itemId", "itemType"]), // Add this new index
     
   feedbackMessages: defineTable({
-    name: v.string(),            // Имя отправителя
-    email: v.string(),           // Email отправителя
-    message: v.string(),         // Текст сообщения
+    name: v.string(),
+    email: v.string(),
+    message: v.string(),
+    service: v.optional(v.string()),
+    userId: v.optional(v.string()),
+    createdAt: v.optional(v.string()),
   })
     .index("by_email", ["email"]), // Индекс для быстрого поиска по email
 

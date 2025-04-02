@@ -7,7 +7,207 @@ body,
 :root {
   height: 100%;
 }
- 
+
+/* Базовые стили для темной темы */
+.dark {
+  color-scheme: dark;
+}
+
+/* Улучшенные стили для темной темы */
+.dark body {
+  background-color: #09090b;
+  color: #e2e2e2;
+}
+
+/* Стили для карточек и границ в темной теме */
+.dark .border {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .bg-muted {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Стили для текста в темной теме */
+.dark p, 
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h4, 
+.dark h5, 
+.dark h6,
+.dark span,
+.dark li {
+  color: #e2e2e2;
+}
+
+/* Стили для аккордеона в темной теме */
+.dark [data-state="open"] > [data-radix-accordion-content],
+.dark [data-radix-accordion-content] {
+  color: #e2e2e2;
+}
+
+/* Стили для градиентов в темной теме */
+.dark .bg-gradient-to-r.from-primary\/20.to-primary\/5 {
+  background: linear-gradient(to right, rgba(var(--primary), 0.1), rgba(var(--primary), 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Предотвращение мерцания при загрузке страницы */
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+}
+
+[data-theme="dark"] {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 9, 9, 11;
+  --background-end-rgb: 9, 9, 11;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Улучшение контрастности для элементов в темной теме */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e2e2e2;
+}
+
+/* Улучшение видимости кнопок в темной теме */
+.dark button {
+  color: #ffffff;
+}
+
+/* Стили для основных кнопок в темной теме */
+.dark .bg-primary {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.dark .text-primary-foreground {
+  color: #000000 !important;
+}
+
+/* Стили для кнопок с разными вариантами */
+.dark button[data-variant="default"],
+.dark button[data-variant="primary"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.dark button[data-variant="outline"] {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dark button[data-variant="ghost"] {
+  color: #ffffff !important;
+}
+
+.dark button[data-variant="secondary"] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Исправление для диалоговых окон в темной теме */
+.dark [role="dialog"] {
+  background-color: #09090b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Удаляем синий цвет при наведении */
+.dark a:hover,
+.dark button:hover,
+.dark [role="button"]:hover {
+  color: #f0f0f0 !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Удаляем синюю подсветку при фокусе */
+.dark *:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Удаляем синий цвет из табов */
+.dark [role="tab"] {
+  color: #e2e2e2 !important;
+  background-color: transparent !important;
+}
+
+.dark [role="tab"][data-state="active"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.dark [role="tab"]:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark [role="tablist"] {
+  background-color: #1a1a1a !important;
+}
+
+/* Специальные стили для кнопок "Заказать" */
+.dark button:has(span:contains("Заказать")),
+.dark button:contains("Заказать") {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* Специальные стили для кнопок "Купить" */
+.dark button:has(span:contains("Купить")),
+.dark button:contains("Купить") {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* Специальные стили для кнопок в карточках товаров */
+.dark .bg-primary\/90 {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.dark .bg-primary\/90 span,
+.dark .bg-primary\/90 div {
+  color: #000000 !important;
+}
+
+/* Стили для иконок в кнопках */
+.dark button svg {
+  color: inherit !important;
+}
+
+/* Улучшение контрастности табов в темной теме */
+.dark .tabs-list {
+  background-color: #2f2f2f !important; /* Более светлый фон для списка табов */
+  border: 1px solid #444 !important; /* Добавим границу для четкости */
+}
+
+.dark .tabs-trigger {
+  color: #a0a0a0 !important; /* Сделаем текст неактивных табов светлее */
+}
+
+.dark .tabs-trigger:hover {
+  background-color: #3a3a3a !important; /* Фон при наведении */
+  color: #ffffff !important;
+}
+
+.dark .tabs-trigger[data-state="active"] {
+  background-color: #ffffff !important; /* Белый фон для активного таба */
+  color: #000000 !important; /* Черный текст для активного таба */
+  font-weight: 600 !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -96,31 +296,29 @@ body,
   }
 
   .button-custom {
-    background-color: transparent; /* Прозрачный фон */
-    color: white; /* Белый цвет текста */
-    padding: 12px 24px; /* Внутренние отступы */
-    font-size: 16px; /* Размер шрифта */
-    font-weight: 600; /* Полужирный шрифт */
-    border-radius: 8px; /* Округленные углы */
-    border: 2px solid white; /* Белая обводка */
-    cursor: pointer; /* Изменяем курсор на указатель */
-    transition: background-color 0.2s ease, color 0.2s ease; /* Плавный переход для фона и текста */
+    background-color: transparent;
+    color: white;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 2px solid white;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   
   .button-custom:hover {
-    background-color: white; /* Белый фон при наведении */
-    color: black; /* Черный цвет текста при наведении */
+    background-color: white;
+    color: black;
   }
   
   .button-custom:active {
-    transform: translateY(2px); /* Легкий эффект нажатия */
+    transform: translateY(2px);
   }
 
   body {
-    padding-top: 4rem; /* Пример для высоты 4rem, измените по необходимости */
+    padding-top: 4rem;
   }
-
-  
 }
  
 @layer base {
