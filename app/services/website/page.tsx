@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import {
   Check,
   ArrowRight,
@@ -41,6 +42,7 @@ const WebsiteServicesPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedService, setSelectedService] = useState("");
   const [activeTab, setActiveTab] = useState("websites");
+  const { theme } = useTheme();
   
   const submitFeedback = useMutation(api.feedback.create);
   
@@ -288,8 +290,8 @@ const WebsiteServicesPage = () => {
                        data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-white
                        transition-all"
             style={{
-              color: activeTab === "websites" ? "#000000" : (document.documentElement.classList.contains('dark') ? "#ffffff" : "#666666"),
-              backgroundColor: activeTab === "websites" ? "#ffffff" : (document.documentElement.classList.contains('dark') ? "#333333" : "#f3f3f3")
+              color: activeTab === "websites" ? "#000000" : (theme === 'dark' ? "#ffffff" : "#666666"),
+              backgroundColor: activeTab === "websites" ? "#ffffff" : (theme === 'dark' ? "#333333" : "#f3f3f3")
             }}
           >
             Веб-сайты
@@ -303,8 +305,8 @@ const WebsiteServicesPage = () => {
                        data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-white
                        transition-all"
             style={{
-              color: activeTab === "marketing" ? "#000000" : (document.documentElement.classList.contains('dark') ? "#ffffff" : "#666666"),
-              backgroundColor: activeTab === "marketing" ? "#ffffff" : (document.documentElement.classList.contains('dark') ? "#333333" : "#f3f3f3")
+              color: activeTab === "marketing" ? "#000000" : (theme === 'dark' ? "#ffffff" : "#666666"),
+              backgroundColor: activeTab === "marketing" ? "#ffffff" : (theme === 'dark' ? "#333333" : "#f3f3f3")
             }}
           >
             Продвижение
@@ -318,8 +320,8 @@ const WebsiteServicesPage = () => {
                        data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-white
                        transition-all"
             style={{
-              color: activeTab === "additional" ? "#000000" : (document.documentElement.classList.contains('dark') ? "#ffffff" : "#666666"),
-              backgroundColor: activeTab === "additional" ? "#ffffff" : (document.documentElement.classList.contains('dark') ? "#333333" : "#f3f3f3")
+              color: activeTab === "additional" ? "#000000" : (theme === 'dark' ? "#ffffff" : "#666666"),
+              backgroundColor: activeTab === "additional" ? "#ffffff" : (theme === 'dark' ? "#333333" : "#f3f3f3")
             }}
           >
             Доп. Услуги
