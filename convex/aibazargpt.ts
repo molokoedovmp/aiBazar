@@ -85,6 +85,7 @@ export const remove = mutation({
   args: { id: v.id("aibazargpt") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+    return { success: true };
   },
 });
 

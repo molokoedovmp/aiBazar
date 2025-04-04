@@ -200,10 +200,21 @@ export default function PaymentPage() {
           </CardContent>
 
           <CardFooter className="p-6">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="w-full bg-[#3E8BF9] hover:bg-[#2D7DF4] text-white flex items-center justify-center gap-2 transition-colors"
+            >
+              <Image 
+                src="/yookassa.svg" 
+                alt="ЮКасса" 
+                width={24} 
+                height={24} 
+                className="h-5 w-auto" 
+              />
               {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <div className="flex items-center">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Обработка...
                 </div>
               ) : (

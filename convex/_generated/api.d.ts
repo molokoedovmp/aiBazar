@@ -21,6 +21,7 @@ import type * as categories from "../categories.js";
 import type * as documents from "../documents.js";
 import type * as favorites from "../favorites.js";
 import type * as feedback from "../feedback.js";
+import type * as feedbackMessages from "../feedbackMessages.js";
 import type * as orders from "../orders.js";
 import type * as payments from "../payments.js";
 import type * as reviews from "../reviews.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   documents: typeof documents;
   favorites: typeof favorites;
   feedback: typeof feedback;
+  feedbackMessages: typeof feedbackMessages;
   orders: typeof orders;
   payments: typeof payments;
   reviews: typeof reviews;

@@ -36,14 +36,10 @@ export const updateStatus = mutation({
     status: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
     await ctx.db.patch(args.id, {
       status: args.status,
     });
+    return { success: true };
   },
 });
 
@@ -70,5 +66,21 @@ export const getByUser = query({
     );
 
     return paymentWithServices;
+  },
+});
+
+// Метод для получения всех платежей
+export const getAll = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("payments").collect();
+  },
+});
+
+// Метод для удаления платежа
+export const remove = mutation({
+  args: { id: v.id("payments") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return { success: true };
   },
 }); 

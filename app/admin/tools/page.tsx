@@ -36,11 +36,23 @@ import {
   RefreshCw, 
   Edit,
   Plus,
-  Trash
+  Trash,
+  Download,
+  FileJson,
+  DollarSign
 } from "lucide-react"
 import { toast } from "sonner"
 import { ImageUpload } from "@/app/admin/_components/image-upload"
 import { Id } from "@/convex/_generated/dataModel"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ToolsTable } from "./_components/tools-table"
+import { ToolsGrid } from "./_components/tools-grid"
+import * as XLSX from 'xlsx'
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 export default function ToolsPage() {
   const aiTools = useQuery(api.aiTools.get)
@@ -61,6 +73,8 @@ export default function ToolsPage() {
   const [editingTool, setEditingTool] = useState<any>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [searchQuery, setSearchQuery] = useState("")
+  
+  const [isExporting, setIsExporting] = useState(false)
   
   // Получаем имя категории по ID
   const getCategoryName = (categoryId: string) => {
@@ -170,47 +184,89 @@ export default function ToolsPage() {
     tool.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
   
+  // Функция для экспорта в Excel
+  const exportToExcel = () => {
+    if (!aiTools) return
+    
+    setIsExporting(true)
+    
+    try {
+      // Подготавливаем данные для экспорта
+      const data = aiTools.map(tool => ({
+        ID: tool._id,
+        Название: tool.name,
+        Описание: tool.description,
+        Тип: tool.type,
+        Цена: tool.price || 0,
+        Рейтинг: tool.rating || 0,
+        Активен: tool.isActive ? "Да" : "Нет",
+        Категория: categories?.find(c => c._id === tool.categoryId)?.name || "Не указана",
+        URL: tool.url || "",
+        Изображение: tool.coverImage || ""
+      }))
+      
+      // Создаем рабочую книгу Excel
+      const worksheet = XLSX.utils.json_to_sheet(data)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Инструменты")
+      
+      // Сохраняем файл
+      XLSX.writeFile(workbook, "ai-tools-export.xlsx")
+      
+      console.log("Экспорт в Excel выполнен успешно")
+    } catch (error) {
+      console.error("Ошибка при экспорте в Excel:", error)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+  
+  // Функция для экспорта в JSON
+  const exportToJSON = () => {
+    if (!aiTools) return
+    
+    setIsExporting(true)
+    
+    try {
+      // Подготавливаем данные для экспорта
+      const data = aiTools.map(tool => ({
+        id: tool._id,
+        name: tool.name,
+        description: tool.description,
+        type: tool.type,
+        price: tool.price || 0,
+        rating: tool.rating || 0,
+        isActive: tool.isActive,
+        category: categories?.find(c => c._id === tool.categoryId)?.name || null,
+        url: tool.url || null,
+        coverImage: tool.coverImage || null
+      }))
+      
+      // Создаем Blob с данными JSON
+      const jsonString = JSON.stringify(data, null, 2)
+      const blob = new Blob([jsonString], { type: "application/json" })
+      
+      // Создаем ссылку для скачивания
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = "ai-tools-export.json"
+      
+      // Симулируем клик для скачивания
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      console.log("Экспорт в JSON выполнен успешно")
+    } catch (error) {
+      console.error("Ошибка при экспорте в JSON:", error)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+  
   return (
     <div className="p-6">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Обновление цен</CardTitle>
-          <CardDescription>
-            Обновите цены всех инструментов на основе стартовой цены в долларах
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-end gap-4">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="exchangeRate">Курс доллара</Label>
-              <Input
-                id="exchangeRate"
-                type="number"
-                value={exchangeRate}
-                onChange={(e) => setExchangeRate(Number(e.target.value))}
-                min={1}
-              />
-            </div>
-            <Button 
-              onClick={handleUpdateAllPrices}
-              disabled={isUpdating}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Обновление...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Обновить цены
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
       {/* Диалог с результатами обновления цен */}
       <Dialog open={isResultsOpen} onOpenChange={setIsResultsOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
@@ -265,12 +321,92 @@ export default function ToolsPage() {
         </DialogContent>
       </Dialog>
       
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Управление инструментами</h1>
-        <Button onClick={() => openEditDialog({})}>
-          <Plus className="mr-2 h-4 w-4" />
-          Добавить инструмент
-        </Button>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Управление инструментами</h1>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => {
+              setEditingTool({
+                name: "",
+                description: "",
+                type: "",
+                price: 0,
+                startPrice: 0,
+                isActive: true,
+                categoryId: categories[0]?._id || "",
+                url: "",
+                coverImage: ""
+              });
+              setSelectedCategory(categories[0]?._id || "");
+              setIsEditDialogOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Новый инструмент
+          </Button>
+          
+          {/* Добавляем Popover для обновления цен */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <DollarSign className="h-4 w-4" />
+                Обновить цены
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <h4 className="font-medium">Обновление цен</h4>
+                <p className="text-sm text-muted-foreground">
+                  Обновите цены всех инструментов на основе стартовой цены в долларах
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="exchangeRate"
+                    type="number"
+                    value={exchangeRate}
+                    onChange={(e) => setExchangeRate(Number(e.target.value))}
+                    min={1}
+                    placeholder="Курс доллара"
+                  />
+                  <Button 
+                    onClick={handleUpdateAllPrices}
+                    disabled={isUpdating}
+                    size="sm"
+                  >
+                    {isUpdating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          <Button 
+            variant="outline" 
+            onClick={exportToExcel} 
+            disabled={isExporting || !aiTools}
+            className="flex items-center gap-2"
+          >
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Экспорт в Excel
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={exportToJSON} 
+            disabled={isExporting || !aiTools}
+            className="flex items-center gap-2"
+          >
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileJson className="h-4 w-4" />}
+            Экспорт в JSON
+          </Button>
+        </div>
       </div>
       
       <div className="mb-4">
@@ -283,63 +419,32 @@ export default function ToolsPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Список инструментов</CardTitle>
+          <CardTitle>AI инструменты</CardTitle>
           <CardDescription>
-            Всего инструментов: {filteredTools?.length || 0}
+            Управляйте инструментами AI, которые отображаются на вашем сайте.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Название</TableHead>
-                <TableHead>Категория</TableHead>
-                <TableHead>Стартовая цена ($)</TableHead>
-                <TableHead>Цена (₽)</TableHead>
-                <TableHead>Рейтинг</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead>Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTools?.map((tool) => (
-                <TableRow key={tool._id}>
-                  <TableCell>{tool.name}</TableCell>
-                  <TableCell>{getCategoryName(tool.categoryId)}</TableCell>
-                  <TableCell>{tool.startPrice ?? "-"}</TableCell>
-                  <TableCell>{tool.price} ₽</TableCell>
-                  <TableCell>{tool.rating}</TableCell>
-                  <TableCell>
-                    <span 
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        tool.isActive 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {tool.isActive ? "Активен" : "Неактивен"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => openEditDialog(tool)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteTool(tool._id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Tabs defaultValue="table">
+            <TabsList className="mb-4">
+              <TabsTrigger value="table">Таблица</TabsTrigger>
+              <TabsTrigger value="grid">Сетка</TabsTrigger>
+            </TabsList>
+            <TabsContent value="table">
+              <ToolsTable 
+                tools={filteredTools} 
+                categories={categories} 
+                onEdit={openEditDialog} 
+              />
+            </TabsContent>
+            <TabsContent value="grid">
+              <ToolsGrid 
+                tools={filteredTools} 
+                categories={categories} 
+                onEdit={openEditDialog} 
+              />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       

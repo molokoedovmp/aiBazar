@@ -2,6 +2,13 @@ import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { Doc, Id } from "./_generated/dataModel"
 
+// Получение всех заказов
+export const get = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("aiToolsOrders").collect();
+  },
+});
+
 // Создание заказа
 export const create = mutation({
   args: {
@@ -12,20 +19,59 @@ export const create = mutation({
     status: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await ctx.auth.getUserIdentity();
-    if (!userId) throw new Error("Unauthorized");
-
-    const order = await ctx.db.insert("aiToolsOrders", {
-      userId: userId.subject,
+    const identity = await ctx.auth.getUserIdentity();
+    
+    if (!identity) {
+      throw new Error("Не авторизован");
+    }
+    
+    const userId = identity.subject;
+    
+    // Получаем информацию о сервисе
+    const service = await ctx.db.get(args.serviceId);
+    
+    if (!service) {
+      throw new Error("Сервис не найден");
+    }
+    
+    // Создаем новый заказ
+    const createdAt = new Date().toISOString();
+    const orderId = await ctx.db.insert("aiToolsOrders", {
+      userId,
       serviceId: args.serviceId,
       details: args.details,
       contactInfo: args.contactInfo,
       amount: args.amount,
-      status: args.status || 'processing',
-      createdAt: new Date().toISOString(),
+      status: args.status,
+      createdAt,
+      serviceName: service.name,
+      serviceCover: service.coverImage,
     });
-
-    return order;
+    
+    // Отправляем уведомление на почту
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Новый заказ",
+          email: args.contactInfo,
+          message: `Новый заказ на сумму ${args.amount} руб.\nДетали: ${args.details}`,
+          service: service.name,
+          createdAt,
+          type: "order",
+          orderId: orderId,
+          amount: args.amount
+        }),
+      });
+    } catch (error) {
+      // Логируем ошибку, но не прерываем выполнение функции
+      console.error("Ошибка при отправке уведомления:", error);
+    }
+    
+    return orderId;
   },
 });
 
@@ -36,7 +82,17 @@ export const updateStatus = mutation({
     status: v.string(),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.patch(args.id, { status: args.status });
+    const order = await ctx.db.get(args.id);
+    
+    if (!order) {
+      throw new Error("Заказ не найден");
+    }
+    
+    await ctx.db.patch(args.id, {
+      status: args.status,
+    });
+    
+    return args.id;
   },
 });
 
@@ -44,14 +100,17 @@ export const updateStatus = mutation({
 export const getByUser = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-
-    const orders = await ctx.db
+    
+    if (!identity) {
+      throw new Error("Не авторизован");
+    }
+    
+    const userId = identity.subject;
+    
+    return await ctx.db
       .query("aiToolsOrders")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
-
-    return orders;
   },
 });
 
