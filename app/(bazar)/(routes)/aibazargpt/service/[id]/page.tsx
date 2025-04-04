@@ -5,13 +5,31 @@ import { api } from "@/convex/_generated/api"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Check, ArrowLeft } from "lucide-react"
+import { Check, ArrowLeft, Bot, X } from "lucide-react"
 import Link from "next/link"
 import { Id } from "@/convex/_generated/dataModel"
 import { Spinner } from "@/components/spinner"
 import { useRouter } from "next/navigation"
 import { useMutation } from "convex/react"
 import { toast } from "sonner"
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Avatar } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+// Интерфейс для инструмента AI
+interface AITool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  price: number | string;
+  rating: number;
+  isActive: boolean;
+  url: string;
+  coverImage: string | null;
+}
 
 export default function ServicePage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -19,6 +37,114 @@ export default function ServicePage({ params }: { params: { id: string } }) {
     id: params.id as Id<"aibazargpt"> 
   })
   const createPayment = useMutation(api.payments.create)
+  
+  // Состояния для демо-режима
+  const [isDemoOpen, setIsDemoOpen] = useState(false)
+  const [aiTools, setAiTools] = useState<AITool[]>([])
+  const [userQuery, setUserQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [conversation, setConversation] = useState<{role: string, content: string}[]>([
+    {
+      role: "assistant",
+      content: "Привет! Я AI Поиск - ваш помощник в выборе AI-инструментов. Опишите, какой инструмент вы ищете или какую задачу хотите решить, и я порекомендую подходящие варианты из нашего каталога."
+    }
+  ])
+  
+  // Загружаем данные инструментов
+  useEffect(() => {
+    const loadAITools = async () => {
+      try {
+        const response = await fetch('/aibazargpt/ai-tools-export (1).json')
+        const data = await response.json()
+        setAiTools(data)
+      } catch (error) {
+        console.error("Ошибка при загрузке инструментов:", error)
+      }
+    }
+    
+    loadAITools()
+  }, [])
+  
+  // Функция для отправки запроса к AI
+  const handleSendQuery = async () => {
+    if (!userQuery.trim()) return
+    
+    // Добавляем запрос пользователя в историю
+    const newConversation = [
+      ...conversation,
+      { role: "user", content: userQuery }
+    ]
+    setConversation(newConversation)
+    setIsLoading(true)
+    
+    try {
+      // Имитация запроса к API (в реальном приложении здесь будет запрос к вашему API)
+      const response = await generateAIResponse(userQuery, aiTools)
+      
+      // Добавляем ответ AI в историю
+      setConversation([
+        ...newConversation,
+        { role: "assistant", content: response }
+      ])
+    } catch (error) {
+      console.error("Ошибка при получении ответа:", error)
+      toast.error("Не удалось получить рекомендации")
+    } finally {
+      setIsLoading(false)
+      setUserQuery("")
+    }
+  }
+  
+  // Функция для генерации ответа AI (имитация)
+  const generateAIResponse = async (query: string, tools: AITool[]): Promise<string> => {
+    // Имитируем задержку запроса
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Фильтруем инструменты на основе запроса
+    const keywords = query.toLowerCase().split(' ')
+    
+    // Ищем совпадения в названии, описании и категории
+    const matchedTools = tools
+      .filter(tool => tool.isActive) // Только активные инструменты
+      .filter(tool => {
+        const nameMatch = keywords.some(keyword => 
+          tool.name.toLowerCase().includes(keyword)
+        )
+        const descMatch = keywords.some(keyword => 
+          tool.description.toLowerCase().includes(keyword)
+        )
+        const categoryMatch = keywords.some(keyword => 
+          tool.category.toLowerCase().includes(keyword)
+        )
+        
+        return nameMatch || descMatch || categoryMatch
+      })
+      .sort((a, b) => b.rating - a.rating) // Сортируем по рейтингу
+      .slice(0, 3) // Берем топ-3
+    
+    if (matchedTools.length === 0) {
+      return `
+К сожалению, я не нашел инструментов, точно соответствующих вашему запросу "${query}". 
+
+Попробуйте уточнить запрос или использовать другие ключевые слова. Вы можете искать по категориям (например, "видео", "дизайн", "код") или по конкретным задачам (например, "создание презентаций", "генерация изображений").
+      `
+    }
+    
+    // Формируем красивый ответ с рекомендациями
+    let response = `По вашему запросу "${query}" я нашел следующие инструменты:\n\n`
+    
+    matchedTools.forEach((tool, index) => {
+      response += `### ${index + 1}. ${tool.name}\n`
+      response += `**Категория:** ${tool.category}\n`
+      response += `**Рейтинг:** ${tool.rating}/10\n`
+      response += `**Цена:** ${typeof tool.price === 'number' ? `${tool.price} ₽` : tool.price}\n\n`
+      response += `${tool.description}\n\n`
+    })
+    
+    response += `Хотите узнать больше о каком-то конкретном инструменте или уточнить запрос?`
+    
+    return response
+  }
 
   if (!service || !service.details) {
     return (
@@ -187,11 +313,19 @@ export default function ServicePage({ params }: { params: { id: string } }) {
                 <>
                   <Button 
                     onClick={handlePayment}
-                    className="w-full"
+                    className="w-full mb-3"
                   >
                     Получить доступ
                   </Button>
-                  <div className="text-sm text-muted-foreground">
+                  <Button 
+                    onClick={() => setIsDemoOpen(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Bot className="h-4 w-4 mr-2" />
+                    Попробовать демо
+                  </Button>
+                  <div className="text-sm text-muted-foreground mt-3">
                     Мгновенный доступ после оплаты
                   </div>
                 </>
@@ -200,6 +334,84 @@ export default function ServicePage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+      
+      {/* Диалоговое окно демо-режима */}
+      <Dialog open={isDemoOpen} onOpenChange={setIsDemoOpen}>
+        <DialogContent className="sm:max-w-[600px] h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Bot className="h-5 w-5 mr-2" />
+              AI Поиск - Демо режим
+            </DialogTitle>
+            <DialogDescription>
+              Задайте вопрос, и я помогу подобрать подходящие AI-инструменты из нашего каталога
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 pr-4 mb-4">
+            <div className="space-y-4">
+              {conversation.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}
+                >
+                  <div className={`flex ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'} max-w-[80%] gap-3`}>
+                    {message.role === 'assistant' && (
+                      <Avatar className="h-8 w-8 bg-primary/10">
+                        <Bot className="h-4 w-4 text-primary" />
+                      </Avatar>
+                    )}
+                    <div 
+                      className={`rounded-lg p-4 ${
+                        message.role === 'assistant' 
+                          ? 'bg-muted text-foreground' 
+                          : 'bg-primary text-primary-foreground'
+                      }`}
+                    >
+                      <div className="prose prose-sm dark:prose-invert" dangerouslySetInnerHTML={{ 
+                        __html: message.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex flex-row max-w-[80%] gap-3">
+                    <Avatar className="h-8 w-8 bg-primary/10">
+                      <Bot className="h-4 w-4 text-primary" />
+                    </Avatar>
+                    <div className="rounded-lg p-4 bg-muted">
+                      <Spinner size="sm" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          
+          <DialogFooter className="flex-shrink-0">
+            <div className="flex w-full gap-2">
+              <Input
+                placeholder="Опишите, какой инструмент вы ищете..."
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendQuery()
+                  }
+                }}
+                disabled={isLoading}
+                className="flex-1"
+              />
+              <Button onClick={handleSendQuery} disabled={isLoading || !userQuery.trim()}>
+                Отправить
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
