@@ -131,7 +131,7 @@ export default function AiPresentationPage() {
           <Link href="/bazarius">
             <Button variant="ghost" className="mb-4 pl-0">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад к каталогу
+              Назад 
             </Button>
           </Link>
           <div className="flex items-center gap-4">

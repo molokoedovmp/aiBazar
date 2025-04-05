@@ -29,6 +29,15 @@ const services = [
     link: "/bazarius/ai-presentation",
     storageKey: "ai-presentation-requests",
     imageUrl: "/aibazargpt/aipres.png"
+  },
+  {
+    id: "ai-blog",
+    title: "GPT для статей",
+    icon: Presentation, // можно заменить на другой, например, BlogIcon, если он есть
+    description: "Автоматическое создание статей для блога с помощью AI",
+    link: "/bazarius/ai-blog",
+    storageKey: "ai-blog-requests",
+    imageUrl: "/aibazargpt/aiblog.png"
   }
 ]
 
@@ -50,19 +59,21 @@ export default function AccountPage() {
   const router = useRouter()
   const maxFreeRequests = 10
 
-  // Поскольку количество сервисов фиксированное, можно вызвать хуки для каждого сервиса.
+  // Вызываем пользовательский хук для каждого сервиса
   const usageAiSearch = useServiceUsage("ai-search-requests", maxFreeRequests)
   const usageAiPresentation = useServiceUsage("ai-presentation-requests", maxFreeRequests)
+  const usageAiBlog = useServiceUsage("ai-blog-requests", maxFreeRequests)
 
   // Создадим объект для сопоставления id сервиса с данными использования
   const usageMap: { [key: string]: { used: number; remaining: number } } = {
     "ai-search": usageAiSearch,
-    "ai-presentation": usageAiPresentation
+    "ai-presentation": usageAiPresentation,
+    "ai-blog": usageAiBlog
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* Новый блок с описанием */}
+      {/* Блок с описанием */}
       <div className="mb-10 text-center">
         <div className="inline-flex items-center justify-center bg-primary/10 px-4 py-2 rounded-full mb-4">
           <Sparkles className="h-5 w-5 text-primary mr-2" />

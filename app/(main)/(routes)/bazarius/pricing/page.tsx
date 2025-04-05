@@ -64,7 +64,7 @@ export default function PricingPage() {
       <Link href="/bazarius">
             <Button variant="ghost" className="mb-4 pl-0">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад к каталогу
+              Назад 
             </Button>
           </Link>
       {/* Hero Section */}

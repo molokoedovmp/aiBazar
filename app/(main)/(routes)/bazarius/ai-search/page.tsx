@@ -29,6 +29,9 @@ import { PaymentDialog } from "@/components/payment-dialog"
 import { useAuth } from "@clerk/clerk-react"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 
+// Импорт изображения для аватара
+import assistantAvatar from '@/public/error-dark.png'
+
 // Интерфейс для инструмента AI
 interface AITool {
   id: string;
@@ -187,7 +190,7 @@ export default function AISearchPage() {
           <Link href="/bazarius">
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад к каталогу
+              Назад
             </Button>
           </Link>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -201,7 +204,7 @@ export default function AISearchPage() {
               </p>
             </div>
             <Badge variant="outline" className="px-3 py-1 text-yellow-500 border-yellow-500">
-              Скоро будет доступен
+              Beta-версия
             </Badge>
           </div>
         </div>
@@ -212,7 +215,7 @@ export default function AISearchPage() {
           <Card className="lg:col-span-2 flex flex-col h-[70vh]">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Bot className="h-5 w-5 mr-2" />
+                <Bot className="h-5 w-5 mr-2 text-primary" />
                 Чат с AI Поиском
               </CardTitle>
               <CardDescription>
@@ -236,14 +239,24 @@ export default function AISearchPage() {
               <ScrollArea className="h-full pr-4">
                 <div className="space-y-4">
                   {conversation.map((message, index) => (
-                    <div key={index} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
+                    <div 
+                      key={index} 
+                      className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}
+                    >
                       <div className={`flex ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'} max-w-[80%] gap-3`}>
                         {message.role === 'assistant' && (
-                          <Avatar className="h-8 w-8 bg-primary/10">
-                            <Bot className="h-4 w-4 text-primary" />
-                          </Avatar>
+                          <Avatar className="relative h-10 w-10 rounded-full overflow-hidden bg-transparent">
+                            <Image
+                              src={assistantAvatar}
+                              alt="Assistant Avatar"
+                              fill
+                              className="object-cover"
+                            />
+                          </Avatar>                       
                         )}
-                        <div className={`rounded-lg p-4 ${message.role === 'assistant' ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'}`}>
+                        <div 
+                          className={`rounded-lg p-4 ${message.role === 'assistant' ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'}`}
+                        >
                           <div className="prose prose-sm dark:prose-invert" dangerouslySetInnerHTML={{ 
                             __html: message.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)\n/g, '<h3>$1</h3>')
                           }} />
@@ -255,7 +268,13 @@ export default function AISearchPage() {
                     <div className="flex justify-start">
                       <div className="flex flex-row max-w-[80%] gap-3">
                         <Avatar className="h-8 w-8 bg-primary/10">
-                          <Bot className="h-4 w-4 text-primary" />
+                          <Image 
+                            src={assistantAvatar} 
+                            alt="Assistant Avatar" 
+                            width={32} 
+                            height={32} 
+                            className="rounded-full" 
+                          />
                         </Avatar>
                         <div className="rounded-lg p-4 bg-muted">
                           <Spinner size="sm" />
@@ -411,12 +430,14 @@ export default function AISearchPage() {
                   {selectedTool.description}
                 </AlertDialogDescription>
               </AlertDialogHeader>
+              
               <div className="my-4">
                 {selectedTool.coverImage && (
                   <div className="relative w-full h-64 rounded-lg overflow-hidden mb-4">
                     <Image src={selectedTool.coverImage} alt={selectedTool.name} fill className="object-cover" />
                   </div>
                 )}
+                
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-muted rounded-lg p-4">
                     <h4 className="font-medium mb-2">Категория</h4>
@@ -430,11 +451,13 @@ export default function AISearchPage() {
                     </div>
                   </div>
                 </div>
+                
                 <div className="bg-muted rounded-lg p-4 mb-4">
                   <h4 className="font-medium mb-2">Цена</h4>
                   <p className="text-lg font-semibold">{formatPrice(selectedTool.price)}</p>
                 </div>
               </div>
+              
               <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                 {typeof selectedTool.price === 'number' && selectedTool.price > 0 ? (
                   <>
