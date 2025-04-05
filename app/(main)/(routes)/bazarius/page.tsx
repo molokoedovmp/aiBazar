@@ -10,6 +10,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage"
 import { useAuth } from "@clerk/clerk-react"
 import { useRouter } from "next/navigation"
 
+// Определяем константный массив сервисов
 const services = [
   {
     id: "ai-search",
@@ -31,18 +32,32 @@ const services = [
   }
 ]
 
-export default function AccountPage() {
+/**
+ * Пользовательский хук для получения использования сервиса.
+ * Принимает storageKey и максимальное количество бесплатных запросов.
+ */
+function useServiceUsage(storageKey: string, maxFreeRequests: number) {
   const { userId } = useAuth()
+  const key = `${storageKey}-${userId || 'anonymous'}`
+  const [requests] = useLocalStorage<number>(key, 0)
+  return {
+    used: requests,
+    remaining: Math.max(0, maxFreeRequests - requests)
+  }
+}
+
+export default function AccountPage() {
   const router = useRouter()
   const maxFreeRequests = 10
 
-  const getServiceUsage = (storageKey: string) => {
-    const key = `${storageKey}-${userId || 'anonymous'}`
-    const [requests] = useLocalStorage<number>(key, 0)
-    return {
-      used: requests,
-      remaining: Math.max(0, maxFreeRequests - requests)
-    }
+  // Поскольку количество сервисов фиксированное, можно вызвать хуки для каждого сервиса.
+  const usageAiSearch = useServiceUsage("ai-search-requests", maxFreeRequests)
+  const usageAiPresentation = useServiceUsage("ai-presentation-requests", maxFreeRequests)
+
+  // Создадим объект для сопоставления id сервиса с данными использования
+  const usageMap: { [key: string]: { used: number; remaining: number } } = {
+    "ai-search": usageAiSearch,
+    "ai-presentation": usageAiPresentation
   }
 
   return (
@@ -63,7 +78,7 @@ export default function AccountPage() {
       {/* Карточки сервисов */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {services.map((service) => {
-          const usage = getServiceUsage(service.storageKey)
+          const usage = usageMap[service.id]
           
           return (
             <Card key={service.id} className="group hover:shadow-lg transition-shadow">
