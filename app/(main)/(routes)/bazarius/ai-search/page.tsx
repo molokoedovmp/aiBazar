@@ -184,7 +184,7 @@ export default function AISearchPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Шапка */}
         <div className="mb-8">
-          <Link href="/aibazargpt">
+          <Link href="/bazarius">
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Назад к каталогу

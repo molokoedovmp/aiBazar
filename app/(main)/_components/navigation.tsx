@@ -11,7 +11,8 @@ import {
   Users,
   Star,
   BotIcon,
-  ShoppingBag
+  ShoppingBag,
+  BrainCircuit
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState, useCallback } from "react";
@@ -205,6 +206,11 @@ export const Navigation = () => {
             label="Избранное"
             icon={Star}
             onClick={()=>router.push('/favorites')}
+          />
+          <Item
+            label="Bazarius AI"
+            icon={BrainCircuit}
+            onClick={()=>router.push('/bazarius')}
           />
           <Item
               label="Мои покупки"
