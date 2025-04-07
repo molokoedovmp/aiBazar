@@ -50,7 +50,7 @@ interface Message {
 
 export default function AISearchPage() {
   const router = useRouter()
-  const createPayment = useMutation(api.payments.create)
+  const createPayment = useMutation(api.aiToolsOrders.create)
   const { userId } = useAuth()
   const storageKey = `ai-search-requests-${userId || 'anonymous'}`
   const [requestsCount, setRequestsCount] = useLocalStorage<number>(storageKey, 0)
