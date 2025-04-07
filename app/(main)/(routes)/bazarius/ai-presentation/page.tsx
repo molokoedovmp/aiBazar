@@ -90,7 +90,7 @@ export default function AiPresentationPage() {
   )
   
   // Мутация для использования кредита
-  const useCredit = useMutation(api.userCredits.useCredit)
+  const creditMutation = useMutation(api.userCredits.useCredit)
   
   // Для неавторизованных пользователей используем localStorage
   const [guestRequestCount, setGuestRequestCount] = useState(0)
@@ -133,7 +133,7 @@ export default function AiPresentationPage() {
     
     // Уменьшаем счетчик кредитов
     if (isSignedIn && user) {
-      await useCredit({ userId: user.id, service: "ai-presentation" });
+      await creditMutation({ userId: user.id, service: "ai-presentation" });
     } else {
       // Для гостей используем localStorage
       const newCount = guestRequestCount + 1;
