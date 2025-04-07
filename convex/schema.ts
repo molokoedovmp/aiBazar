@@ -188,5 +188,37 @@ export default defineSchema({
   }).index("by_category", ["category"])
     .index("by_status", ["status"]),
 
+  // Добавьте в схему новую таблицу для кредитов пользователей
+  userCredits: defineTable({
+    userId: v.string(),
+    totalCredits: v.number(),
+    usedCredits: v.number(),
+    lastReset: v.number(), // Timestamp последнего сброса
+    plan: v.string(), // "free", "basic", "premium"
+    expiresAt: v.optional(v.number()), // Timestamp истечения подписки
+  })
+    .index("by_user", ["userId"]),
+
+  // Таблица для истории использования кредитов
+  creditUsageHistory: defineTable({
+    userId: v.string(),
+    service: v.string(), // "ai-blog", "ai-search", etc.
+    timestamp: v.number(),
+    amount: v.number(), // Обычно 1, но может быть больше для сложных запросов
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_service", ["userId", "service"]),
+
+  // Таблица для покупок кредитов
+  creditPurchases: defineTable({
+    userId: v.string(),
+    amount: v.number(),
+    price: v.number(),
+    status: v.string(), // "pending", "completed", "failed"
+    paymentId: v.optional(v.string()),
+    timestamp: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_status", ["status"]),
 
 });

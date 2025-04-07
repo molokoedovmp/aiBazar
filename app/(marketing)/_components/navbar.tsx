@@ -241,23 +241,23 @@ export const Navbar = () => {
               <ShoppingBag className="h-4 w-4" />
               <span>Магазин</span>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
               className="text-white hover:text-gray-300 w-full justify-start pl-6"
-            >
-              <Link href="/bazar" onClick={toggleMobileMenu}>
+          >
+            <Link href="/bazar" onClick={toggleMobileMenu}>
                 Все инструменты
-              </Link>
-            </Button>
+            </Link>
+          </Button>
             
             {categories.map((category) => (
-              <Button
+          <Button
                 key={category._id}
-                variant="ghost"
-                size="sm"
-                asChild
+            variant="ghost"
+            size="sm"
+            asChild
                 className="text-white hover:text-gray-300 w-full justify-start pl-6"
               >
                 <Link 
@@ -281,8 +281,8 @@ export const Navbar = () => {
                     </div>
                   )}
                   <span>{category.name}</span>
-                </Link>
-              </Button>
+            </Link>
+          </Button>
             ))}
           </div>
           
@@ -292,10 +292,10 @@ export const Navbar = () => {
               <Briefcase className="h-4 w-4" />
               <span>Услуги</span>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
               className="text-white hover:text-gray-300 w-full justify-start pl-6"
             >
               <Link href="/services/website" onClick={toggleMobileMenu}>
@@ -303,12 +303,12 @@ export const Navbar = () => {
                   <Globe className="h-4 w-4" />
                   <span>Создание сайтов</span>
                 </div>
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
               className="text-white hover:text-gray-300 w-full justify-start pl-6"
             >
               <Link href="/services" onClick={toggleMobileMenu}>
@@ -316,24 +316,24 @@ export const Navbar = () => {
                   <Briefcase className="h-4 w-4" />
                   <span>Все услуги</span>
                 </div>
-              </Link>
-            </Button>
+            </Link>
+          </Button>
           </div>
           
           {/* Остальные пункты меню */}
           <div className="w-full">
             {routes.map((route) => (
-              <Button
+          <Button
                 key={route.href}
-                variant="ghost"
-                size="sm"
-                asChild
+            variant="ghost"
+            size="sm"
+            asChild
                 className="text-white hover:text-gray-300 w-full justify-start"
-              >
+          >
                 <Link href={route.href} onClick={toggleMobileMenu}>
                   {route.label}
-                </Link>
-              </Button>
+            </Link>
+          </Button>
             ))}
           </div>
         </div>

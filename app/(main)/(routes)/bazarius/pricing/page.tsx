@@ -1,214 +1,240 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Check, Zap, Rocket, Diamond, Crown, ArrowLeft } from "lucide-react"
-import { motion } from "framer-motion"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Check, Zap, CreditCard, Shield } from "lucide-react"
+import { toast } from "sonner"
+import { useUser } from "@clerk/clerk-react"
+import { useMutation, useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { Spinner } from "@/components/spinner"
 
-const tiers = [
+// Планы подписки
+const pricingPlans = [
   {
-    name: "Стартовый",
-    price: "0",
-    duration: "месяц",
-    description: "Для ознакомления с возможностями",
+    id: "basic",
+    name: "Базовый",
+    price: 299,
+    credits: 50,
     features: [
-      "10 запросов в месяц",
-      "Базовые функции AI",
-      "Поддержка по почте",
-      "Доступ к сообществу"
+      "50 кредитов для всех сервисов",
+      "Доступ ко всем инструментам",
+      "Базовая поддержка",
+      "Действует 30 дней"
     ],
-    cta: "Начать бесплатно",
-    popular: false,
-    icon: Zap
+    popular: false
   },
   {
-    name: "Профессионал",
-    price: "1000",
-    duration: "месяц",
-    description: "Для профессионалов и команд",
+    id: "pro",
+    name: "Профессиональный",
+    price: 799,
+    credits: 200,
     features: [
-      "100 запросов в месяц",
-      "Расширенные функции AI",
-      "Приоритетная поддержка",
-      "Экспорт результатов",
-      "Настройка шаблонов"
+      "200 кредитов для всех сервисов",
+      "Приоритетный доступ к новым функциям",
+      "Расширенная поддержка",
+      "Действует 30 дней"
     ],
-    cta: "Начать пробный период",
-    popular: true,
-    icon: Rocket
+    popular: true
   },
   {
-    name: "Премиум",
-    price: "3000",
-    duration: "месяц",
-    description: "Для корпоративных клиентов",
+    id: "enterprise",
+    name: "Корпоративный",
+    price: 1999,
+    credits: 600,
     features: [
-      "300 запросов в месяц",
+      "600 кредитов для всех сервисов",
       "Персональный менеджер",
-      "Кастомные решения AI",
-      "Аналитика использования",
-      "SLA 99.9%",
-      "Обучение команды"
+      "Премиум поддержка 24/7",
+      "Действует 30 дней"
     ],
-    cta: "Запросить демо",
-    popular: false,
-    icon: Diamond
+    popular: false
   }
 ]
 
 export default function PricingPage() {
+  const router = useRouter()
+  const { user, isSignedIn } = useUser()
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  
+  // Запрос к Convex для получения информации о лимитах пользователя
+  const userCredits = useQuery(
+    api.userCredits.getUserCredits, 
+    isSignedIn ? { userId: user?.id } : "skip"
+  )
+  
+  // Мутация для добавления кредитов
+  const addCredits = useMutation(api.userCredits.addCredits)
+  
+  // Добавляем мутацию для создания записи о покупке кредитов
+  const createCreditPurchase = useMutation(api.creditPurchases.create)
+  
+  // Обработчик выбора плана
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlan(planId)
+  }
+  
+  // Обработчик покупки плана
+  const handlePurchase = async () => {
+    if (!selectedPlan || !isSignedIn) return
+    
+    const plan = pricingPlans.find(p => p.id === selectedPlan)
+    if (!plan) return
+    
+    setIsProcessing(true)
+    
+    try {
+      // Создаем запись о покупке кредитов со статусом "pending"
+      const purchaseId = await createCreditPurchase({
+        userId: user!.id,
+        amount: plan.credits,
+        price: plan.price,
+        status: "pending",
+        timestamp: Date.now()
+      })
+      
+      // Перенаправляем на страницу оплаты ЮКассы
+      const response = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: plan.price,
+          description: `Пакет кредитов "${plan.name}" - ${plan.credits} кредитов`,
+          purchaseId: purchaseId,
+          userId: user!.id,
+          returnUrl: `${window.location.origin}/bazarius/payment-success?purchaseId=${purchaseId}`
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error("Ошибка при создании платежа")
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.paymentUrl) {
+        // Важно: используем window.location.href для полного перенаправления
+        window.location.href = data.paymentUrl
+      } else {
+        throw new Error("Не удалось получить URL для оплаты")
+      }
+    } catch (error) {
+      console.error("Ошибка при обработке платежа:", error)
+      toast.error("Произошла ошибка при обработке платежа")
+      setIsProcessing(false)
+    }
+  }
+  
   return (
-    <div className="container mx-auto px-4 py-16">
-      <Link href="/bazarius">
-            <Button variant="ghost" className="mb-4 pl-0">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Назад 
-            </Button>
-          </Link>
-      {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-16"
-      >
-        <Badge variant="outline" className="mb-4 py-2 px-4">
-          <Crown className="h-4 w-4 mr-2" />
-          Гибкие тарифы
-        </Badge>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-          Выберите свой план
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Оптимизируйте свои затраты с помощью гибкой системы подписок
-        </p>
-      </motion.div>
-
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        {tiers.map((tier, index) => (
-          <motion.div
-            key={tier.name}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className={`relative h-full group ${tier.popular ? "border-2 border-primary" : ""}`}>
-              {tier.popular && (
-                <div className="absolute top-0 right-0 bg-primary text-white px-4 py-1 rounded-bl-lg text-sm">
-                  Самый популярный
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-8">
+        <Link href="/bazarius">
+          <Button variant="ghost" className="mb-4 pl-0">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Назад к сервисам
+          </Button>
+        </Link>
+        
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold mb-3">Пополнение кредитов</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Выберите подходящий план для использования всех возможностей Bazarius AI
+          </p>
+          
+          {isSignedIn && userCredits && (
+            <div className="mt-4 inline-flex items-center gap-2 bg-muted px-4 py-2 rounded-full">
+              <Zap className="h-4 w-4 text-yellow-500 fill-current" />
+              <span>Текущий баланс: <strong>{userCredits.remainingCredits}</strong> кредитов</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {pricingPlans.map((plan) => (
+            <Card 
+              key={plan.id}
+              className={`relative overflow-hidden transition-all ${
+                selectedPlan === plan.id 
+                  ? 'ring-2 ring-primary shadow-lg' 
+                  : 'hover:shadow-md'
+              } ${plan.popular ? 'md:scale-105' : ''}`}
+            >
+              {plan.popular && (
+                <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium">
+                  Популярный выбор
                 </div>
               )}
               
-              <CardHeader className="pb-0">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className={`p-3 rounded-lg ${tier.popular ? "bg-primary/10" : "bg-muted"}`}>
-                    <tier.icon className={`h-8 w-8 ${tier.popular ? "text-primary" : "text-foreground"}`} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                    <CardDescription>{tier.description}</CardDescription>
-                  </div>
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  {plan.name}
+                  <span className="text-2xl font-bold">{plan.credits}</span>
+                </CardTitle>
+                <CardDescription>кредитов для всех сервисов</CardDescription>
               </CardHeader>
-
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="flex items-end gap-2">
-                    <span className="text-4xl font-bold">₽{tier.price}</span>
-                    <span className="text-muted-foreground">/{tier.duration}</span>
-                  </div>
-
-                  <ul className="space-y-3">
-                    {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-500" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button 
-                    className="w-full gap-2" 
-                    variant={tier.popular ? "default" : "outline"}
-                    size="lg"
-                  >
-                    {tier.cta}
-                    {tier.popular && <Zap className="h-4 w-4" />}
-                  </Button>
+              
+              <CardContent className="space-y-4">
+                <div className="text-3xl font-bold">
+                  {plan.price} ₽
                 </div>
+                
+                <ul className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
+              
+              <CardFooter>
+                <Button 
+                  variant={selectedPlan === plan.id ? "default" : "outline"}
+                  className="w-full"
+                  onClick={() => handleSelectPlan(plan.id)}
+                >
+                  {selectedPlan === plan.id ? "Выбрано" : "Выбрать"}
+                </Button>
+              </CardFooter>
             </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Comparison Table */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="bg-muted/50 rounded-xl p-8"
-      >
-        <h2 className="text-2xl font-bold mb-8 text-center">Сравнение возможностей</h2>
-        <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-1 font-medium">Функция</div>
-          <div className="col-span-1 text-center">Стартовый</div>
-          <div className="col-span-1 text-center">Профессионал</div>
-          <div className="col-span-1 text-center">Премиум</div>
-
-          {[
-            ["Запросов в месяц", "10", "500", "∞"],
-            ["Приоритетная поддержка", "✗", "✓", "✓"],
-            ["Кастомные решения", "✗", "✗", "✓"],
-            ["Аналитика", "Базовая", "Расширенная", "Премиум"],
-            ["SLA", "-", "99%", "99.9%"]
-          ].map(([feature, ...values], index) => (
-            <>
-              <div className="col-span-1 py-2 border-b">{feature}</div>
-              {values.map((value, i) => (
-                <div key={i} className="col-span-1 py-2 border-b text-center">
-                  {value}
-                </div>
-              ))}
-            </>
           ))}
         </div>
-      </motion.div>
-
-      {/* FAQ */}
-      <div className="mt-16 text-center">
-        <h2 className="text-2xl font-bold mb-8">Частые вопросы</h2>
-        <div className="grid md:grid-cols-2 gap-8 text-left">
-          {[
-            {
-              question: "Могу ли я сменить тариф позже?",
-              answer: "Да, вы можете изменить подписку в любой момент через личный кабинет."
-            },
-            {
-              question: "Есть ли пробный период?",
-              answer: "Профессиональный тариф включает 14-дневный пробный период."
-            },
-            {
-              question: "Какие методы оплаты вы принимаете?",
-              answer: "Мы принимаем все основные кредитные карты и PayPal."
-            },
-            {
-              question: "Можно ли отменить подписку?",
-              answer: "Да, вы можете отменить подписку в любой момент без штрафов."
-            }
-          ].map((faq, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="p-6 bg-background rounded-lg border"
-            >
-              <h3 className="font-medium mb-2">{faq.question}</h3>
-              <p className="text-muted-foreground">{faq.answer}</p>
-            </motion.div>
-          ))}
+        
+        <div className="mt-12 flex flex-col items-center">
+          <Button 
+            size="lg" 
+            className="px-8 gap-2"
+            disabled={!selectedPlan || isProcessing || !isSignedIn}
+            onClick={handlePurchase}
+          >
+            {isProcessing ? (
+              <>
+                <Spinner />
+                Обработка...
+              </>
+            ) : (
+              <>
+                <CreditCard className="h-5 w-5" />
+                Оплатить
+              </>
+            )}
+          </Button>
+          
+          {!isSignedIn && (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Для покупки кредитов необходимо авторизоваться
+            </p>
+          )}
+          
+          <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4" />
+            <span>Безопасная оплата через защищенное соединение</span>
+          </div>
         </div>
       </div>
     </div>

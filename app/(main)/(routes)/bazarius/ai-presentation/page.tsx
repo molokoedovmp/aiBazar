@@ -1,16 +1,19 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, ArrowRight, Copy, FileCode, CheckCircle, Power, ScreenShare } from "lucide-react"
+import { ArrowLeft, ArrowRight, Copy, FileCode, CheckCircle, Power, ScreenShare, Lock, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
-import { useLocalStorage } from "@/hooks/use-local-storage"
-import { useAuth } from "@clerk/clerk-react"
 import { useRouter } from "next/navigation"
+import { useUser } from "@clerk/clerk-react"
+import { useMutation, useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { SignInButton } from "@clerk/clerk-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 const parseVbaCode = (code: string) => {
   try {
@@ -68,18 +71,50 @@ const SlidePreview = ({ slide, index }: { slide: any, index: number }) => (
   </motion.div>
 )
 
+// Константа для гостевого лимита
+const GUEST_REQUEST_LIMIT = 3
+
 export default function AiPresentationPage() {
   const router = useRouter()
-  const { userId } = useAuth()
   const [query, setQuery] = useState("")
   const [result, setResult] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [activeTab, setActiveTab] = useState("code")
+  const { user, isSignedIn } = useUser()
   
-  const storageKey = `ai-presentation-requests-${userId || 'anonymous'}`
-  const [requestsCount, setRequestsCount] = useLocalStorage<number>(storageKey, 0)
-  const maxFreeRequests = 10
+  // Запрос к Convex для получения информации о лимитах пользователя
+  const userCredits = useQuery(
+    api.userCredits.getUserCredits, 
+    isSignedIn ? { userId: user?.id } : "skip"
+  )
+  
+  // Мутация для использования кредита
+  const useCredit = useMutation(api.userCredits.useCredit)
+  
+  // Для неавторизованных пользователей используем localStorage
+  const [guestRequestCount, setGuestRequestCount] = useState(0)
+  
+  // Загружаем счетчик гостевых запросов из localStorage при инициализации
+  useEffect(() => {
+    if (!isSignedIn) {
+      const storedCount = localStorage.getItem("guest-bazarius-requests")
+      if (storedCount) {
+        setGuestRequestCount(parseInt(storedCount, 10))
+      }
+    }
+  }, [isSignedIn])
+  
+  // Определяем лимиты в зависимости от статуса пользователя
+  const requestsRemaining = isSignedIn 
+    ? (userCredits?.remainingCredits || 0) 
+    : (GUEST_REQUEST_LIMIT - guestRequestCount)
+  
+  const requestLimit = isSignedIn 
+    ? (userCredits?.totalCredits || 10) 
+    : GUEST_REQUEST_LIMIT
+  
+  const isLimitReached = requestsRemaining <= 0
 
   const presentationStructure = useMemo(() => 
     result ? parseVbaCode(result) : null, 
@@ -88,9 +123,13 @@ export default function AiPresentationPage() {
   const handleSubmit = async () => {
     if (!query.trim()) return
     
-    if (requestsCount >= maxFreeRequests) {
-      toast.error("Вы достигли лимита бесплатных запросов. Приобретите подписку для продолжения.")
-      return
+    // Проверяем лимит запросов
+    if (isLimitReached) {
+      toast.error(isSignedIn 
+        ? "У вас закончились кредиты. Приобретите дополнительные кредиты для продолжения." 
+        : "Достигнут лимит гостевых запросов. Авторизуйтесь для продолжения."
+      );
+      return;
     }
     
     setIsLoading(true)
@@ -106,7 +145,17 @@ export default function AiPresentationPage() {
       const data = await response.json()
       setResult(data.response)
       setActiveTab('code')
-      setRequestsCount(prev => prev + 1)
+      
+      // Уменьшаем счетчик кредитов
+      if (isSignedIn && user) {
+        await useCredit({ userId: user.id, service: "ai-presentation" });
+      } else {
+        // Для гостей используем localStorage
+        const newCount = guestRequestCount + 1;
+        setGuestRequestCount(newCount);
+        localStorage.setItem("guest-bazarius-requests", newCount.toString());
+      }
+      
       toast.success("VBA-код успешно сгенерирован!")
     } catch (error) {
       console.error("Ошибка:", error)
@@ -159,21 +208,42 @@ export default function AiPresentationPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center bg-muted/50 p-2 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${requestsCount >= maxFreeRequests ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${isLimitReached ? 'bg-red-500' : 'bg-green-500'}`}></div>
                     <span className="text-sm font-medium">
-                      Осталось: {Math.max(0, maxFreeRequests - requestsCount)}/{maxFreeRequests}
+                      Осталось: {requestsRemaining}/{requestLimit}
                     </span>
                   </div>
-                  {requestsCount >= maxFreeRequests && (
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => router.push('/pricing')}
-                    >
-                      Купить подписку
-                    </Button>
+                  {isLimitReached && (
+                    isSignedIn ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => router.push('/bazarius/pricing')}
+                      >
+                        Купить кредиты
+                      </Button>
+                    ) : (
+                      <SignInButton mode="modal">
+                        <Button size="sm" variant="outline">
+                          <Lock className="h-3 w-3 mr-1" /> Войти
+                        </Button>
+                      </SignInButton>
+                    )
                   )}
                 </div>
+
+                {isLimitReached && (
+                  <Alert variant={isSignedIn ? "default" : "destructive"} className="mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="flex items-center justify-between w-full">
+                      <span>
+                        {isSignedIn 
+                          ? "У вас закончились кредиты." 
+                          : "Достигнут лимит гостевых запросов."}
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <Textarea
                   placeholder="Пример: 5 слайдов о будущем AI с графиками"
@@ -183,7 +253,7 @@ export default function AiPresentationPage() {
                 />
                 <Button
                   onClick={handleSubmit}
-                  disabled={isLoading || requestsCount >= maxFreeRequests}
+                  disabled={isLoading || !query.trim() || isLimitReached}
                   className="w-full gap-2"
                 >
                   {isLoading ? (

@@ -2,12 +2,27 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
+import { useConvexAuth } from "convex/react"
+import { SignInButton } from "@clerk/clerk-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Search, PresentationIcon, Zap, Clock, Lightbulb, Award, Users, Sparkles, Pencil } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function AiBazarGPTPage() {
+  const { isAuthenticated } = useConvexAuth()
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false)
+  const [selectedService, setSelectedService] = useState<any>(null)
+  
   // Расширенные описания сервисов с дополнительными характеристиками
   const services = [
     {
@@ -23,7 +38,7 @@ export default function AiBazarGPTPage() {
         { icon: PresentationIcon, text: "Фильтрация по отрасли, бюджету и техническим требованиям" }
       ],
       image: "/aibazargpt/aisearch.png",
-      link: "/bazarius/ai-search"
+      link: "/aibazargpt/ai-search"
     },
     {
       key: "ai-presentation",
@@ -57,6 +72,17 @@ export default function AiBazarGPTPage() {
     }
   ];
 
+  // Обработчик клика по сервису
+  const handleServiceClick = (e: React.MouseEvent, service: any) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setSelectedService(service);
+      setIsAuthDialogOpen(true);
+      return false;
+    }
+    return true;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
       {/* Hero секция */}
@@ -72,29 +98,55 @@ export default function AiBazarGPTPage() {
           {/* Карточки сервисов в одной строке (3 в ряду) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
             {services.map((service) => (
-              <Link key={service.key} href={service.link}>
-                <Card className="hover:shadow-lg transition-shadow h-full group">
-                  <CardContent className="p-6">
-                    <div className="relative h-64 w-full mb-4 rounded-lg overflow-hidden bg-muted">
-                      <Image
-                        src={service.image}
-                        alt={service.title}
-                        fill
-                        className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
-                    </div>
-                    <h3 className="text-2xl font-semibold mb-2">{service.title}</h3>
-                    <p className="text-muted-foreground line-clamp-3">
-                      {service.description}
-                    </p>
-                    <div className="mt-4 flex items-center gap-2 text-primary">
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      <span className="font-medium">Использовать сервис</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <div key={service.key} onClick={(e) => handleServiceClick(e, service)}>
+                {isAuthenticated ? (
+                  <Link href={service.link}>
+                    <Card className="hover:shadow-lg transition-shadow h-full group cursor-pointer">
+                      <CardContent className="p-6">
+                        <div className="relative h-64 w-full mb-4 rounded-lg overflow-hidden bg-muted">
+                          <Image
+                            src={service.image}
+                            alt={service.title}
+                            fill
+                            className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
+                        </div>
+                        <h3 className="text-2xl font-semibold mb-2">{service.title}</h3>
+                        <p className="text-muted-foreground line-clamp-3">
+                          {service.description}
+                        </p>
+                        <div className="mt-4 flex items-center gap-2 text-primary">
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          <span className="font-medium">Использовать сервис</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ) : (
+                  <Card className="hover:shadow-lg transition-shadow h-full group cursor-pointer">
+                    <CardContent className="p-6">
+                      <div className="relative h-64 w-full mb-4 rounded-lg overflow-hidden bg-muted">
+                        <Image
+                          src={service.image}
+                          alt={service.title}
+                          fill
+                          className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
+                      </div>
+                      <h3 className="text-2xl font-semibold mb-2">{service.title}</h3>
+                      <p className="text-muted-foreground line-clamp-3">
+                        {service.description}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2 text-primary">
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        <span className="font-medium">Использовать сервис</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -136,11 +188,19 @@ export default function AiBazarGPTPage() {
                     </div>
                   ))}
                 </div>
-                <Link href={service.link}>
-                  <Button className="mt-6 gap-2" size="lg">
-                    Изучить {service.title} <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <div onClick={(e) => handleServiceClick(e, service)}>
+                  {isAuthenticated ? (
+                    <Link href={service.link}>
+                      <Button className="mt-6 gap-2" size="lg">
+                        Изучить {service.title} <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button className="mt-6 gap-2" size="lg">
+                      Изучить {service.title} <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex-1">
                 <Card className="overflow-hidden shadow-2xl border-0">
@@ -176,11 +236,44 @@ export default function AiBazarGPTPage() {
           <p className="text-xl text-muted-foreground mb-8">
             Наши интеллектуальные сервисы созданы для решения ваших задач, экономии времени и достижения выдающихся результатов.
           </p>
-          <Button size="lg" className="gap-2">
-            Начать прямо сейчас <ArrowRight className="h-4 w-4" />
-          </Button>
+          {isAuthenticated ? (
+            <Button size="lg" className="gap-2" asChild>
+              <Link href={services[0].link}>
+                Начать прямо сейчас <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <SignInButton mode="modal">
+              <Button size="lg" className="gap-2">
+                Войти для начала работы <ArrowRight className="h-4 w-4" />
+              </Button>
+            </SignInButton>
+          )}
         </div>
       </div>
+
+      {/* Диалог авторизации */}
+      <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Требуется авторизация</DialogTitle>
+            <DialogDescription>
+              Для использования сервиса {selectedService?.title || "Bazarius AI"} необходимо войти в систему или зарегистрироваться.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter className="sm:justify-center gap-2 flex-col sm:flex-row">
+            <SignInButton mode="modal">
+              <Button type="button" className="w-full sm:w-auto">
+                Войти
+              </Button>
+            </SignInButton>
+            <Button type="button" variant="outline" onClick={() => setIsAuthDialogOpen(false)} className="w-full sm:w-auto">
+              Отмена
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

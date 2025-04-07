@@ -18,6 +18,7 @@ import type * as aiGadgets from "../aiGadgets.js";
 import type * as aiTools from "../aiTools.js";
 import type * as aiToolsOrders from "../aiToolsOrders.js";
 import type * as categories from "../categories.js";
+import type * as creditPurchases from "../creditPurchases.js";
 import type * as documents from "../documents.js";
 import type * as favorites from "../favorites.js";
 import type * as feedback from "../feedback.js";
@@ -26,6 +27,7 @@ import type * as orders from "../orders.js";
 import type * as payments from "../payments.js";
 import type * as reviews from "../reviews.js";
 import type * as services from "../services.js";
+import type * as userCredits from "../userCredits.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -41,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   aiTools: typeof aiTools;
   aiToolsOrders: typeof aiToolsOrders;
   categories: typeof categories;
+  creditPurchases: typeof creditPurchases;
   documents: typeof documents;
   favorites: typeof favorites;
   feedback: typeof feedback;
@@ -49,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   payments: typeof payments;
   reviews: typeof reviews;
   services: typeof services;
+  userCredits: typeof userCredits;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

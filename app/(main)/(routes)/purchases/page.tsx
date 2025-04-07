@@ -13,6 +13,15 @@ import { Search } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
 import { Spinner } from "@/components/spinner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const font = Poppins({
   subsets: ["latin"],
@@ -23,8 +32,9 @@ export default function PurchasesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const aiToolsOrders = useQuery(api.aiToolsOrders.getPaidByUser)
   const payments = useQuery(api.payments.getByUser)
-  const tools = useQuery(api.aiTools.get) // Добавляем запрос инструментов
-  const isLoading = aiToolsOrders === undefined || payments === undefined || tools === undefined
+  const creditPurchases = useQuery(api.creditPurchases.getByUser)
+  const tools = useQuery(api.aiTools.get)
+  const isLoading = aiToolsOrders === undefined || payments === undefined || tools === undefined || creditPurchases === undefined
 
   // Сортировка по времени (новые сверху)
   const sortedAiToolsOrders = aiToolsOrders?.sort((a, b) => 
@@ -34,6 +44,11 @@ export default function PurchasesPage() {
   const sortedPayments = payments?.sort((a, b) => 
     b.createdAt - a.createdAt
   );
+  
+  // Сортировка покупок кредитов
+  const sortedCreditPurchases = creditPurchases?.sort((a, b) => 
+    b.timestamp - a.timestamp
+  );
 
   const filteredAiToolsOrders = sortedAiToolsOrders?.filter(order => {
     return order.serviceName?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -42,10 +57,20 @@ export default function PurchasesPage() {
   const filteredPayments = sortedPayments?.filter(payment => 
     payment.serviceName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Фильтрация покупок кредитов
+  const filteredCreditPurchases = sortedCreditPurchases?.filter(purchase => 
+    "Пакет кредитов".toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const OrderCard = ({ order, type }: { order: any, type: 'aiTool' | 'payment' }) => {
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
+  // Добавляем состояние для AlertDialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [dialogDetails, setDialogDetails] = useState("")
+  const [dialogTitle, setDialogTitle] = useState("")
+
+  const OrderCard = ({ order, type }: { order: any, type: 'aiTool' | 'payment' | 'credit' }) => {
+    const formatDate = (dateString: string | number) => {
+      const date = typeof dateString === 'number' ? new Date(dateString) : new Date(dateString);
       const relativeTime = formatDistanceToNow(date, {
         addSuffix: true,
         locale: ru
@@ -60,11 +85,70 @@ export default function PurchasesPage() {
       return { relativeTime, fullDate };
     };
 
+    // Обновляем функцию showPaymentDetails для использования AlertDialog
+    const showPaymentDetails = () => {
+      let details = "";
+      let title = "";
+      
+      if (type === 'aiTool') {
+        title = order.serviceName || "Неизвестный сервис";
+        details = `
+Статус: ${order.status === 'completed' ? 'Завершен' : 'В обработке'}
+Сумма: ${order.amount.toLocaleString("ru-RU")} ₽
+Дата: ${new Date(order.createdAt).toLocaleDateString('ru-RU', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})}
+ID заказа: ${order._id}
+        `;
+      } else if (type === 'credit') {
+        title = `Пакет кредитов (${order.amount} кредитов)`;
+        details = `
+Статус: ${order.status === 'completed' ? 'Завершен' : 'В обработке'}
+Сумма: ${order.price.toLocaleString("ru-RU")} ₽
+Дата: ${new Date(order.timestamp).toLocaleDateString('ru-RU', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})}
+ID заказа: ${order._id}
+${order.paymentId ? `ID платежа: ${order.paymentId}` : ''}
+        `;
+      } else {
+        title = order.serviceName || "Неизвестный сервис";
+        details = `
+Статус: ${order.status === 'completed' ? 'Завершен' : 'В обработке'}
+Сумма: ${order.amount.toLocaleString("ru-RU")} ₽
+Дата: ${new Date(order.createdAt).toLocaleDateString('ru-RU', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})}
+ID заказа: ${order._id}
+        `;
+      }
+      
+      // Устанавливаем данные для диалога и открываем его
+      setDialogTitle(title);
+      setDialogDetails(details);
+      setIsDialogOpen(true);
+    };
+
     if (type === 'aiTool') {
       const { relativeTime, fullDate } = formatDate(order.createdAt);
       
       return (
-        <Card className="overflow-hidden hover:shadow-lg transition-all">
+        <Card 
+          className="overflow-hidden hover:shadow-lg transition-all cursor-pointer" 
+          onClick={showPaymentDetails}
+        >
           <div className="flex p-4 gap-4">
             <div className="w-16 h-16 relative flex-shrink-0 bg-muted rounded-md">
               <Image
@@ -102,12 +186,60 @@ export default function PurchasesPage() {
           </div>
         </Card>
       );
+    } else if (type === 'credit') {
+      // Для покупок кредитов
+      const { relativeTime, fullDate } = formatDate(order.timestamp);
+      return (
+        <Card 
+          className="overflow-hidden hover:shadow-lg transition-all cursor-pointer" 
+          onClick={showPaymentDetails}
+        >
+          <div className="flex p-4 gap-4">
+            <div className="w-16 h-16 relative flex-shrink-0 bg-muted rounded-md">
+              <Image
+                src="/default.png" // Логотип Bazarius или иконка кредитов
+                alt="Пакет кредитов"
+                fill
+                className="object-cover rounded-md"
+                sizes="64px"
+              />
+            </div>
+            <div className="flex-grow">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg">
+                    Пакет кредитов ({order.amount} кредитов)
+                  </h3>
+                  <div className="text-sm text-muted-foreground">
+                    <span>{relativeTime}</span>
+                    <span className="mx-2">•</span>
+                    <span>{fullDate}</span>
+                  </div>
+                  <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
+                    order.status === 'completed' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                  }`}>
+                    {order.status === 'completed' ? 'Завершен' : 'В обработке'}
+                  </span>
+                </div>
+                <p className="font-medium text-primary text-lg">
+                  {order.price.toLocaleString("ru-RU")} ₽
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+      );
     }
 
     // Для Bazarius
     const { relativeTime, fullDate } = formatDate(order.createdAt);
     return (
-      <Card className="overflow-hidden hover:shadow-lg transition-all">
+      <Card 
+        className="overflow-hidden hover:shadow-lg transition-all cursor-pointer" 
+        onClick={showPaymentDetails}
+      >
         <div className="flex p-4 gap-4">
           <div className="w-16 h-16 relative flex-shrink-0 bg-muted rounded-md">
             <Image
@@ -155,6 +287,23 @@ export default function PurchasesPage() {
 
   return (
     <div className={`min-h-screen bg-background ${font.className}`}>
+      {/* Добавляем AlertDialog */}
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{dialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              <pre className="mt-2 w-full rounded-md bg-slate-100 dark:bg-slate-900 p-4 overflow-auto whitespace-pre-wrap">
+                {dialogDetails}
+              </pre>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>Закрыть</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl md:text-2xl font-bold text-primary relative inline-block">
@@ -184,7 +333,7 @@ export default function PurchasesPage() {
                 <TabsList className="mb-6">
                   <TabsTrigger value="all">Все покупки</TabsTrigger>
                   <TabsTrigger value="aitools">AI инструменты</TabsTrigger>
-                  <TabsTrigger value="payments">Bazarius</TabsTrigger>
+                  <TabsTrigger value="credits">Bazarius</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all">
@@ -205,16 +354,16 @@ export default function PurchasesPage() {
                       </div>
                     )}
 
-                    {/* Показываем Bazarius только если есть покупки */}
-                    {filteredPayments && filteredPayments.length > 0 && (
+                    {/* Показываем покупки кредитов */}
+                    {filteredCreditPurchases && filteredCreditPurchases.length > 0 && (
                       <div>
                         <h2 className="text-xl font-semibold mb-4">Bazarius</h2>
                         <div className="space-y-4">
                           {isLoading ? (
                             <SkeletonCards count={2} />
                           ) : (
-                            filteredPayments.map(payment => (
-                              <OrderCard key={payment._id} order={payment} type="payment" />
+                            filteredCreditPurchases.map(purchase => (
+                              <OrderCard key={purchase._id} order={purchase} type="credit" />
                             ))
                           )}
                         </div>
@@ -222,7 +371,7 @@ export default function PurchasesPage() {
                     )}
 
                     {/* Показываем сообщение, если нет покупок */}
-                    {(!filteredAiToolsOrders?.length && !filteredPayments?.length) && (
+                    {(!filteredAiToolsOrders?.length && !filteredCreditPurchases?.length) && (
                       <div className="col-span-2">
                         <EmptyState message="Покупок не найдено" />
                       </div>
@@ -244,13 +393,13 @@ export default function PurchasesPage() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="payments">
+                <TabsContent value="credits">
                   {isLoading ? (
                     <SkeletonCards count={4} />
-                  ) : filteredPayments && filteredPayments.length > 0 ? (
+                  ) : filteredCreditPurchases && filteredCreditPurchases.length > 0 ? (
                     <div className="space-y-4">
-                      {filteredPayments.map(payment => (
-                        <OrderCard key={payment._id} order={payment} type="payment" />
+                      {filteredCreditPurchases.map(purchase => (
+                        <OrderCard key={purchase._id} order={purchase} type="credit" />
                       ))}
                     </div>
                   ) : (

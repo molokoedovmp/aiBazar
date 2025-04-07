@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/spinner"
-import { ArrowLeft, Bot, Search, Star, ShoppingCart, ExternalLink } from "lucide-react"
+import { ArrowLeft, Bot, Search, Star, ShoppingCart, ExternalLink, AlertCircle, Lock } from "lucide-react"
 import Link from "next/link"
 import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -21,13 +21,14 @@ import {
   AlertDialogDescription, 
   AlertDialogFooter, 
   AlertDialogHeader, 
-  AlertDialogTitle 
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { useMutation } from "convex/react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { PaymentDialog } from "@/components/payment-dialog"
-import { useAuth } from "@clerk/clerk-react"
-import { useLocalStorage } from "@/hooks/use-local-storage"
+import { useUser } from "@clerk/clerk-react"
+import { SignInButton } from "@clerk/clerk-react"
 
 // Импорт изображения для аватара
 import assistantAvatar from '@/public/error-dark.png'
@@ -51,13 +52,46 @@ interface Message {
   content: string;
 }
 
+// Константа для гостевого лимита
+const GUEST_REQUEST_LIMIT = 3
+
 export default function AISearchPage() {
   const router = useRouter()
   const createPayment = useMutation(api.payments.create)
-  const { userId } = useAuth()
-  const storageKey = `ai-search-requests-${userId || 'anonymous'}`
-  const [requestsCount, setRequestsCount] = useLocalStorage<number>(storageKey, 0)
-  const maxFreeRequests = 10
+  const { user, isSignedIn } = useUser()
+  
+  // Запрос к Convex для получения информации о лимитах пользователя
+  const userCredits = useQuery(
+    api.userCredits.getUserCredits, 
+    isSignedIn ? { userId: user?.id } : "skip"
+  )
+  
+  // Мутация для использования кредита
+  const useCredit = useMutation(api.userCredits.useCredit)
+  
+  // Для неавторизованных пользователей используем localStorage
+  const [guestRequestCount, setGuestRequestCount] = useState(0)
+  
+  // Загружаем счетчик гостевых запросов из localStorage при инициализации
+  useEffect(() => {
+    if (!isSignedIn) {
+      const storedCount = localStorage.getItem("guest-bazarius-requests")
+      if (storedCount) {
+        setGuestRequestCount(parseInt(storedCount, 10))
+      }
+    }
+  }, [isSignedIn])
+  
+  // Определяем лимиты в зависимости от статуса пользователя
+  const requestsRemaining = isSignedIn 
+    ? (userCredits?.remainingCredits || 0) 
+    : (GUEST_REQUEST_LIMIT - guestRequestCount)
+  
+  const requestLimit = isSignedIn 
+    ? (userCredits?.totalCredits || 10) 
+    : GUEST_REQUEST_LIMIT
+  
+  const isLimitReached = requestsRemaining <= 0
   
   // Состояния
   const [aiTools, setAiTools] = useState<AITool[]>([])
@@ -95,10 +129,13 @@ export default function AISearchPage() {
   const handleSendQuery = async () => {
     if (!userQuery.trim()) return
     
-    // Проверяем количество запросов
-    if (requestsCount >= maxFreeRequests) {
-      toast.error("Вы достигли лимита бесплатных запросов. Приобретите подписку для продолжения.")
-      return
+    // Проверяем лимит запросов
+    if (isLimitReached) {
+      toast.error(isSignedIn 
+        ? "У вас закончились кредиты. Приобретите дополнительные кредиты для продолжения." 
+        : "Достигнут лимит гостевых запросов. Авторизуйтесь для продолжения."
+      );
+      return;
     }
     
     // Добавляем запрос пользователя в историю
@@ -127,8 +164,15 @@ export default function AISearchPage() {
       
       const data = await response.json()
       
-      // Увеличиваем счетчик запросов
-      setRequestsCount(prev => prev + 1)
+      // Уменьшаем счетчик кредитов
+      if (isSignedIn && user) {
+        await useCredit({ userId: user.id, service: "ai-search" });
+      } else {
+        // Для гостей используем localStorage
+        const newCount = guestRequestCount + 1;
+        setGuestRequestCount(newCount);
+        localStorage.setItem("guest-bazarius-requests", newCount.toString());
+      }
       
       // Добавляем ответ AI в историю
       setConversation([
@@ -225,17 +269,43 @@ export default function AISearchPage() {
             <CardContent className="flex-1 overflow-hidden">
               <div className="flex justify-between items-center mb-4 bg-muted/50 p-2 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${requestsCount >= maxFreeRequests ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${isLimitReached ? 'bg-red-500' : 'bg-green-500'}`}></div>
                   <span className="text-sm font-medium">
-                    Осталось запросов: {Math.max(0, maxFreeRequests - requestsCount)} из {maxFreeRequests}
+                    Осталось запросов: {requestsRemaining} из {requestLimit}
                   </span>
                 </div>
-                {requestsCount >= maxFreeRequests && (
-                  <Button size="sm" variant="outline" onClick={() => router.push('/pricing')}>
-                    Купить подписку
-                  </Button>
+                {isLimitReached && (
+                  isSignedIn ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => router.push('/bazarius/pricing')}
+                    >
+                      Купить кредиты
+                    </Button>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <Button size="sm" variant="outline">
+                        <Lock className="h-3 w-3 mr-1" /> Войти
+                      </Button>
+                    </SignInButton>
+                  )
                 )}
               </div>
+
+              {isLimitReached && (
+                <Alert variant={isSignedIn ? "default" : "destructive"} className="mt-2 mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between w-full">
+                    <span>
+                      {isSignedIn 
+                        ? "У вас закончились кредиты." 
+                        : "Достигнут лимит гостевых запросов."}
+                    </span>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <ScrollArea className="h-full pr-4">
                 <div className="space-y-4">
                   {conversation.map((message, index) => (
@@ -285,23 +355,20 @@ export default function AISearchPage() {
                 </div>
               </ScrollArea>
             </CardContent>
-            <CardFooter className="border-t pt-4">
+            <CardFooter className="border-t p-4">
               <div className="flex w-full gap-2">
                 <Input
-                  placeholder="Опишите, какой инструмент вы ищете..."
+                  placeholder="Введите ваш запрос..."
                   value={userQuery}
                   onChange={(e) => setUserQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSendQuery()
-                    }
-                  }}
-                  disabled={isLoading}
-                  className="flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendQuery()}
+                  disabled={isLoading || isLimitReached}
                 />
-                <Button onClick={handleSendQuery} disabled={isLoading || !userQuery.trim()}>
-                  Отправить
+                <Button 
+                  onClick={handleSendQuery} 
+                  disabled={isLoading || !userQuery.trim() || isLimitReached}
+                >
+                  {isLoading ? <Spinner /> : "Отправить"}
                 </Button>
               </div>
             </CardFooter>
@@ -318,14 +385,14 @@ export default function AISearchPage() {
             <CardContent className="flex-1 overflow-hidden">
               <div className="flex justify-between items-center mb-4 bg-muted/50 p-2 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${requestsCount >= maxFreeRequests ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${requestsRemaining <= 0 ? 'bg-red-500' : 'bg-green-500'}`}></div>
                   <span className="text-sm font-medium">
-                    Осталось запросов: {Math.max(0, maxFreeRequests - requestsCount)} из {maxFreeRequests}
+                    Осталось запросов: {requestsRemaining} из {requestLimit}
                   </span>
                 </div>
-                {requestsCount >= maxFreeRequests && (
-                  <Button size="sm" variant="outline" onClick={() => router.push('/pricing')}>
-                    Купить подписку
+                {requestsRemaining <= 0 && (
+                  <Button size="sm" variant="outline" onClick={() => router.push('/bazarius/pricing')}>
+                    Купить кредиты
                   </Button>
                 )}
               </div>
