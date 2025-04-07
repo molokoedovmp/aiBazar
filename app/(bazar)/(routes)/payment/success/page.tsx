@@ -22,7 +22,6 @@ export default function PaymentSuccessPage() {
 function PaymentSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const updatePaymentStatus = useMutation(api.payments.updateStatus)
 
   useEffect(() => {
     const handlePayment = async () => {
