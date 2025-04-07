@@ -14,54 +14,28 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
 export async function GET(req: Request) {
   try {
-    // Получаем ID покупки из параметров запроса
     const url = new URL(req.url)
-    const purchaseId = url.searchParams.get("purchaseId")
+    const paymentId = url.searchParams.get("payment_id")
     
-    if (!purchaseId) {
+    if (!paymentId) {
       return NextResponse.json(
-        { success: false, error: "Отсутствует ID покупки" },
+        { success: false, error: "Отсутствует ID платежа" },
         { status: 400 }
       )
     }
     
-    // Получаем информацию о покупке из Convex
-    const purchase = await convex.query(api.creditPurchases.getById, { purchaseId })
+    // Получаем информацию о платеже из ЮКассы
+    const payment = await yooKassa.getPayment(paymentId)
     
-    if (!purchase) {
-      return NextResponse.json(
-        { success: false, error: "Покупка не найдена" },
-        { status: 404 }
-      )
-    }
-    
-    // Если у покупки уже статус "completed", возвращаем успех
-    if (purchase && 'status' in purchase && purchase.status === "completed") {
-      return NextResponse.json({ success: true })
-    }
-    
-    // Если у покупки есть ID платежа, проверяем его статус в ЮКассе
-    if (purchase && 'paymentId' in purchase && purchase.paymentId) {
-      const payment = await yooKassa.getPayment(purchase.paymentId)
-      
-      if (payment.status === "succeeded") {
-        // Обновляем статус покупки
-        await convex.mutation(api.creditPurchases.updatePaymentStatus, {
-          purchaseId,
-          paymentId: purchase.paymentId,
-          status: "completed"
-        })
-        
-        return NextResponse.json({ success: true })
-      }
-    }
-    
-    // Если платеж не найден или не успешен
-    return NextResponse.json({ success: false })
+    return NextResponse.json({
+      success: true,
+      status: payment.status,
+      paid: payment.paid
+    })
   } catch (error) {
-    console.error("Ошибка при проверке статуса платежа:", error)
+    console.error("Ошибка при проверке платежа:", error)
     return NextResponse.json(
-      { success: false, error: "Ошибка при проверке статуса платежа" },
+      { success: false, error: "Ошибка при проверке платежа" },
       { status: 500 }
     )
   }

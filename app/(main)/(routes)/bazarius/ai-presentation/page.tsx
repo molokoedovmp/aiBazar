@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, ArrowRight, Copy, FileCode, CheckCircle, Power, ScreenShare, Lock, AlertCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, Copy, FileCode, CheckCircle, Power, ScreenShare, Lock, AlertCircle, FileImage, Table, BarChart, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/clerk-react"
@@ -15,61 +15,417 @@ import { api } from "@/convex/_generated/api"
 import { SignInButton } from "@clerk/clerk-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-const parseVbaCode = (code: string) => {
+// Определение типа для слайда
+interface Slide {
+  title: string;
+  content: string;
+  layout: string;
+  images: number;
+  bullets: string[];
+  hasTable: boolean;
+  hasChart: boolean;
+}
+
+// Типизация результата parseVbaCode
+interface ParsedVbaResult {
+  success: true;
+  totalSlides: number;
+  slides: Slide[];
+}
+
+interface ParsedVbaError {
+  success: false;
+  error: string;
+}
+
+type ParsedVbaData = ParsedVbaResult | ParsedVbaError;
+
+// Улучшенная функция для извлечения текстового содержимого слайда
+const extractTextContent = (slideContent: string, title: string): string => {
+  let content = "";
+  
+  // Более расширенный поиск текстового содержимого
+  const textPatterns = [
+    /\.TextFrame\.TextRange\.Text\s*=\s*"([^"]*)"/g,   // Стандартный текст
+    /\.Text\s*=\s*"([^"]*)"/g,                         // Простой текст
+    /\.Range\.Text\s*=\s*"([^"]*)"/g,                  // Текстовый диапазон
+    /\.Value\s*=\s*"([^"]*)"/g                         // Текстовые значения
+  ];
+  
+  for (const pattern of textPatterns) {
+    let match;
+    const regex = new RegExp(pattern);
+    while ((match = regex.exec(slideContent)) !== null) {
+      if (match[1] && match[1] !== title && match[1].trim().length > 0) {
+        content += match[1] + "\n";
+      }
+    }
+  }
+  
+  return content.trim();
+};
+
+// Улучшенная функция для извлечения всего текстового содержимого из кода
+function extractAllTextContent(code: string): string[] {
+  const textPatterns = [
+    /\.TextFrame\.TextRange\.Text\s*=\s*"([^"]*)"/g,
+    /\.Text\s*=\s*"([^"]*)"/g,
+    /\.Range\.Text\s*=\s*"([^"]*)"/g,
+    /\.Value\s*=\s*"([^"]*)"/g
+  ];
+  
+  const allContent: string[] = [];
+  
+  for (const pattern of textPatterns) {
+    let match;
+    while ((match = pattern.exec(code)) !== null) {
+      if (match[1] && match[1].trim().length > 0) {
+        // Избегаем дубликатов
+        if (!allContent.includes(match[1])) {
+          allContent.push(match[1]);
+        }
+      }
+    }
+  }
+  
+  return allContent;
+}
+
+// Улучшенная функция для парсинга VBA-кода
+const parseVbaCode = (code: string): ParsedVbaData => {
+  if (!code || code.trim().length === 0) {
+    return {
+      success: false,
+      error: 'Код не был сгенерирован'
+    };
+  }
+  
   try {
-    const slides: Array<{ title: string; content: string; images: number }> = []
-    const slideRegex = /ActivePresentation\.Slides\.Add\(([\s\S]*?)\)/g
-    const titleRegex = /\.TextFrame\.TextRange\.Text\s*=\s*"(.*?)"/
+    console.log("Парсинг VBA кода, длина:", code.length);
+    const slides: Slide[] = [];
     
-    let match
-    while ((match = slideRegex.exec(code)) !== null) {
-      const slideContent = match[0]
-      const titleMatch = titleRegex.exec(slideContent)
+    // Несколько паттернов для поиска добавления слайдов
+    const slidePatterns = [
+      /ActivePresentation\.Slides\.Add\(([\s\S]*?)(?=ActivePresentation\.Slides\.Add|End Sub|$)/g,
+      /\.Slides\.Add\s*\(?(\d+),\s*(\w+)/g,
+      /\.Add\s*(\d+),\s*ppLayout/g
+    ];
+    
+    // Регулярные выражения для извлечения информации
+    const titleRegex = /\.TextFrame\.TextRange\.Text\s*=\s*"([^"]*)"/;
+    const contentRegex = /\.TextFrame\.TextRange\.Text\s*=\s*"([^"]*)"/g;
+    const layoutRegex = /\.Add\s*\(?(?:\d+)?,\s*(\w+)/;
+    const bulletsRegex = /\.Paragraphs\(\d+\)\.Text\s*=\s*"([^"]+)"/g;
+    const tableRegex = /\.AddTable|\.Table/;
+    const chartRegex = /\.AddChart|\.Chart/;
+    const pictureRegex = /\.AddPicture|\.Picture/;
+    
+    // Ищем слайды
+    let slideMatches = false;
+    let slideContent;
+    
+    // Попробуем первый паттерн - самый точный
+    const mainPattern = /ActivePresentation\.Slides\.Add\(([\s\S]*?)(?=ActivePresentation\.Slides\.Add|End Sub|$)/g;
+    let match;
+    
+    while ((match = mainPattern.exec(code)) !== null) {
+      slideMatches = true;
+      slideContent = match[0];
+      
+      // Извлекаем заголовок
+      const titleMatch = titleRegex.exec(slideContent);
+      const title = titleMatch ? titleMatch[1] : 'Без названия';
+      
+      // Определяем макет слайда
+      const layoutMatch = layoutRegex.exec(slideContent);
+      let layout = "Стандартный";
+      if (layoutMatch) {
+        const layoutType = layoutMatch[1];
+        switch (layoutType) {
+          case "ppLayoutTitle": layout = "Титульный слайд"; break;
+          case "ppLayoutText": layout = "Слайд с текстом"; break;
+          case "ppLayoutTwoColumnText": layout = "Две колонки"; break;
+          case "ppLayoutTitleOnly": layout = "Только заголовок"; break;
+          default: layout = layoutType;
+        }
+      }
+      
+      // Извлекаем количество изображений
+      const imagesCount = (slideContent.match(pictureRegex) || []).length;
+      
+      // Извлекаем текстовое содержимое с улучшенной функцией
+      const content = extractTextContent(slideContent, title);
+      
+      // Извлекаем маркированные списки
+      const bullets: string[] = [];
+      let bulletMatch;
+      let bulletsRegexCopy = new RegExp(bulletsRegex);
+      while ((bulletMatch = bulletsRegexCopy.exec(slideContent)) !== null) {
+        bullets.push(bulletMatch[1]);
+      }
+      
+      // Проверяем наличие таблиц и диаграмм
+      const hasTable = tableRegex.test(slideContent);
+      const hasChart = chartRegex.test(slideContent);
+      
+      // Добавляем информацию о слайде
       slides.push({
-        title: titleMatch ? titleMatch[1] : 'Без названия',
-        content: "",
-        images: (slideContent.match(/\.AddPicture/g) || []).length
-      })
+        title,
+        content,
+        layout,
+        images: imagesCount,
+        bullets,
+        hasTable,
+        hasChart
+      });
+    }
+    
+    // Если не нашли слайды по первому паттерну, пробуем другие
+    if (!slideMatches) {
+      console.log("Не нашли слайды по основному паттерну, пробуем альтернативные");
+      
+      // Иногда код может быть сгенерирован иначе - ищем по простому паттерну
+      const slideCount = (code.match(/\.Slides\.Add/g) || []).length;
+      
+      if (slideCount > 0) {
+        // Создаем базовые слайды по количеству найденных .Slides.Add
+        for (let i = 0; i < slideCount; i++) {
+          slides.push({
+            title: `Слайд ${i+1}`,
+            content: "Содержимое слайда",
+            layout: "Стандартный",
+            images: 0,
+            bullets: [],
+            hasTable: false,
+            hasChart: false
+          });
+        }
+        
+        // Пытаемся найти какую-то информацию для каждого слайда
+        const allTitles = Array.from(code.matchAll(/\.Text\s*=\s*"([^"]*)"/g))
+          .map(m => m[1])
+          .filter(t => t.length > 0);
+        
+        for (let i = 0; i < Math.min(slides.length, allTitles.length); i++) {
+          slides[i].title = allTitles[i];
+        }
+        
+        // Ищем другие элементы
+        slides.forEach((slide, index) => {
+          slide.hasTable = tableRegex.test(code);
+          slide.hasChart = chartRegex.test(code);
+          slide.images = (code.match(pictureRegex) || []).length;
+          
+          // Попытка найти маркированные списки
+          const bulletMatches = Array.from(code.matchAll(/\.Paragraphs\(\d+\)\.Text\s*=\s*"([^"]+)"/g));
+          if (bulletMatches.length > 0) {
+            // Распределяем списки по слайдам
+            const bulletsPerSlide = Math.ceil(bulletMatches.length / slides.length);
+            const startIdx = index * bulletsPerSlide;
+            const endIdx = Math.min(startIdx + bulletsPerSlide, bulletMatches.length);
+            
+            for (let i = startIdx; i < endIdx; i++) {
+              if (bulletMatches[i]) {
+                slide.bullets.push(bulletMatches[i][1]);
+              }
+            }
+          }
+        });
+      }
+    }
+    
+    // После создания базовых слайдов, улучшите извлечение содержимого
+
+    // Пытаемся найти текстовое содержимое
+    const allContent = extractAllTextContent(code);
+    if (allContent.length > 0) {
+      // Распределяем найденный текст между слайдами
+      const contentPerSlide = Math.max(1, Math.ceil(allContent.length / slides.length));
+      
+      for (let i = 0; i < slides.length; i++) {
+        const startIdx = i * contentPerSlide;
+        const contentItems = allContent.slice(startIdx, startIdx + contentPerSlide);
+        if (contentItems.length > 0) {
+          slides[i].content = contentItems.join("\n");
+        }
+      }
+    }
+    
+    console.log(`Найдено ${slides.length} слайдов`);
+    
+    if (slides.length === 0) {
+      // Если слайды не найдены, возможно код некорректен
+      return {
+        success: false,
+        error: 'Не удалось найти слайды в коде. Возможно, код имеет нестандартную структуру.'
+      };
     }
     
     return {
       success: true,
       totalSlides: slides.length,
       slides
-    }
+    };
   } catch (error) {
+    console.error("Ошибка при парсинге VBA кода:", error);
     return {
       success: false,
       error: 'Не удалось распознать структуру презентации'
-    }
+    };
   }
-}
+};
 
-const SlidePreview = ({ slide, index }: { slide: any, index: number }) => (
+// Улучшенный компонент для предварительного просмотра слайда
+const SlidePreview = ({ slide, index }: { slide: Slide, index: number }) => (
   <motion.div 
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm"
+    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"
   >
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center">
-        {index + 1}
+    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">
+          {index + 1}
+        </div>
+        <h3 className="font-semibold truncate">{slide.title}</h3>
+        <span className="text-xs text-muted-foreground ml-auto">{slide.layout}</span>
       </div>
-      <h3 className="font-semibold">{slide.title}</h3>
     </div>
-    {slide.content && (
-      <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-        {slide.content.length > 100 ? slide.content.slice(0, 100) + '...' : slide.content}
-      </p>
-    )}
-    {slide.images > 0 && (
-      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-        <FileCode className="h-4 w-4" />
-        {slide.images} {slide.images === 1 ? 'изображение' : 'изображения'}
+    
+    <div className="p-4">
+      {/* Отображаем содержимое слайда */}
+      {slide.content && (
+        <div className="mb-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+          {slide.content}
+        </div>
+      )}
+      
+      {/* Отображаем маркированные списки */}
+      {slide.bullets.length > 0 && (
+        <ul className="text-sm list-disc list-inside text-gray-600 dark:text-gray-300 pl-2 space-y-1">
+          {slide.bullets.map((bullet, idx) => (
+            <li key={idx}>{bullet}</li>
+          ))}
+        </ul>
+      )}
+      
+      {/* Иконки для изображений, таблиц и диаграмм */}
+      <div className="flex gap-2 mt-3">
+        {slide.images > 0 && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <FileImage className="h-3 w-3" />
+            <span>{slide.images} {slide.images === 1 ? 'изображение' : 'изображения'}</span>
+          </div>
+        )}
+        
+        {slide.hasTable && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Table className="h-3 w-3" />
+            <span>Таблица</span>
+          </div>
+        )}
+        
+        {slide.hasChart && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <BarChart className="h-3 w-3" />
+            <span>Диаграмма</span>
+          </div>
+        )}
       </div>
-    )}
+    </div>
   </motion.div>
 )
+
+// Компонент для предварительного просмотра презентации
+const PresentationPreview = ({ vbaCode }: { vbaCode: string }) => {
+  // Добавьте логирование для входного кода
+  console.log("VBA код для парсинга (первые 100 символов):", vbaCode?.substring(0, 100));
+  
+  const parsedData = parseVbaCode(vbaCode)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  
+  // Добавьте логирование результата парсинга
+  console.log("Результат парсинга:", parsedData.success ? 
+    `Успех: ${parsedData.totalSlides} слайдов` : 
+    `Ошибка: ${parsedData.error}`);
+  
+  if (!parsedData.success) {
+    return (
+      <div className="text-center p-4 text-red-500 dark:text-red-400">
+        <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+        <p>{parsedData.error}</p>
+        
+        {/* Добавьте возможность посмотреть код для отладки */}
+        <details className="mt-4 text-left">
+          <summary className="cursor-pointer text-sm text-gray-600 dark:text-gray-400">
+            Показать код для отладки
+          </summary>
+          <pre className="mt-2 text-xs overflow-auto bg-gray-100 dark:bg-gray-800 p-2 rounded max-h-40">
+            {vbaCode}
+          </pre>
+        </details>
+      </div>
+    )
+  }
+  
+  const { totalSlides, slides } = parsedData
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Предпросмотр презентации</h3>
+        <div className="text-sm text-muted-foreground">
+          {totalSlides} {totalSlides === 1 ? 'слайд' : 'слайдов'}
+        </div>
+      </div>
+      
+      {/* Навигация по слайдам */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
+          disabled={currentSlide === 0}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <span className="text-sm">
+          Слайд {currentSlide + 1} из {totalSlides}
+        </span>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setCurrentSlide(prev => Math.min(totalSlides - 1, prev + 1))}
+          disabled={currentSlide === totalSlides - 1}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      {/* Текущий слайд */}
+      <div className="p-4 border rounded-lg dark:border-gray-800">
+        {slides[currentSlide] && 
+          <SlidePreview slide={slides[currentSlide]} index={currentSlide} />
+        }
+      </div>
+      
+      {/* Миниатюры всех слайдов */}
+      <div className="grid grid-cols-3 gap-2 mt-4">
+        {slides.map((slide, index) => (
+          <div 
+            key={index} 
+            className={`cursor-pointer transition-all ${currentSlide === index ? 'ring-2 ring-primary' : 'opacity-70'}`}
+            onClick={() => setCurrentSlide(index)}
+          >
+            <SlidePreview slide={slide} index={index} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // Константа для гостевого лимита
 const GUEST_REQUEST_LIMIT = 3

@@ -12,78 +12,67 @@ import { toast } from "sonner"
 export default function PaymentSuccessPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const purchaseId = searchParams.get("purchaseId")
-  const [isProcessing, setIsProcessing] = useState(true)
+  const [isVerifying, setIsVerifying] = useState(true)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [checkAttempts, setCheckAttempts] = useState(0)
   
   // Мутация для обновления статуса покупки и добавления кредитов
   const completePurchase = useMutation(api.creditPurchases.completePurchase)
   
-  // Функция для проверки статуса платежа
-  const checkPaymentStatus = async (purchaseId: string) => {
-    try {
-      // Запрашиваем статус платежа
-      const response = await fetch(`/api/payments/check?purchaseId=${purchaseId}`, {
-        method: "GET"
-      })
-      
-      if (!response.ok) {
-        throw new Error("Ошибка при проверке статуса платежа")
-      }
-      
-      const data = await response.json()
-      return data.success
-    } catch (error) {
-      console.error("Ошибка при проверке статуса платежа:", error)
-      return false
-    }
-  }
+  // Получаем параметры из URL
+  const paymentId = searchParams.get("payment_id")
+  const purchaseId = searchParams.get("purchase_id")
   
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!purchaseId) {
-        setIsProcessing(false)
+      if (!paymentId || !purchaseId) {
+        setIsVerifying(false)
+        setIsSuccess(false)
         return
       }
       
       try {
-        // Проверяем статус платежа
-        const isPaymentSuccessful = await checkPaymentStatus(purchaseId)
+        // Проверяем статус платежа через API
+        const response = await fetch(`/api/payments/check?payment_id=${paymentId}`)
+        const data = await response.json()
         
-        if (isPaymentSuccessful) {
-          setIsSuccess(true)
+        console.log(`Проверка #${checkAttempts + 1}:`, data);
+        
+        if (data.success && (data.status === "succeeded" || data.paid === true)) {
+          // Завершаем покупку только если платеж успешен
+          const result = await completePurchase({ purchaseId })
+          setIsSuccess(result.success)
+          setIsVerifying(false)
           toast.success("Оплата успешно завершена! Кредиты добавлены на ваш счет.")
+        } else if (checkAttempts < 10) {
+          // Если платеж еще не успешен и не превышено количество попыток,
+          // продолжаем проверять через 2 секунды
+          setCheckAttempts(prev => prev + 1)
+          setTimeout(verifyPayment, 2000)
         } else {
-          // Если платеж не подтвержден, пробуем обновить статус через Convex
-          const result = await completePurchase({ 
-            purchaseId: purchaseId as any 
-          })
-          
-          if (result.success) {
-            setIsSuccess(true)
-            toast.success("Оплата успешно завершена! Кредиты добавлены на ваш счет.")
-          } else {
-            toast.error("Не удалось подтвердить платеж. Пожалуйста, обратитесь в поддержку.")
-          }
+          // Превышено количество попыток
+          setIsVerifying(false)
+          setIsSuccess(false)
+          toast.error("Не удалось подтвердить платеж. Пожалуйста, обратитесь в поддержку.")
         }
       } catch (error) {
         console.error("Ошибка при проверке платежа:", error)
+        setIsVerifying(false)
+        setIsSuccess(false)
         toast.error("Произошла ошибка при проверке платежа")
-      } finally {
-        setIsProcessing(false)
       }
     }
     
     verifyPayment()
-  }, [purchaseId, completePurchase])
+  }, [paymentId, purchaseId, checkAttempts, completePurchase])
   
   return (
     <div className="container mx-auto px-4 py-16 max-w-md">
       <Card className="text-center">
         <CardHeader>
           <CardTitle className="text-2xl">
-            {isProcessing ? (
-              "Проверка платежа..."
+            {isVerifying ? (
+              `Проверка платежа... (${checkAttempts}/10)`
             ) : isSuccess ? (
               "Оплата успешно завершена!"
             ) : (
@@ -92,7 +81,7 @@ export default function PaymentSuccessPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {isProcessing ? (
+          {isVerifying ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
             </div>

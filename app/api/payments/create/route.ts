@@ -25,19 +25,19 @@ export async function POST(req: Request) {
     // Создаем платеж в ЮКассе
     const payment = await yooKassa.createPayment({
       amount: {
-        value: amount.toFixed(2),
+        value: amount.toString(),
         currency: "RUB"
       },
-      capture: true,
+      description: description,
       confirmation: {
         type: "redirect",
         return_url: returnUrl
       },
-      description,
       metadata: {
-        purchaseId,
-        userId
-      }
+        purchaseId: purchaseId,
+        userId: userId
+      },
+      capture: true
     })
     
     console.log("Платеж создан:", payment)

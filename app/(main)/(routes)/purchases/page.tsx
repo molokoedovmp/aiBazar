@@ -30,37 +30,68 @@ const font = Poppins({
 
 export default function PurchasesPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedMonth, setSelectedMonth] = useState("all")
   const aiToolsOrders = useQuery(api.aiToolsOrders.getPaidByUser)
-  const payments = useQuery(api.payments.getByUser)
   const creditPurchases = useQuery(api.creditPurchases.getByUser)
   const tools = useQuery(api.aiTools.get)
-  const isLoading = aiToolsOrders === undefined || payments === undefined || tools === undefined || creditPurchases === undefined
+  const isLoading = aiToolsOrders === undefined  || tools === undefined || creditPurchases === undefined
 
   // Сортировка по времени (новые сверху)
   const sortedAiToolsOrders = aiToolsOrders?.sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  const sortedPayments = payments?.sort((a, b) => 
-    b.createdAt - a.createdAt
-  );
   
   // Сортировка покупок кредитов
   const sortedCreditPurchases = creditPurchases?.sort((a, b) => 
     b.timestamp - a.timestamp
   );
 
+  // Добавьте интерфейс для типа месяца
+  interface Month {
+    value: string;
+    label: string;
+  }
+
+  // Генерируем список месяцев за последний год
+  const generateMonths = (): Month[] => {
+    const months: Month[] = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      months.push({
+        value: `${date.getFullYear()}-${date.getMonth() + 1}`,
+        label: date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })
+      });
+    }
+    
+    return months;
+  };
+
+  const availableMonths = generateMonths();
+
+  // Добавьте функцию фильтрации по месяцу
+  const filterByMonth = (date: string | number) => {
+    if (selectedMonth === "all") return true;
+    
+    const orderDate = typeof date === 'number' ? new Date(date) : new Date(date);
+    const [year, month] = selectedMonth.split('-').map(Number);
+    
+    return orderDate.getFullYear() === year && orderDate.getMonth() + 1 === month;
+  };
+
+  // Измените фильтрацию заказов, добавив проверку месяца
   const filteredAiToolsOrders = sortedAiToolsOrders?.filter(order => {
-    return order.serviceName?.toLowerCase().includes(searchTerm.toLowerCase());
+    return order.serviceName?.toLowerCase().includes(searchTerm.toLowerCase()) && 
+           filterByMonth(order.createdAt);
   });
 
-  const filteredPayments = sortedPayments?.filter(payment => 
-    payment.serviceName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   
-  // Фильтрация покупок кредитов
+  // Измените фильтрацию покупок кредитов
   const filteredCreditPurchases = sortedCreditPurchases?.filter(purchase => 
-    "Пакет кредитов".toLowerCase().includes(searchTerm.toLowerCase())
+    "Пакет кредитов".toLowerCase().includes(searchTerm.toLowerCase()) &&
+    filterByMonth(purchase.timestamp)
   );
 
   // Добавляем состояние для AlertDialog
@@ -195,15 +226,6 @@ ID заказа: ${order._id}
           onClick={showPaymentDetails}
         >
           <div className="flex p-4 gap-4">
-            <div className="w-16 h-16 relative flex-shrink-0 bg-muted rounded-md">
-              <Image
-                src="/default.png" // Логотип Bazarius или иконка кредитов
-                alt="Пакет кредитов"
-                fill
-                className="object-cover rounded-md"
-                sizes="64px"
-              />
-            </div>
             <div className="flex-grow">
               <div className="flex justify-between items-start">
                 <div>
@@ -306,108 +328,159 @@ ID заказа: ${order._id}
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl md:text-2xl font-bold text-primary relative inline-block">
-            Мои покупки
-            <span className="absolute -bottom-2 left-0 w-full h-1 bg-primary rounded-full"></span>
-          </h1>
+          <h1 className="text-3xl font-bold">Мои покупки</h1>
         </div>
 
-        <div className="mb-6 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Поиск по покупкам..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <div className="max-w-6xl mx-auto">
+          {/* Поиск и фильтр по месяцам */}
+          <div className="mb-6 flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Поиск по покупкам..."
+                className="pl-10 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select 
+              className="p-2 border rounded-md bg-background focus:ring-2 focus:ring-primary focus:outline-none min-w-40"
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              value={selectedMonth}
+            >
+              <option value="all">Все месяцы</option>
+              {availableMonths.map(month => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="h-full p-4 space-y-4">
-          <div className="max-w-6xl mx-auto">
-            {isLoading ? (
-              <div className="h-full flex items-center justify-center min-h-[200px]">
-                <Spinner size="lg" />
-              </div>
-            ) : (
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="mb-6">
-                  <TabsTrigger value="all">Все покупки</TabsTrigger>
-                  <TabsTrigger value="aitools">AI инструменты</TabsTrigger>
-                  <TabsTrigger value="credits">Bazarius</TabsTrigger>
-                </TabsList>
+          {/* Аналитика */}
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold mb-1">
+                  {isLoading ? <Skeleton className="h-7 w-20" /> : 
+                    `${(filteredAiToolsOrders?.length || 0) + (filteredCreditPurchases?.length || 0)}`
+                  }
+                </div>
+                <p className="text-muted-foreground text-sm">Всего покупок</p>
+              </CardContent>
+            </Card>
 
-                <TabsContent value="all">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Показываем AI инструменты только если они есть */}
-                    {filteredAiToolsOrders && filteredAiToolsOrders.length > 0 && (
-                      <div>
-                        <h2 className="text-xl font-semibold mb-4">AI инструменты</h2>
-                        <div className="space-y-4">
-                          {isLoading ? (
-                            <SkeletonCards count={2} />
-                          ) : (
-                            filteredAiToolsOrders.map(order => (
-                              <OrderCard key={order._id} order={order} type="aiTool" />
-                            ))
-                          )}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold mb-1">
+                  {isLoading ? <Skeleton className="h-7 w-24" /> : 
+                    `${((filteredAiToolsOrders?.reduce((sum, order) => sum + order.amount, 0) || 0) + 
+                      (filteredCreditPurchases?.reduce((sum, purchase) => sum + purchase.price, 0) || 0)).toLocaleString('ru-RU')} ₽`
+                  }
+                </div>
+                <p className="text-muted-foreground text-sm">Общая сумма</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-2xl font-bold mb-1">
+                  {isLoading ? <Skeleton className="h-7 w-16" /> : 
+                    `${filteredCreditPurchases?.reduce((sum, purchase) => sum + purchase.amount, 0) || 0}`
+                  }
+                </div>
+                <p className="text-muted-foreground text-sm">Всего кредитов</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="h-full p-4 space-y-4">
+            <div className="w-full">
+              {isLoading ? (
+                <div className="h-full flex items-center justify-center min-h-[200px]">
+                  <Spinner size="lg" />
+                </div>
+              ) : (
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="mb-6">
+                    <TabsTrigger value="all">Все покупки</TabsTrigger>
+                    <TabsTrigger value="aitools">AI инструменты</TabsTrigger>
+                    <TabsTrigger value="credits">Bazarius</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="all">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Показываем AI инструменты только если они есть */}
+                      {filteredAiToolsOrders && filteredAiToolsOrders.length > 0 && (
+                        <div>
+                          <h2 className="text-xl font-semibold mb-4">AI инструменты</h2>
+                          <div className="space-y-4">
+                            {isLoading ? (
+                              <SkeletonCards count={2} />
+                            ) : (
+                              filteredAiToolsOrders.map(order => (
+                                <OrderCard key={order._id} order={order} type="aiTool" />
+                              ))
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Показываем покупки кредитов */}
-                    {filteredCreditPurchases && filteredCreditPurchases.length > 0 && (
-                      <div>
-                        <h2 className="text-xl font-semibold mb-4">Bazarius</h2>
-                        <div className="space-y-4">
-                          {isLoading ? (
-                            <SkeletonCards count={2} />
-                          ) : (
-                            filteredCreditPurchases.map(purchase => (
-                              <OrderCard key={purchase._id} order={purchase} type="credit" />
-                            ))
-                          )}
+                      {/* Показываем покупки кредитов */}
+                      {filteredCreditPurchases && filteredCreditPurchases.length > 0 && (
+                        <div>
+                          <h2 className="text-xl font-semibold mb-4">Bazarius</h2>
+                          <div className="space-y-4">
+                            {isLoading ? (
+                              <SkeletonCards count={2} />
+                            ) : (
+                              filteredCreditPurchases.map(purchase => (
+                                <OrderCard key={purchase._id} order={purchase} type="credit" />
+                              ))
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Показываем сообщение, если нет покупок */}
-                    {(!filteredAiToolsOrders?.length && !filteredCreditPurchases?.length) && (
-                      <div className="col-span-2">
-                        <EmptyState message="Покупок не найдено" />
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="aitools">
-                  {isLoading ? (
-                    <SkeletonCards count={4} />
-                  ) : filteredAiToolsOrders && filteredAiToolsOrders.length > 0 ? (
-                    <div className="space-y-4">
-                      {filteredAiToolsOrders.map(order => (
-                        <OrderCard key={order._id} order={order} type="aiTool" />
-                      ))}
+                      {/* Показываем сообщение, если нет покупок */}
+                      {(!filteredAiToolsOrders?.length && !filteredCreditPurchases?.length) && (
+                        <div className="col-span-2">
+                          <EmptyState message="Покупок не найдено" />
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <EmptyState message="У вас пока нет покупок AI инструментов" />
-                  )}
-                </TabsContent>
+                  </TabsContent>
 
-                <TabsContent value="credits">
-                  {isLoading ? (
-                    <SkeletonCards count={4} />
-                  ) : filteredCreditPurchases && filteredCreditPurchases.length > 0 ? (
-                    <div className="space-y-4">
-                      {filteredCreditPurchases.map(purchase => (
-                        <OrderCard key={purchase._id} order={purchase} type="credit" />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState message="У вас пока нет покупок в Bazarius" />
-                  )}
-                </TabsContent>
-              </Tabs>
-            )}
+                  <TabsContent value="aitools">
+                    {isLoading ? (
+                      <SkeletonCards count={4} />
+                    ) : filteredAiToolsOrders && filteredAiToolsOrders.length > 0 ? (
+                      <div className="space-y-4">
+                        {filteredAiToolsOrders.map(order => (
+                          <OrderCard key={order._id} order={order} type="aiTool" />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState message="У вас пока нет покупок AI инструментов" />
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="credits">
+                    {isLoading ? (
+                      <SkeletonCards count={4} />
+                    ) : filteredCreditPurchases && filteredCreditPurchases.length > 0 ? (
+                      <div className="space-y-4">
+                        {filteredCreditPurchases.map(purchase => (
+                          <OrderCard key={purchase._id} order={purchase} type="credit" />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState message="У вас пока нет покупок в Bazarius" />
+                    )}
+                  </TabsContent>
+                </Tabs>
+              )}
+            </div>
           </div>
         </div>
       </div>
