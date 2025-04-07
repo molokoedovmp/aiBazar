@@ -57,7 +57,6 @@ const GUEST_REQUEST_LIMIT = 3
 
 export default function AISearchPage() {
   const router = useRouter()
-  const createPayment = useMutation(api.payments.create)
   const { user, isSignedIn } = useUser()
   
   // Запрос к Convex для получения информации о лимитах пользователя
