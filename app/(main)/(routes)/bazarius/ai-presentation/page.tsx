@@ -120,17 +120,39 @@ export default function AiPresentationPage() {
     result ? parseVbaCode(result) : null, 
   [result])
 
-  const handleSubmit = async () => {
-    if (!query.trim()) return
-    
+  // Функция для проверки и списания кредита
+  const checkAndDeductCredit = async () => {
     // Проверяем лимит запросов
     if (isLimitReached) {
       toast.error(isSignedIn 
         ? "У вас закончились кредиты. Приобретите дополнительные кредиты для продолжения." 
         : "Достигнут лимит гостевых запросов. Авторизуйтесь для продолжения."
       );
+      return false;
+    }
+    
+    // Уменьшаем счетчик кредитов
+    if (isSignedIn && user) {
+      await useCredit({ userId: user.id, service: "ai-presentation" });
+    } else {
+      // Для гостей используем localStorage
+      const newCount = guestRequestCount + 1;
+      setGuestRequestCount(newCount);
+      localStorage.setItem("guest-bazarius-requests", newCount.toString());
+    }
+    
+    return true;
+  }
+
+  // Обработчик отправки формы
+  const handleSubmit = async () => {
+    // Проверяем возможность использования кредита
+    const canProceed = await checkAndDeductCredit();
+    if (!canProceed) {
       return;
     }
+    
+    if (!query.trim()) return;
     
     setIsLoading(true)
     try {
@@ -145,16 +167,6 @@ export default function AiPresentationPage() {
       const data = await response.json()
       setResult(data.response)
       setActiveTab('code')
-      
-      // Уменьшаем счетчик кредитов
-      if (isSignedIn && user) {
-        await useCredit({ userId: user.id, service: "ai-presentation" });
-      } else {
-        // Для гостей используем localStorage
-        const newCount = guestRequestCount + 1;
-        setGuestRequestCount(newCount);
-        localStorage.setItem("guest-bazarius-requests", newCount.toString());
-      }
       
       toast.success("VBA-код успешно сгенерирован!")
     } catch (error) {

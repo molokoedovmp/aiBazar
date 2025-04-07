@@ -68,17 +68,39 @@ export default function AiBlogPage() {
     return JSON.stringify(blocks);
   }
 
-  const handleSubmit = async () => {
-    if (!prompt.trim()) return;
-    
+  // Функция для проверки и списания кредита
+  const checkAndDeductCredit = async () => {
     // Проверяем лимит запросов
     if (isLimitReached) {
       toast.error(isSignedIn 
         ? "У вас закончились кредиты. Приобретите дополнительные кредиты для продолжения." 
         : "Достигнут лимит гостевых запросов. Авторизуйтесь для продолжения."
       );
+      return false;
+    }
+    
+    // Уменьшаем счетчик кредитов
+    if (isSignedIn && user) {
+      await useCredit({ userId: user.id, service: "ai-blog" });
+    } else {
+      // Для гостей используем localStorage
+      const newCount = guestRequestCount + 1;
+      setGuestRequestCount(newCount);
+      localStorage.setItem("guest-bazarius-requests", newCount.toString());
+    }
+    
+    return true;
+  }
+
+  // Обработчик отправки формы
+  const handleSubmit = async () => {
+    // Проверяем возможность использования кредита
+    const canProceed = await checkAndDeductCredit();
+    if (!canProceed) {
       return;
     }
+    
+    if (!prompt.trim()) return;
     
     // Сбрасываем предыдущий результат перед новой генерацией
     setResult("");
@@ -96,16 +118,6 @@ export default function AiBlogPage() {
       const data = await response.json();
       // Преобразуем сгенерированный текст с Markdown-разметкой в блоки
       setResult(convertToBlocks(data.response));
-      
-      // Уменьшаем счетчик кредитов
-      if (isSignedIn && user) {
-        await useCredit({ userId: user.id, service: "ai-blog" });
-      } else {
-        // Для гостей используем localStorage
-        const newCount = guestRequestCount + 1;
-        setGuestRequestCount(newCount);
-        localStorage.setItem("guest-bazarius-requests", newCount.toString());
-      }
       
       toast.success("Статья успешно сгенерирована!");
     } catch (error) {
