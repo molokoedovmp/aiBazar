@@ -8,6 +8,12 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
+    console.log('Настройки окружения:', { 
+      nodeEnv: process.env.NODE_ENV,
+      hasApiKey: !!process.env.OPENAI_API_KEY,
+      apiKeyLength: process.env.OPENAI_API_KEY?.length
+    });
+
     const { query, conversation } = await req.json()
 
     if (!query) {
@@ -106,6 +112,13 @@ End Sub`
     }
     
     try {
+      console.log('Отправка запроса с параметрами:', {
+        model: 'gpt-4o',
+        maxTokens: 3500,
+        temperature: 0.5,
+        messagesCount: messages.length
+      });
+
       console.log('Отправка запроса к OpenAI API...')
       const response = await openai.chat.completions.create({
         model: 'gpt-4o',
