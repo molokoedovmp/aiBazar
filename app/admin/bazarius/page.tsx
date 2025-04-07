@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Button } from "@/components/ui/button"
@@ -202,10 +202,10 @@ function BazariusGrid({ items, onEdit, onDelete }: any) {
 
 export default function BazariusPage() {
   // Запросы к API
-  const bazariusItems = useQuery(api.aibazargpt.getAll)
-  const createItem = useMutation(api.aibazargpt.create)
-  const updateItem = useMutation(api.aibazargpt.update)
-  const removeItem = useMutation(api.aibazargpt.remove) // Используем remove вместо delete
+  const bazariusItems = useQuery(api.creditPurchases.list)
+  const createItem = useMutation(api.creditPurchases.create)
+  const updateItem = useMutation(api.creditPurchases.update)
+  const removeItem = useMutation(api.creditPurchases.remove)
   
   // Состояния
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -213,28 +213,25 @@ export default function BazariusPage() {
   const [editingItem, setEditingItem] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [isCreating, setIsCreating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
   
   // Функция для открытия диалога редактирования
   const openEditDialog = (item?: any) => {
     if (item) {
       setEditingItem({...item})
+      setIsCreating(false)
     } else {
+      // Создаем пустой объект с правильной структурой для creditPurchases
       setEditingItem({
-        title: "",
-        description: "",
+        userId: "",
+        amount: 0,
         price: 0,
-        coverImage: "",
-        icon: "",
-        type: "ai",
-        features: [],
-        status: "active",
-        details: {
-          overview: "",
-          capabilities: [],
-          requirements: [],
-          useCases: []
-        }
+        status: "pending",
+        paymentId: "",
+        timestamp: Date.now()
       })
+      setIsCreating(true)
     }
     setIsEditDialogOpen(true)
   }
@@ -250,35 +247,28 @@ export default function BazariusPage() {
   // Функция для сохранения элемента
   const handleSaveItem = async () => {
     try {
+      setIsUpdating(true)
       if (editingItem._id) {
         // Обновление существующего элемента
         await updateItem({
-          id: editingItem._id as Id<"aibazargpt">,
-          title: editingItem.title,
-          description: editingItem.description,
-          price: editingItem.price,
-          coverImage: editingItem.coverImage,
-          icon: editingItem.icon,
-          type: editingItem.type,
-          features: editingItem.features,
+          id: editingItem._id as Id<"creditPurchases">,
+          userId: editingItem.userId,
+          amount: Number(editingItem.amount),
+          price: Number(editingItem.price),
           status: editingItem.status,
-          previewUrl: editingItem.previewUrl,
-          details: editingItem.details
+          paymentId: editingItem.paymentId || undefined,
+          timestamp: editingItem.timestamp || Date.now()
         })
         toast.success("Элемент успешно обновлен")
       } else {
         // Создание нового элемента
         await createItem({
-          title: editingItem.title,
-          description: editingItem.description,
-          price: editingItem.price,
-          coverImage: editingItem.coverImage,
-          icon: editingItem.icon,
-          type: editingItem.type,
-          features: editingItem.features,
+          userId: editingItem.userId,
+          amount: Number(editingItem.amount),
+          price: Number(editingItem.price),
           status: editingItem.status,
-          previewUrl: editingItem.previewUrl,
-          details: editingItem.details
+          paymentId: editingItem.paymentId || undefined,
+          timestamp: Date.now()
         })
         toast.success("Элемент успешно создан")
       }
@@ -286,6 +276,8 @@ export default function BazariusPage() {
     } catch (error) {
       console.error("Ошибка при сохранении элемента:", error)
       toast.error("Ошибка при сохранении элемента")
+    } finally {
+      setIsUpdating(false)
     }
   }
   
@@ -293,7 +285,7 @@ export default function BazariusPage() {
   const handleDeleteItem = async (id: string) => {
     if (confirm("Вы уверены, что хотите удалить этот элемент?")) {
       try {
-        await removeItem({ id: id as Id<"aibazargpt"> })
+        await removeItem({ id: id as Id<"creditPurchases"> })
         toast.success("Элемент успешно удален")
       } catch (error) {
         console.error("Ошибка при удалении элемента:", error)
@@ -307,54 +299,49 @@ export default function BazariusPage() {
     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
   }
   
-  // Функция для экспорта в Excel
-  const exportToExcel = () => {
-    if (!bazariusItems) return
-    
-    setIsExporting(true)
-    
+  // Исправляем экспорт в Excel
+  const handleExportExcel = async () => {
     try {
+      setIsExporting(true)
       // Подготавливаем данные для экспорта
-      const data = bazariusItems.map((item: BazariusItem) => ({
+      const data = (bazariusItems || []).map((item) => ({
         ID: item._id,
-        Название: item.title,
-        Описание: item.description,
+        Пользователь: item.userId,
+        Количество_кредитов: item.amount,
         Цена: item.price + " ₽",
-        Статус: item.status === "active" ? "Активен" : "Неактивен",
+        Статус: item.status,
+        ID_платежа: item.paymentId || 'Нет',
         Дата_создания: new Date(item._creationTime).toLocaleString("ru-RU")
       }))
       
       // Создаем рабочую книгу Excel
       const worksheet = XLSX.utils.json_to_sheet(data)
       const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Bazarius")
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Purchases")
       
-      // Сохраняем файл
-      XLSX.writeFile(workbook, "bazarius-export.xlsx")
-      
-      console.log("Экспорт в Excel выполнен успешно")
+      // Экспортируем файл
+      XLSX.writeFile(workbook, "bazarius_purchases.xlsx")
+      toast.success("Данные экспортированы в Excel")
     } catch (error) {
-      console.error("Ошибка при экспорте в Excel:", error)
+      console.error("Ошибка при экспорте данных:", error)
+      toast.error("Ошибка при экспорте данных")
     } finally {
       setIsExporting(false)
     }
   }
   
-  // Функция для экспорта в JSON
-  const exportToJSON = () => {
-    if (!bazariusItems) return
-    
-    setIsExporting(true)
-    
+  // Исправляем экспорт в JSON
+  const handleExportJSON = async () => {
     try {
+      setIsExporting(true)
       // Подготавливаем данные для экспорта
-      const data = bazariusItems.map((item: BazariusItem) => ({
+      const data = (bazariusItems || []).map((item) => ({
         id: item._id,
-        title: item.title,
-        description: item.description,
+        userId: item.userId,
+        amount: item.amount,
         price: item.price,
-        coverImage: item.coverImage,
         status: item.status,
+        paymentId: item.paymentId,
         createdAt: item._creationTime
       }))
       
@@ -362,33 +349,35 @@ export default function BazariusPage() {
       const jsonString = JSON.stringify(data, null, 2)
       const blob = new Blob([jsonString], { type: "application/json" })
       
-      // Создаем ссылку для скачивания
+      // Создаем URL и ссылку для скачивания
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = "bazarius-export.json"
+      link.download = "bazarius_purchases.json"
       
-      // Симулируем клик для скачивания
+      // Клик по ссылке для скачивания
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       
-      console.log("Экспорт в JSON выполнен успешно")
+      toast.success("Данные экспортированы в JSON")
     } catch (error) {
-      console.error("Ошибка при экспорте в JSON:", error)
+      console.error("Ошибка при экспорте данных:", error)
+      toast.error("Ошибка при экспорте данных")
     } finally {
       setIsExporting(false)
     }
   }
   
-  // Фильтрация и сортировка элементов
-  const processedItems = React.useMemo(() => {
+  // Исправляем фильтр для новой структуры данных
+  const filteredItems = useMemo(() => {
     if (!bazariusItems) return []
     
     // Сначала фильтруем
-    let result = bazariusItems.filter((item: BazariusItem) =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    let result = bazariusItems.filter((item) =>
+      item.userId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.paymentId && item.paymentId.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     
     // Затем сортируем
@@ -410,7 +399,7 @@ export default function BazariusPage() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={exportToExcel} 
+            onClick={handleExportExcel} 
             disabled={isExporting || !bazariusItems}
             className="flex items-center gap-2"
           >
@@ -419,7 +408,7 @@ export default function BazariusPage() {
           </Button>
           <Button 
             variant="outline" 
-            onClick={exportToJSON} 
+            onClick={handleExportJSON} 
             disabled={isExporting || !bazariusItems}
             className="flex items-center gap-2"
           >
@@ -459,7 +448,7 @@ export default function BazariusPage() {
             </TabsList>
             <TabsContent value="table">
               <BazariusTable 
-                items={processedItems} 
+                items={filteredItems} 
                 onEdit={openEditDialog} 
                 onDelete={handleDeleteItem}
                 onSort={handleSort}
@@ -467,7 +456,7 @@ export default function BazariusPage() {
             </TabsContent>
             <TabsContent value="grid">
               <BazariusGrid 
-                items={processedItems} 
+                items={filteredItems} 
                 onEdit={openEditDialog} 
                 onDelete={handleDeleteItem}
               />
@@ -492,343 +481,83 @@ export default function BazariusPage() {
           
           <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
-              <Label htmlFor="title">Название</Label>
+              <Label htmlFor="userId">ID пользователя</Label>
               <Input
-                id="title"
-                value={editingItem?.title || ""}
-                onChange={(e) => handleEditChange("title", e.target.value)}
-                placeholder="Введите название"
+                id="userId"
+                value={editingItem?.userId || ""}
+                onChange={(e) => handleEditChange("userId", e.target.value)}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description">Описание</Label>
-              <Textarea
-                id="description"
-                value={editingItem?.description || ""}
-                onChange={(e) => handleEditChange("description", e.target.value)}
-                placeholder="Введите описание"
-                rows={3}
+              <Label htmlFor="amount">Количество кредитов</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={editingItem?.amount || 0}
+                onChange={(e) => handleEditChange("amount", Number(e.target.value))}
               />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="price">Цена</Label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="price"
-                  type="number"
-                  value={typeof editingItem?.price === 'number' ? editingItem.price : 0}
-                  onChange={(e) => handleEditChange("price", Number(e.target.value))}
-                  placeholder="Введите цену"
-                  disabled={editingItem?.price === "Бесплатно"}
-                  className="flex-1"
-                />
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="free"
-                    checked={editingItem?.price === "Бесплатно"}
-                    onCheckedChange={(checked) => 
-                      handleEditChange("price", checked ? "Бесплатно" : 0)
-                    }
-                  />
-                  <Label htmlFor="free">Бесплатно</Label>
-                </div>
-              </div>
+              <Input
+                id="price"
+                type="number"
+                value={editingItem?.price || 0}
+                onChange={(e) => handleEditChange("price", Number(e.target.value))}
+              />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="type">Тип</Label>
-              <Select
-                value={editingItem?.type || ""}
-                onValueChange={(value) => handleEditChange("type", value)}
+              <Label htmlFor="status">Статус</Label>
+              <Select 
+                value={editingItem?.status || "pending"} 
+                onValueChange={(value) => handleEditChange("status", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите тип" />
+                  <SelectValue placeholder="Выберите статус" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ai">AI</SelectItem>
-                  <SelectItem value="tool">Инструмент</SelectItem>
-                  <SelectItem value="service">Сервис</SelectItem>
-                  <SelectItem value="other">Другое</SelectItem>
+                  <SelectItem value="pending">В ожидании</SelectItem>
+                  <SelectItem value="completed">Завершен</SelectItem>
+                  <SelectItem value="failed">Ошибка</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="icon">Иконка (URL)</Label>
+              <Label htmlFor="paymentId">ID платежа</Label>
               <Input
-                id="icon"
-                value={editingItem?.icon || ""}
-                onChange={(e) => handleEditChange("icon", e.target.value)}
-                placeholder="Введите URL иконки"
+                id="paymentId"
+                value={editingItem?.paymentId || ""}
+                onChange={(e) => handleEditChange("paymentId", e.target.value)}
               />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="coverImage">Обложка (URL)</Label>
-              <Input
-                id="coverImage"
-                value={editingItem?.coverImage || ""}
-                onChange={(e) => handleEditChange("coverImage", e.target.value)}
-                placeholder="Введите URL обложки"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="previewUrl">URL превью</Label>
-              <Input
-                id="previewUrl"
-                value={editingItem?.previewUrl || ""}
-                onChange={(e) => handleEditChange("previewUrl", e.target.value)}
-                placeholder="Введите URL превью"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Функции</Label>
-              <div className="space-y-2">
-                {editingItem?.features?.map((feature: string, index: number) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={feature}
-                      onChange={(e) => {
-                        const newFeatures = [...(editingItem.features || [])];
-                        newFeatures[index] = e.target.value;
-                        handleEditChange("features", newFeatures);
-                      }}
-                      placeholder={`Функция ${index + 1}`}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        const newFeatures = [...(editingItem.features || [])];
-                        newFeatures.splice(index, 1);
-                        handleEditChange("features", newFeatures);
-                      }}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newFeatures = [...(editingItem.features || []), ""];
-                    handleEditChange("features", newFeatures);
-                  }}
-                >
-                  Добавить функцию
-                </Button>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Детали</Label>
-              <div className="space-y-4 border p-3 rounded-md">
-                <div className="space-y-2">
-                  <Label htmlFor="overview">Обзор</Label>
-                  <Textarea
-                    id="overview"
-                    value={editingItem?.details?.overview || ""}
-                    onChange={(e) => {
-                      const newDetails = { ...(editingItem.details || {}) };
-                      newDetails.overview = e.target.value;
-                      handleEditChange("details", newDetails);
-                    }}
-                    placeholder="Введите обзор"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Возможности</Label>
-                  <div className="space-y-2">
-                    {editingItem?.details?.capabilities?.map((capability: any, index: number) => (
-                      <div key={index} className="space-y-2 border p-2 rounded-md">
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            value={capability.title}
-                            onChange={(e) => {
-                              const newCapabilities = [...(editingItem.details.capabilities || [])];
-                              newCapabilities[index] = { ...newCapabilities[index], title: e.target.value };
-                              const newDetails = { ...(editingItem.details || {}) };
-                              newDetails.capabilities = newCapabilities;
-                              handleEditChange("details", newDetails);
-                            }}
-                            placeholder="Название возможности"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              const newCapabilities = [...(editingItem.details.capabilities || [])];
-                              newCapabilities.splice(index, 1);
-                              const newDetails = { ...(editingItem.details || {}) };
-                              newDetails.capabilities = newCapabilities;
-                              handleEditChange("details", newDetails);
-                            }}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <Textarea
-                          value={capability.description}
-                          onChange={(e) => {
-                            const newCapabilities = [...(editingItem.details.capabilities || [])];
-                            newCapabilities[index] = { ...newCapabilities[index], description: e.target.value };
-                            const newDetails = { ...(editingItem.details || {}) };
-                            newDetails.capabilities = newCapabilities;
-                            handleEditChange("details", newDetails);
-                          }}
-                          placeholder="Описание возможности"
-                          rows={2}
-                        />
-                        <Input
-                          value={capability.icon || ""}
-                          onChange={(e) => {
-                            const newCapabilities = [...(editingItem.details.capabilities || [])];
-                            newCapabilities[index] = { ...newCapabilities[index], icon: e.target.value };
-                            const newDetails = { ...(editingItem.details || {}) };
-                            newDetails.capabilities = newCapabilities;
-                            handleEditChange("details", newDetails);
-                          }}
-                          placeholder="URL иконки (необязательно)"
-                        />
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newCapabilities = [
-                          ...(editingItem.details?.capabilities || []),
-                          { title: "", description: "", icon: "" }
-                        ];
-                        const newDetails = { ...(editingItem.details || {}) };
-                        newDetails.capabilities = newCapabilities;
-                        handleEditChange("details", newDetails);
-                      }}
-                    >
-                      Добавить возможность
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Требования</Label>
-                  <div className="space-y-2">
-                    {editingItem?.details?.requirements?.map((requirement: string, index: number) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={requirement}
-                          onChange={(e) => {
-                            const newRequirements = [...(editingItem.details.requirements || [])];
-                            newRequirements[index] = e.target.value;
-                            const newDetails = { ...(editingItem.details || {}) };
-                            newDetails.requirements = newRequirements;
-                            handleEditChange("details", newDetails);
-                          }}
-                          placeholder={`Требование ${index + 1}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newRequirements = [...(editingItem.details.requirements || [])];
-                            newRequirements.splice(index, 1);
-                            const newDetails = { ...(editingItem.details || {}) };
-                            newDetails.requirements = newRequirements;
-                            handleEditChange("details", newDetails);
-                          }}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newRequirements = [...(editingItem.details?.requirements || []), ""];
-                        const newDetails = { ...(editingItem.details || {}) };
-                        newDetails.requirements = newRequirements;
-                        handleEditChange("details", newDetails);
-                      }}
-                    >
-                      Добавить требование
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Варианты использования</Label>
-                  <div className="space-y-2">
-                    {editingItem?.details?.useCases?.map((useCase: string, index: number) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={useCase}
-                          onChange={(e) => {
-                            const newUseCases = [...(editingItem.details.useCases || [])];
-                            newUseCases[index] = e.target.value;
-                            const newDetails = { ...(editingItem.details || {}) };
-                            newDetails.useCases = newUseCases;
-                            handleEditChange("details", newDetails);
-                          }}
-                          placeholder={`Вариант использования ${index + 1}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newUseCases = [...(editingItem.details.useCases || [])];
-                            newUseCases.splice(index, 1);
-                            const newDetails = { ...(editingItem.details || {}) };
-                            newDetails.useCases = newUseCases;
-                            handleEditChange("details", newDetails);
-                          }}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newUseCases = [...(editingItem.details?.useCases || []), ""];
-                        const newDetails = { ...(editingItem.details || {}) };
-                        newDetails.useCases = newUseCases;
-                        handleEditChange("details", newDetails);
-                      }}
-                    >
-                      Добавить вариант использования
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="status"
-                checked={editingItem?.status === "active"}
-                onCheckedChange={(checked) => handleEditChange("status", checked ? "active" : "inactive")}
-              />
-              <Label htmlFor="status">Активен</Label>
             </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              disabled={isUpdating}
+            >
               Отмена
             </Button>
-            <Button onClick={handleSaveItem}>
-              {editingItem?._id ? "Сохранить" : "Создать"}
+            <Button 
+              onClick={handleSaveItem}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Сохранение...
+                </>
+              ) : (
+                "Сохранить"
+              )}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -223,4 +223,39 @@ export const getByUser = query({
     
     return purchases;
   },
+});
+
+// Добавляем метод list для получения всех записей
+export const list = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("creditPurchases").collect();
+  },
+});
+
+// Если нужен метод для удаления записи (вместо completePurchase)
+export const remove = mutation({
+  args: { id: v.id("creditPurchases") },
+  handler: async (ctx, args) => {
+    const { id } = args;
+    await ctx.db.delete(id);
+    return id;
+  },
+});
+
+// Полное обновление записи (если updatePaymentStatus недостаточно)
+export const update = mutation({
+  args: { 
+    id: v.id("creditPurchases"),
+    userId: v.string(),
+    amount: v.number(),
+    price: v.number(),
+    status: v.string(),
+    paymentId: v.optional(v.string()),
+    timestamp: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...rest } = args;
+    await ctx.db.patch(id, rest);
+    return id;
+  },
 }); 
