@@ -28,16 +28,6 @@ const pricingPlans = [
     popular: false
   },
   {
-    id: "test",
-    name: "test",
-    price: 1,
-    credits: 1,
-    features: [
-      "1 кредитов для всех сервисов"
-    ],
-    popular: false
-  },
-  {
     id: "pro",
     name: "Профессиональный",
     price: 799,
@@ -107,37 +97,29 @@ export default function PricingPage() {
         timestamp: Date.now()
       })
       
-      // Перенаправляем на страницу оплаты ЮКассы
       const response = await fetch("/api/payments/create", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          // Добавляем email пользователя для чека
-          "x-user-email": user!.emailAddresses[0]?.emailAddress || ""
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: plan.price,
           description: `Пакет кредитов "${plan.name}" - ${plan.credits} кредитов`,
-          purchaseId: purchaseId,
+          purchaseId,
           userId: user!.id,
           returnUrl: `${window.location.origin}/bazarius/payment-success?purchaseId=${purchaseId}`
         })
       })
       
-      if (!response.ok) {
-        throw new Error("Ошибка при создании платежа")
-      }
-      
       const data = await response.json()
       
       if (data.success && data.paymentUrl) {
+        // Перенаправляем на страницу оплаты ЮКассы
         window.location.href = data.paymentUrl
       } else {
-        throw new Error("Не удалось получить URL для оплаты")
+        throw new Error(data.error || "Failed to create payment")
       }
     } catch (error) {
-      console.error("Ошибка при обработке платежа:", error)
-      toast.error("Произошла ошибка при обработке платежа")
+      console.error("Error:", error)
+      toast.error("Ошибка при создании платежа")
       setIsProcessing(false)
     }
   }

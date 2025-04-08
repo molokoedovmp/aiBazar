@@ -1,120 +1,55 @@
 import { NextResponse } from "next/server"
-import crypto from "crypto"
 import { ConvexHttpClient } from "convex/browser"
 import { api } from "@/convex/_generated/api"
 
-// Простой логгер для отладки
-function log(message: string, data?: any) {
-  console.log(`[WEBHOOK] ${message}`, data || '');
-}
-
-// Инициализация Convex клиента
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
-
-function verifyWebhookSignature(body: string, signature: string | null, secretKey: string): boolean {
-  if (!signature) return false
-  
-  const hmac = crypto.createHmac('sha256', secretKey)
-  const calculatedSignature = hmac.update(body).digest('base64')
-  
-  return signature === calculatedSignature
-}
 
 export async function POST(req: Request) {
   try {
-    // Получаем тело запроса как строку для проверки подписи
-    const body = await req.text()
-    const signature = req.headers.get('X-Signature')
+    const payload = await req.json()
+    console.log("[WEBHOOK] Получен webhook:", payload)
     
-    // Проверяем подпись
-    const isValid = verifyWebhookSignature(
-      body, 
-      signature,
-      process.env.YOOKASSA_SECRET_KEY!
-    )
+    // Получаем данные из метаданных платежа
+    const metadata = payload.object?.metadata || {}
+    console.log("[WEBHOOK] Метаданные:", metadata)
     
-    if (!isValid) {
-      console.error("Invalid webhook signature")
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
-    }
+    const purchaseId = metadata.purchaseId
+    const userId = metadata.userId
+    const amount = parseInt(metadata.amount)
     
-    // Парсим тело запроса
-    const payload = JSON.parse(body)
-    console.log("Webhook received:", payload)
+    console.log("[WEBHOOK] Данные для обработки:", { purchaseId, userId, amount })
     
-    const event = payload.event
-    const payment = payload.object
-    
-    if (!payment || !payment.metadata || !payment.metadata.purchaseId) {
-      console.error("Missing required payment data")
-      return NextResponse.json({ error: "Invalid payment data" }, { status: 400 })
-    }
-    
-    const purchaseId = payment.metadata.purchaseId
-    const userId = payment.metadata.userId
-    
-    switch (event) {
-      case 'payment.succeeded':
-        // Платеж успешно завершен
+    if (payload.event === "payment.succeeded") {
+      console.log("[WEBHOOK] Начинаем обработку успешного платежа")
+      
+      try {
+        // Обновляем статус покупки
+        console.log("[WEBHOOK] Обновляем статус покупки")
         await convex.mutation(api.creditPurchases.markAsCompleted, {
           purchaseId,
-          paymentId: payment.id
+          paymentId: payload.object.id
         })
         
         // Начисляем кредиты
-        if (userId && payment.metadata.amount) {
-          await convex.mutation(api.userCredits.addCredits, {
-            userId,
-            amount: parseInt(payment.metadata.amount)
-          })
-        }
-        break
+        console.log("[WEBHOOK] Начисляем кредиты:", { userId, amount })
+        await convex.mutation(api.userCredits.addCredits, {
+          userId,
+          amount
+        })
         
-      case 'payment.canceled':
-        // Получаем текущую запись
-        const currentPurchase = await convex.query(api.creditPurchases.getById, { 
-          purchaseId 
-        });
-        
-        if (currentPurchase) {
-          // Обновляем статус, сохраняя остальные поля
-          await convex.mutation(api.creditPurchases.update, {
-            id: purchaseId,
-            status: "canceled",
-            paymentId: payment.id,
-            userId: currentPurchase.userId,
-            price: currentPurchase.price,
-            amount: currentPurchase.amount,
-            timestamp: currentPurchase.timestamp
-          });
-        }
-        break
-        
-      case 'payment.waiting_for_capture':
-        const waitingPurchase = await convex.query(api.creditPurchases.getById, { 
-          purchaseId 
-        });
-        
-        if (waitingPurchase) {
-          await convex.mutation(api.creditPurchases.update, {
-            id: purchaseId,
-            status: "waiting_for_capture",
-            paymentId: payment.id,
-            userId: waitingPurchase.userId,
-            price: waitingPurchase.price,
-            amount: waitingPurchase.amount,
-            timestamp: waitingPurchase.timestamp
-          });
-        }
-        break
+        console.log("[WEBHOOK] Платеж успешно обработан")
+      } catch (error) {
+        console.error("[WEBHOOK] Ошибка при обработке платежа:", error)
+        // Даже при ошибке возвращаем 200, чтобы ЮКасса не пыталась повторить
+        return NextResponse.json({ success: true })
+      }
+    } else {
+      console.log("[WEBHOOK] Пропускаем событие:", payload.event)
     }
     
-    // Всегда возвращаем 200 OK
     return NextResponse.json({ success: true })
-    
   } catch (error) {
-    console.error("Webhook error:", error)
-    // Возвращаем 200 даже при ошибке, чтобы ЮКасса не пыталась повторить запрос
+    console.error("[WEBHOOK] Критическая ошибка:", error)
     return NextResponse.json({ success: true })
   }
 }

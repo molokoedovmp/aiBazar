@@ -2,65 +2,79 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Spinner } from "@/components/spinner"
-import { useUser } from "@clerk/clerk-react"
-import { useMutation } from "convex/react"
-import { api } from "@/convex/_generated/api"
+import { CheckCircle2, XCircle } from "lucide-react"
 import { motion } from "framer-motion"
-import { CheckCircle2 } from "lucide-react"
+import { useUser } from "@clerk/clerk-react"
+import { useMutation, useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
-  const purchaseId = searchParams.get("purchaseId")
+  const router = useRouter()
   const { user } = useUser()
-  const [status, setStatus] = useState("checking") // checking, success, failed
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
+  
+  const purchaseId = searchParams.get("purchaseId")
+  
+  // Получаем информацию о покупке
+  const purchase = useQuery(api.creditPurchases.getById, { purchaseId: purchaseId || "" })
+  
+  // Мутации для обновления покупки и добавления кредитов
+  const markAsCompleted = useMutation(api.creditPurchases.markAsCompleted)
+  const addCredits = useMutation(api.userCredits.addCredits)
   
   useEffect(() => {
-    if (!purchaseId) return
+    // Если нет purchaseId или нет данных о покупке, не делаем ничего
+    if (!purchaseId || !purchase || !user) return
     
-    // Автоматическая функция для проверки платежа через API ЮKassы
-    const checkAndProcessPayment = async () => {
+    const processPayment = async () => {
       try {
-        // 1. Получаем информацию о покупке и платеже
-        const response = await fetch(`/api/payments/process-payment?purchaseId=${purchaseId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          // Платеж успешно обработан
-          setStatus("success");
-        } else if (data.status === "pending") {
-          // Если платеж в обработке, пробуем снова через пару секунд
-          setTimeout(checkAndProcessPayment, 3000);
-        } else {
-          setStatus("failed");
+        // Если покупка уже завершена, просто показываем успех
+        if (purchase.status === "completed") {
+          setStatus("success")
+          return
         }
+        
+        // Обновляем статус покупки на "completed"
+        await markAsCompleted({
+          purchaseId,
+          paymentId: purchase.paymentId || "manual"
+        })
+        
+        // Добавляем кредиты пользователю
+        await addCredits({
+          userId: user.id,
+          amount: purchase.amount
+        })
+        
+        setStatus("success")
+        
+        // Перенаправляем через 3 секунды
+        setTimeout(() => {
+          router.push("/bazarius")
+        }, 3000)
       } catch (error) {
-        console.error("Ошибка при проверке платежа:", error);
-        setStatus("failed");
+        console.error("Ошибка при обработке платежа:", error)
+        setStatus("error")
       }
     }
     
-    // Запускаем проверку сразу
-    checkAndProcessPayment();
-  }, [purchaseId]);
+    processPayment()
+  }, [purchaseId, purchase, user, markAsCompleted, addCredits, router])
   
   return (
     <div className="container mx-auto p-8 max-w-md">
       <div className="bg-card p-8 shadow-md rounded-lg text-center">
-        {status === "checking" && (
+        {status === "loading" && (
           <div className="space-y-4">
             <div className="mx-auto h-12 w-12">
               <Spinner />
             </div>
-            <h1 className="text-2xl font-bold">Проверка оплаты</h1>
+            <h1 className="text-2xl font-bold">Завершение платежа</h1>
             <p className="text-muted-foreground">
-              Подождите, мы проверяем статус вашего платежа...
+              Подождите, мы начисляем вам кредиты...
             </p>
           </div>
         )}
@@ -78,14 +92,20 @@ export default function PaymentSuccessPage() {
             <p className="text-muted-foreground">
               Кредиты успешно начислены на ваш счет.
             </p>
+            <div className="text-sm text-muted-foreground">
+              Перенаправление на главную...
+            </div>
           </motion.div>
         )}
         
-        {status === "failed" && (
+        {status === "error" && (
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-red-600">Ошибка оплаты</h1>
+            <div className="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+              <XCircle className="h-8 w-8 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-red-600">Ошибка</h1>
             <p className="text-muted-foreground">
-              Произошла ошибка при обработке платежа. Пожалуйста, свяжитесь с технической поддержкой.
+              Не удалось начислить кредиты. Пожалуйста, обратитесь в поддержку.
             </p>
           </div>
         )}

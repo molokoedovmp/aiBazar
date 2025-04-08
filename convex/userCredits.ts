@@ -148,55 +148,33 @@ export const useCredit = mutation({
 
 // Добавление кредитов (например, после покупки)
 export const addCredits = mutation({
-  args: { 
+  args: {
     userId: v.string(),
-    amount: v.number(),
-    plan: v.optional(v.string()),
-    expiresAt: v.optional(v.number())
+    amount: v.number()
   },
   handler: async (ctx, args) => {
-    // Получаем или создаем запись о кредитах пользователя
-    let userCredit = await ctx.db
+    const existingCredits = await ctx.db
       .query("userCredits")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .first();
+      .first()
     
-    if (!userCredit) {
-      // Создаем новую запись для пользователя
+    if (existingCredits) {
+      // Обновляем существующую запись, увеличивая totalCredits
+      await ctx.db.patch(existingCredits._id, {
+        totalCredits: existingCredits.totalCredits + args.amount
+      })
+    } else {
+      // Создаем новую запись
       await ctx.db.insert("userCredits", {
         userId: args.userId,
         totalCredits: args.amount,
         usedCredits: 0,
         lastReset: Date.now(),
-        plan: args.plan || "free",
-        expiresAt: args.expiresAt
-      });
-      
-      return { success: true, totalCredits: args.amount };
+        plan: "paid"
+      })
     }
-    
-    // Обновляем существующую запись
-    const updates: any = {
-      totalCredits: args.amount
-    };
-    
-    if (args.plan) {
-      updates.plan = args.plan;
-    }
-    
-    if (args.expiresAt) {
-      updates.expiresAt = args.expiresAt;
-    }
-    
-    await ctx.db.patch(userCredit._id, updates);
-    
-    return { 
-      success: true, 
-      totalCredits: args.amount,
-      remainingCredits: args.amount - userCredit.usedCredits
-    };
-  },
-});
+  }
+})
 
 // Вспомогательная функция для определения даты следующего сброса
 function getNextResetDate(lastReset: number): number {
