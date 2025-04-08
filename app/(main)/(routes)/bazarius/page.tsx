@@ -56,24 +56,35 @@ export default function AccountPage() {
   // Для неавторизованных пользователей используем localStorage
   const [guestRequestCount, setGuestRequestCount] = useState(0)
   
-  // Загружаем счетчик гостевых запросов из localStorage при инициализации
+  // Добавляем состояние загрузки
+  const [isLoadingCredits, setIsLoadingCredits] = useState(true)
+  
+  // Модифицируем useEffect для отслеживания загрузки
   useEffect(() => {
     if (!isSignedIn) {
       const storedCount = localStorage.getItem("guest-bazarius-requests")
       if (storedCount) {
         setGuestRequestCount(parseInt(storedCount, 10))
       }
+      setIsLoadingCredits(false) // Для гостей загрузка завершена сразу
+    } else if (userCredits !== undefined) {
+      // Данные о кредитах загружены
+      setIsLoadingCredits(false)
     }
-  }, [isSignedIn])
+  }, [isSignedIn, userCredits])
   
-  // Определяем лимиты в зависимости от статуса пользователя
-  const requestsRemaining = isSignedIn 
-    ? (userCredits?.remainingCredits || 0) 
-    : (GUEST_REQUEST_LIMIT - guestRequestCount)
+  // Определяем лимиты с учетом состояния загрузки
+  const requestsRemaining = isLoadingCredits && isSignedIn
+    ? "загрузка..." // Показываем сообщение о загрузке
+    : isSignedIn 
+      ? (userCredits?.remainingCredits || 0) 
+      : (GUEST_REQUEST_LIMIT - guestRequestCount)
   
-  const requestLimit = isSignedIn 
-    ? (userCredits?.totalCredits || 10) 
-    : GUEST_REQUEST_LIMIT
+  const requestLimit = isLoadingCredits && isSignedIn
+    ? "..." // Показываем многоточие во время загрузки
+    : isSignedIn 
+      ? (userCredits?.totalCredits || 10) 
+      : GUEST_REQUEST_LIMIT
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -85,10 +96,12 @@ export default function AccountPage() {
         </div>
         <h2 className="text-3xl font-bold mb-3">Мои сервисы</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Управляйте доступными AI-сервисами и отслеживайте использование. 
-          {isSignedIn 
-            ? `У вас осталось ${requestsRemaining} из ${requestLimit} кредитов.`
-            : `Гостевой режим: ${requestsRemaining} из ${GUEST_REQUEST_LIMIT} запросов.`}
+          Управляйте доступными AI-сервисами и отслеживайте использование.
+          {isLoadingCredits && isSignedIn 
+            ? " Загрузка данных о кредитах..." 
+            : isSignedIn 
+              ? ` У вас осталось ${requestsRemaining} из ${requestLimit} кредитов.`
+              : ` Гостевой режим: ${requestsRemaining} из ${GUEST_REQUEST_LIMIT} запросов.`}
         </p>
       </div>
 
@@ -100,10 +113,13 @@ export default function AccountPage() {
               <CardHeader className="pb-0">
                 <div className="flex items-center justify-between mb-4">
                   <CardTitle>{service.title}</CardTitle>
-                  <Badge variant={requestsRemaining > 0 ? "default" : "destructive"}>
-                    {requestsRemaining > 0 ? 
-                      `${requestsRemaining}/${requestLimit}` : 
-                      "Лимит исчерпан"}
+                  <Badge variant={isLoadingCredits ? "outline" : 
+                    typeof requestsRemaining === 'number' && requestsRemaining > 0 ? "default" : "destructive"}>
+                    {isLoadingCredits 
+                      ? "Загрузка..." 
+                      : typeof requestsRemaining === 'number' && requestsRemaining > 0 
+                        ? `${requestsRemaining}/${requestLimit}` 
+                        : "Лимит исчерпан"}
                   </Badge>
                 </div>
                 
@@ -138,7 +154,11 @@ export default function AccountPage() {
                       <div className="overflow-hidden h-2 bg-secondary rounded-full">
                         <div 
                           className="bg-primary h-2 rounded-full transition-all duration-500" 
-                          style={{ width: `${Math.min(100, ((requestLimit - requestsRemaining) / requestLimit) * 100)}%` }}
+                          style={{ 
+                            width: `${isLoadingCredits ? 0 : 
+                              typeof requestsRemaining === 'number' && typeof requestLimit === 'number' ? 
+                              Math.min(100, ((requestLimit - requestsRemaining) / requestLimit) * 100) : 0}%` 
+                          }}
                         />
                       </div>
                     </div>

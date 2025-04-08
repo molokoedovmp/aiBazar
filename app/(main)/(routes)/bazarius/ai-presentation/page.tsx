@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, ArrowRight, Copy, FileCode, CheckCircle, Power, ScreenShare, Lock, AlertCircle, FileImage, Table, BarChart, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, Copy, FileCode, CheckCircle, Power, ScreenShare, Lock, AlertCircle, FileImage, Table, BarChart, ChevronLeft, ChevronRight, TableIcon, Presentation } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/clerk-react"
@@ -275,66 +275,134 @@ const parseVbaCode = (code: string): ParsedVbaData => {
   }
 };
 
-// Улучшенный компонент для предварительного просмотра слайда
-const SlidePreview = ({ slide, index }: { slide: Slide, index: number }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"
-  >
-    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">
-          {index + 1}
-        </div>
-        <h3 className="font-semibold truncate">{slide.title}</h3>
-        <span className="text-xs text-muted-foreground ml-auto">{slide.layout}</span>
+// Добавьте этот компонент в файл для отображения слайдов
+
+const SlideViewer = ({ slides, activeSlide, setActiveSlide }: { 
+  slides: Slide[], 
+  activeSlide: number, 
+  setActiveSlide: (index: number) => void 
+}) => {
+  const totalSlides = slides.length;
+  
+  const nextSlide = () => {
+    setActiveSlide((activeSlide + 1) % totalSlides);
+  };
+  
+  const prevSlide = () => {
+    setActiveSlide((activeSlide - 1 + totalSlides) % totalSlides);
+  };
+  
+  // Получение текущего слайда
+  const slide = slides[activeSlide];
+  
+  return (
+    <div className="relative w-full bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
+      {/* Индикатор слайдов и нумерация */}
+      <div className="absolute top-4 right-4 bg-black/60 text-white px-2 py-1 rounded-md text-sm z-10">
+        {activeSlide + 1} / {totalSlides}
       </div>
-    </div>
-    
-    <div className="p-4">
-      {/* Отображаем содержимое слайда */}
-      {slide.content && (
-        <div className="mb-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
-          {slide.content}
-        </div>
-      )}
       
-      {/* Отображаем маркированные списки */}
-      {slide.bullets.length > 0 && (
-        <ul className="text-sm list-disc list-inside text-gray-600 dark:text-gray-300 pl-2 space-y-1">
-          {slide.bullets.map((bullet, idx) => (
-            <li key={idx}>{bullet}</li>
-          ))}
-        </ul>
-      )}
-      
-      {/* Иконки для изображений, таблиц и диаграмм */}
-      <div className="flex gap-2 mt-3">
-        {slide.images > 0 && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <FileImage className="h-3 w-3" />
-            <span>{slide.images} {slide.images === 1 ? 'изображение' : 'изображения'}</span>
+      {/* Содержимое слайда */}
+      <div className="aspect-[16/9] w-full p-8 flex flex-col relative">
+        {/* Заголовок */}
+        <h2 className="text-2xl font-bold mb-6 text-center">{slide.title}</h2>
+        
+        {/* Контент слайда на основе макета */}
+        {slide.layout === "title" && (
+          <div className="flex items-center justify-center flex-1">
+            <h1 className="text-4xl font-bold text-center">{slide.title}</h1>
+          </div>
+        )}
+        
+        {slide.layout === "text" && (
+          <div className="flex-1 overflow-auto">
+            <p className="text-lg">{slide.content}</p>
+          </div>
+        )}
+        
+        {slide.layout === "bullets" && (
+          <div className="flex-1 overflow-auto">
+            <ul className="list-disc list-inside space-y-2">
+              {slide.bullets.map((bullet, index) => (
+                <li key={index} className="text-lg">{bullet}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {slide.layout === "image_text" && (
+          <div className="flex flex-1 gap-4">
+            <div className="w-1/2 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+              <div className="text-gray-500 dark:text-gray-400">
+                [Изображение]
+              </div>
+            </div>
+            <div className="w-1/2">
+              <p className="text-lg">{slide.content}</p>
+            </div>
           </div>
         )}
         
         {slide.hasTable && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Table className="h-3 w-3" />
-            <span>Таблица</span>
+          <div className="flex-1 overflow-auto mt-4">
+            <div className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 text-center">
+              [Таблица]
+            </div>
           </div>
         )}
         
         {slide.hasChart && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <BarChart className="h-3 w-3" />
-            <span>Диаграмма</span>
+          <div className="flex-1 overflow-auto mt-4">
+            <div className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 text-center">
+              [Диаграмма]
+            </div>
           </div>
         )}
       </div>
+      
+      {/* Кнопки навигации */}
+      <button 
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-colors"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </button>
+      
+      <button 
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-colors"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </button>
     </div>
-  </motion.div>
-)
+  );
+};
+
+// Замените существующий SlidePreview на мини-версию
+const SlidePreview = ({ slide, index, isActive, onClick }: { 
+  slide: Slide, 
+  index: number, 
+  isActive?: boolean,
+  onClick?: () => void 
+}) => {
+  return (
+    <div 
+      onClick={onClick}
+      className={`border ${isActive ? 'border-primary' : 'border-gray-200 dark:border-gray-700'} 
+        rounded-lg p-3 cursor-pointer hover:border-primary transition-colors`}
+    >
+      <div className="text-xs text-muted-foreground mb-1">Слайд {index + 1}</div>
+      <h4 className="text-sm font-medium truncate">{slide.title}</h4>
+      <div className="text-xs text-muted-foreground mt-1 truncate">
+        {slide.layout === "bullets" ? `${slide.bullets.length} пунктов` : 
+         slide.layout === "image_text" ? "Изображение и текст" :
+         slide.hasTable ? "Таблица" :
+         slide.hasChart ? "Диаграмма" : 
+         "Текстовый слайд"}
+      </div>
+    </div>
+  );
+};
 
 // Компонент для предварительного просмотра презентации
 const PresentationPreview = ({ vbaCode }: { vbaCode: string }) => {
@@ -407,7 +475,7 @@ const PresentationPreview = ({ vbaCode }: { vbaCode: string }) => {
       {/* Текущий слайд */}
       <div className="p-4 border rounded-lg dark:border-gray-800">
         {slides[currentSlide] && 
-          <SlidePreview slide={slides[currentSlide]} index={currentSlide} />
+          <SlideViewer slides={slides} activeSlide={currentSlide} setActiveSlide={setCurrentSlide} />
         }
       </div>
       
@@ -419,7 +487,7 @@ const PresentationPreview = ({ vbaCode }: { vbaCode: string }) => {
             className={`cursor-pointer transition-all ${currentSlide === index ? 'ring-2 ring-primary' : 'opacity-70'}`}
             onClick={() => setCurrentSlide(index)}
           >
-            <SlidePreview slide={slide} index={index} />
+            <SlidePreview slide={slide} index={index} isActive={currentSlide === index} />
           </div>
         ))}
       </div>
@@ -540,6 +608,10 @@ export default function AiPresentationPage() {
     toast.success("Код скопирован!")
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Добавьте в состояние компонента
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [viewMode, setViewMode] = useState<'grid' | 'slides'>('grid');
 
   return (
     <div className="min-h-screen bg-background">
@@ -702,32 +774,66 @@ export default function AiPresentationPage() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {presentationStructure?.success ? (
-                      <>
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className="p-3 rounded-lg bg-primary/10">
-                            <ScreenShare className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <h2 className="text-xl font-semibold">
-                              Структура презентации
-                            </h2>
-                            <p className="text-muted-foreground">
-                              {presentationStructure.totalSlides} слайдов
-                            </p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {presentationStructure?.slides?.map((slide, index) => (
-                            <SlidePreview key={index} slide={slide} index={index} />
-                          ))}
-                        </div>
-                      </>
+                    {/* Переключатель режима просмотра */}
+                    <div className="flex justify-end mb-4">
+                      <div className="bg-muted p-1 rounded-md flex gap-1">
+                        <Button 
+                          variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+                          size="sm" 
+                          onClick={() => setViewMode('grid')}
+                        >
+                          <TableIcon className="h-4 w-4 mr-1" />
+                          Сетка
+                        </Button>
+                        <Button 
+                          variant={viewMode === 'slides' ? 'default' : 'ghost'} 
+                          size="sm" 
+                          onClick={() => setViewMode('slides')}
+                        >
+                          <Presentation className="h-4 w-4 mr-1" />
+                          Слайды
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Отображение в зависимости от режима */}
+                    {viewMode === 'grid' ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {presentationStructure?.success && presentationStructure.slides.map((slide, index) => (
+                          <SlidePreview 
+                            key={index} 
+                            slide={slide} 
+                            index={index} 
+                            isActive={index === activeSlide}
+                            onClick={() => {
+                              setActiveSlide(index);
+                              setViewMode('slides');
+                            }}
+                          />
+                        ))}
+                      </div>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-muted-foreground">
-                        {result 
-                          ? 'Не удалось распознать структуру презентации'
-                          : 'Сгенерируйте код для просмотра структуры'}
+                      <div className="space-y-4">
+                        <SlideViewer 
+                          slides={presentationStructure?.success ? presentationStructure.slides : []} 
+                          activeSlide={activeSlide} 
+                          setActiveSlide={setActiveSlide} 
+                        />
+                        
+                        {/* Навигация по миниатюрам */}
+                        <div className="mt-4 overflow-x-auto py-2">
+                          <div className="flex gap-2">
+                            {presentationStructure?.success && presentationStructure.slides.map((slide, index) => (
+                              <div 
+                                key={index} 
+                                className={`w-28 flex-shrink-0 ${activeSlide === index ? 'ring-2 ring-primary' : ''}`}
+                                onClick={() => setActiveSlide(index)}
+                              >
+                                <SlidePreview slide={slide} index={index} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
