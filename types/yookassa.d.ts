@@ -1,27 +1,6 @@
-declare module "yookassa" {
+declare module 'yookassa' {
   export default class YooKassa {
     constructor(options: { shopId: string; secretKey: string });
-    
-    // Правильный метод для получения платежа
-    getPayment(paymentId: string): Promise<Payment>;
-    
-    // Правильный метод из документации
-    getPayments(params: {
-      created_at?: {
-        gte?: string;
-        lte?: string;
-      };
-      status?: string;
-      limit?: number;
-      cursor?: string;
-    }): Promise<{
-      items: Payment[];
-      next_cursor?: string;
-    }>;
-    
-    // Добавляем метод для получения списка платежей
-    listPayments(params?: any): Promise<PaymentList>;
-    
     createPayment(options: {
       amount: {
         value: string;
@@ -51,24 +30,18 @@ declare module "yookassa" {
         }>;
       };
     }): Promise<any>;
-  }
-  
-  interface Payment {
-    id: string;
-    status: 'pending' | 'waiting_for_capture' | 'succeeded' | 'canceled';
-    paid: boolean;
-    amount: {
-      value: string;
-      currency: string;
-    };
-    metadata?: Record<string, any>;
-    confirmation?: {
-      type: string;
-      confirmation_url: string;
-    };
-  }
-  
-  interface PaymentList {
-    items: Payment[];
+    
+    getPayment(paymentId: string): Promise<{
+      status: string;
+      paid: boolean;
+      amount: {
+        value: string;
+        currency: string;
+      };
+      confirmation?: {
+        type: string;
+        confirmation_url: string;
+      };
+    }>;
   }
 } 

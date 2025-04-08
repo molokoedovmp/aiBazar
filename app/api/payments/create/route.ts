@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         value: amount.toFixed(2),
         currency: "RUB"
       },
-      capture: true, // Важно! Делаем одностадийный платеж
+      capture: true,
       confirmation: {
         type: "redirect",
         return_url: returnUrl
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       metadata: {
         purchaseId,
         userId,
-        amount: amount
+        amount
       },
       // Добавляем чек для фискализации (обязательно в проде)
       receipt: {
@@ -61,15 +61,22 @@ export async function POST(req: Request) {
           }
         ]
       }
-    })
-    
-    console.log("Платеж создан:", payment.id)
-    
+    }) as any // временно используем any, пока не исправим типы
+
+    // Получаем URL для перенаправления
+    const confirmationUrl = payment.confirmation?.confirmation_url
+
+    if (!confirmationUrl) {
+      throw new Error("Не получен URL для подтверждения платежа")
+    }
+
+    // Перенаправляем на страницу оплаты
     return NextResponse.json({
       success: true,
-      confirmation_url: payment.confirmation.confirmation_url,
-      payment_id: payment.id
+      redirectUrl: confirmationUrl, // Важно! Изменили название поля
+      paymentId: payment.id
     })
+    
   } catch (error: any) {
     console.error("Ошибка при создании платежа:", error)
     return NextResponse.json({
