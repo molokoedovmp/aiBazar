@@ -19,27 +19,27 @@ export async function POST(req: Request) {
       )
     }
     
-    // Инициализация ЮКассы
+    // Инициализируем ЮКассу
     const yooKassa = new YooKassa({
       shopId: process.env.YOOKASSA_SHOP_ID!,
       secretKey: process.env.YOOKASSA_SECRET_KEY!
     })
     
-    // Создаем платеж в ЮКассе
+    // Создаем платеж
     const payment = await yooKassa.createPayment({
       amount: {
-        value: amount.toString(),
+        value: amount.toFixed(2),
         currency: "RUB"
       },
-      capture: true,
+      capture: true, // Важно! Делаем одностадийный платеж
       confirmation: {
         type: "redirect",
-        return_url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/bazarius/payment-success`
+        return_url: returnUrl
       },
       description: description,
       metadata: {
-        purchaseId: purchaseId,
-        userId: userId,
+        purchaseId,
+        userId,
         amount: amount
       },
       // Добавляем чек для фискализации (обязательно в проде)
@@ -65,17 +65,10 @@ export async function POST(req: Request) {
     
     console.log("Платеж создан:", payment.id)
     
-    // Получение URL для перенаправления пользователя
-    const confirmationUrl = payment.confirmation?.confirmation_url
-    
-    if (!confirmationUrl) {
-      throw new Error("Не получен URL для подтверждения платежа")
-    }
-    
     return NextResponse.json({
       success: true,
-      paymentId: payment.id,
-      paymentUrl: confirmationUrl
+      confirmation_url: payment.confirmation.confirmation_url,
+      payment_id: payment.id
     })
   } catch (error: any) {
     console.error("Ошибка при создании платежа:", error)
