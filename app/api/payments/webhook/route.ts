@@ -33,81 +33,113 @@ const isValidSignature = (signature: string, body: string) => {
 
 export async function POST(req: Request) {
   try {
-    // Получаем тело запроса
-    const body = await req.text()
+    // Получаем данные от ЮКассы
+    const payload = await req.json();
+    const signature = req.headers.get("x-payment-sha256-hmac");
     
-    // Подробное логирование для отладки
-    console.log("WEBHOOK: Получено уведомление от ЮКассы, сырые данные:", body);
-    
-    // Проверяем подпись запроса от ЮКассы
-    const signature = req.headers.get("Idempotence-Key") || req.headers.get("X-Signature");
-    if (!signature || !isValidSignature(signature, body)) {
-      console.error("WEBHOOK: Недействительная подпись запроса")
-      return NextResponse.json({ success: false }, { status: 401 })
-    }
-    
-    // Парсим данные уведомления
-    const notification = JSON.parse(body)
-    console.log("WEBHOOK: Данные уведомления:", {
-      event: notification.event,
-      paymentId: notification.object.id,
-      status: notification.object.status,
-      metadata: notification.object.metadata
+    console.log("Webhook получен:", { 
+      event: payload.event,
+      paymentId: payload.object?.id,
+      status: payload.object?.status,
+      paid: payload.object?.paid
     });
     
-    // Проверяем тип уведомления
-    if (notification.event !== "payment.succeeded" && notification.event !== "payment.waiting_for_capture") {
-      console.log(`WEBHOOK: Игнорируем уведомление типа ${notification.event}`)
-      return NextResponse.json({ success: true })
-    }
-    
-    // Получаем данные платежа
-    const payment = notification.object
-    
-    // Если платеж ожидает подтверждения и capture=true, подтверждаем его
-    if (notification.event === "payment.waiting_for_capture") {
-      console.log(`WEBHOOK: Подтверждаем платеж ${payment.id}`);
-      try {
-        const capturedPayment = await (yooKassa as any).createCapture(payment.id, {
-          amount: payment.amount
-        });
-        console.log(`WEBHOOK: Платеж ${payment.id} подтвержден`, capturedPayment);
-      } catch (error) {
-        console.error(`WEBHOOK: Ошибка при подтверждении платежа ${payment.id}:`, error);
+    // Проверяем подпись для безопасности
+    if (process.env.NODE_ENV === "production" && signature) {
+      const isValid = validateSignature(payload, signature);
+      if (!isValid) {
+        console.error("Неверная подпись webhook");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
       }
-      return NextResponse.json({ success: true });
     }
     
-    // Проверяем статус платежа
-    if (payment.status !== "succeeded") {
-      console.log(`WEBHOOK: Платеж не успешен, статус: ${payment.status}`)
-      return NextResponse.json({ success: true })
-    }
-    
-    // Получаем ID покупки из метаданных
-    const purchaseId = payment.metadata?.purchaseId
-    if (!purchaseId) {
-      console.error("WEBHOOK: В метаданных платежа отсутствует ID покупки")
-      return NextResponse.json({ success: false }, { status: 400 })
-    }
-    
-    // Обновляем статус покупки в базе данных
-    try {
-      await convex.mutation(api.creditPurchases.updatePaymentStatus, {
-        purchaseId,
-        paymentId: payment.id,
-        status: "completed"
-      })
+    // Обрабатываем платеж
+    if (payload.event === "payment.succeeded") {
+      // Платеж успешно оплачен
+      const paymentId = payload.object.id;
+      const metadata = payload.object.metadata || {};
+      const purchaseId = metadata.purchaseId;
+      const userId = metadata.userId;
       
-      console.log(`WEBHOOK: Статус покупки ${purchaseId} обновлен на "completed"`)
-    } catch (error) {
-      console.error("WEBHOOK: Ошибка при обновлении статуса покупки:", error)
-      return NextResponse.json({ success: false }, { status: 500 })
+      if (purchaseId) {
+        try {
+          // Получаем текущую запись о покупке
+          const purchase = await convex.query(api.creditPurchases.getById, { 
+            purchaseId: purchaseId 
+          });
+          
+          if (purchase) {
+            // Обновляем статус покупки
+            await convex.mutation(api.creditPurchases.update, {
+              id: purchaseId,
+              status: "completed",
+              paymentId,
+              userId: purchase.userId,
+              price: purchase.price,
+              amount: purchase.amount,
+              timestamp: purchase.timestamp
+            });
+            
+            // Начисляем кредиты пользователю
+            if (userId) {
+              await convex.mutation(api.userCredits.addCredits, {
+                userId,
+                amount: purchase.amount
+              });
+              
+              console.log(`Начислено ${purchase.amount} кредитов пользователю ${userId}`);
+            }
+          }
+        } catch (convexError) {
+          console.error("Ошибка обновления в Convex:", convexError);
+        }
+      }
+    } else if (payload.event === "payment.canceled") {
+      // Платеж отменен
+      const metadata = payload.object.metadata || {};
+      const purchaseId = metadata.purchaseId;
+      
+      if (purchaseId) {
+        try {
+          // Получаем текущую запись о покупке
+          const canceledPurchase = await convex.query(api.creditPurchases.getById, { 
+            purchaseId: purchaseId 
+          });
+          
+          if (canceledPurchase) {
+            // Обновляем статус покупки
+            await convex.mutation(api.creditPurchases.update, {
+              id: purchaseId,
+              status: "canceled",
+              paymentId: payload.object.id,
+              userId: canceledPurchase.userId,
+              price: canceledPurchase.price,
+              amount: canceledPurchase.amount,
+              timestamp: canceledPurchase.timestamp
+            });
+          }
+        } catch (convexError) {
+          console.error("Ошибка обновления в Convex:", convexError);
+        }
+      }
     }
     
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("WEBHOOK: Ошибка при обработке вебхука:", error)
-    return NextResponse.json({ success: false }, { status: 500 })
+    console.error("Ошибка обработки webhook:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// Функция для проверки подписи
+function validateSignature(payload: any, signature: string) {
+  try {
+    const secretKey = process.env.YOOKASSA_SECRET_KEY!;
+    const hmac = crypto.createHmac('sha256', secretKey);
+    const calculated = hmac.update(JSON.stringify(payload)).digest('base64');
+    return calculated === signature;
+  } catch (error) {
+    console.error("Ошибка валидации подписи:", error);
+    return false;
   }
 } 

@@ -28,6 +28,16 @@ const pricingPlans = [
     popular: false
   },
   {
+    id: "test",
+    name: "test",
+    price: 1,
+    credits: 1,
+    features: [
+      "1 кредитов для всех сервисов"
+    ],
+    popular: false
+  },
+  {
     id: "pro",
     name: "Профессиональный",
     price: 799,
@@ -88,7 +98,7 @@ export default function PricingPage() {
     setIsProcessing(true)
     
     try {
-      // Создаем запись о покупке кредитов со статусом "pending"
+      // Создаем запись о покупке
       const purchaseId = await createCreditPurchase({
         userId: user!.id,
         amount: plan.credits,
@@ -100,7 +110,11 @@ export default function PricingPage() {
       // Перенаправляем на страницу оплаты ЮКассы
       const response = await fetch("/api/payments/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          // Добавляем email пользователя для чека
+          "x-user-email": user!.emailAddresses[0]?.emailAddress || ""
+        },
         body: JSON.stringify({
           amount: plan.price,
           description: `Пакет кредитов "${plan.name}" - ${plan.credits} кредитов`,
@@ -117,7 +131,6 @@ export default function PricingPage() {
       const data = await response.json()
       
       if (data.success && data.paymentUrl) {
-        // Важно: используем window.location.href для полного перенаправления
         window.location.href = data.paymentUrl
       } else {
         throw new Error("Не удалось получить URL для оплаты")
