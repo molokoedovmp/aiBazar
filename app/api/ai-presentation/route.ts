@@ -113,33 +113,34 @@ End Sub`
     
     try {
       console.log('Отправка запроса с параметрами:', {
-        model: 'gpt-4o',
-        maxTokens: 3500,
+        model: 'gpt-3.5-turbo',
+        maxTokens: 2500,
         temperature: 0.5,
         messagesCount: messages.length
       });
 
       console.log('Отправка запроса к OpenAI API...')
-      const response = await openai.chat.completions.create({
+      const stream = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: messages as any,
         temperature: 0.5,
         max_tokens: 3500,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
+        stream: true,
       })
 
-      let aiResponse = response.choices[0].message.content ?? ""
-      console.log('Получен ответ от OpenAI API, длина ответа:', aiResponse.length)
+      let result = '';
+      for await (const chunk of stream) {
+        result += chunk.choices[0]?.delta?.content || '';
+      }
       
       // Удаляем потенциальные обратные кавычки (```vba, ```)
-      aiResponse = aiResponse.replace(/```vba/g, '').replace(/```/g, '');
+      result = result.replace(/```vba/g, '').replace(/```/g, '');
       
       // Проверяем, что ответ содержит VBA код и исправляем при необходимости
-      if (!aiResponse.includes("Sub CreatePresentation()")) {
+      if (!result.includes("Sub CreatePresentation()")) {
         console.error("API не сгенерировал VBA код с правильной структурой")
         // Добавляем базовую структуру, если её нет
-        aiResponse = `Sub CreatePresentation()
+        result = `Sub CreatePresentation()
 ' Константы макетов PowerPoint
 Const ppLayoutTitle = 1
 Const ppLayoutText = 2
@@ -148,13 +149,13 @@ Const ppLayoutTable = 4
 Const ppLayoutTitleOnly = 7
 
 ' Автоматизированная презентация PowerPoint
-${aiResponse}
+${result}
 End Sub`
       }
       
       // Проверяем, есть ли константы в коде, если нет - добавляем
-      if (!aiResponse.includes("Const ppLayoutTitle")) {
-        aiResponse = aiResponse.replace("Sub CreatePresentation()", 
+      if (!result.includes("Const ppLayoutTitle")) {
+        result = result.replace("Sub CreatePresentation()", 
 `Sub CreatePresentation()
 ' Константы макетов PowerPoint
 Const ppLayoutTitle = 1
@@ -166,7 +167,7 @@ Const ppLayoutTitleOnly = 7
       }
       
       return NextResponse.json({
-        response: aiResponse
+        response: result
       })
     } catch (apiError: any) {
       // Подробное логирование ошибок OpenAI API

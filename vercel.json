@@ -1,0 +1,20 @@
+{
+  "functions": {
+    "api/ai-presentation/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/ai-presentation",
+      "dest": "/api/ai-presentation",
+      "methods": ["POST"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    }
+  ],
+  "regions": ["iad1"]
+} 
