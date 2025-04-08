@@ -39,7 +39,8 @@ export async function POST(req: Request) {
       description: description,
       metadata: {
         purchaseId: purchaseId,
-        userId: userId
+        userId: userId,
+        amount: amount
       },
       // Добавляем чек для фискализации (обязательно в проде)
       receipt: {

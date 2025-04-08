@@ -258,4 +258,35 @@ export const update = mutation({
     await ctx.db.patch(id, rest);
     return id;
   },
+});
+
+// Добавьте эту функцию в ваш файл
+export const markAsCompleted = mutation({
+  args: { 
+    purchaseId: v.string(),
+    paymentId: v.string()
+  },
+  handler: async (ctx, args) => {
+    const { purchaseId, paymentId } = args;
+    
+    // Находим запись о покупке
+    const purchases = await ctx.db
+      .query("creditPurchases")
+      .filter(q => q.eq(q.field("_id"), purchaseId))
+      .collect();
+    
+    if (purchases.length === 0) {
+      throw new Error("Покупка не найдена");
+    }
+    
+    const purchase = purchases[0];
+    
+    // Обновляем статус
+    await ctx.db.patch(purchase._id, {
+      status: "completed",
+      paymentId: paymentId
+    });
+    
+    return purchase._id;
+  }
 }); 
