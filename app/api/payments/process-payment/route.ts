@@ -42,14 +42,14 @@ export async function POST(req: Request) {
     if (!purchase.paymentId) {
       // Получаем список всех платежей за последние 24 часа
       // В реальном проекте стоит добавить более точный фильтр
-      const payments = await yooKassa.listPayments({
+      const paymentsResponse = await yooKassa.getPayments({
         created_at: { 
-          gte: new Date(Date.now() - 86400000).toISOString() 
+          gte: new Date(Date.now() - 86400000).toISOString()
         }
       })
       
-      // Ищем платеж, соответствующий нашей покупке
-      const payment = payments.items.find((p: any) => 
+      // Используем правильную типизацию для платежа
+      const payment = paymentsResponse.items.find(p => 
         p.metadata && p.metadata.purchaseId === purchaseId
       )
       

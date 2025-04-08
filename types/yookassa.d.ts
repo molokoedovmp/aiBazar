@@ -5,6 +5,20 @@ declare module "yookassa" {
     // Правильный метод для получения платежа
     getPayment(paymentId: string): Promise<Payment>;
     
+    // Правильный метод из документации
+    getPayments(params: {
+      created_at?: {
+        gte?: string;
+        lte?: string;
+      };
+      status?: string;
+      limit?: number;
+      cursor?: string;
+    }): Promise<{
+      items: Payment[];
+      next_cursor?: string;
+    }>;
+    
     // Добавляем метод для получения списка платежей
     listPayments(params?: any): Promise<PaymentList>;
     
@@ -41,7 +55,7 @@ declare module "yookassa" {
   
   interface Payment {
     id: string;
-    status: string;
+    status: 'pending' | 'waiting_for_capture' | 'succeeded' | 'canceled';
     paid: boolean;
     amount: {
       value: string;
