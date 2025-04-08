@@ -60,4 +60,15 @@ export async function POST(req: Request) {
     // Возвращаем успех даже при ошибке, чтобы ЮКасса не пыталась переотправить
     return NextResponse.json({ success: true });
   }
+}
+
+export async function OPTIONS(req: Request) {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  })
 } 
