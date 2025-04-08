@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         type: "redirect",
         return_url: returnUrl
       },
-      description: description,
+      description,
       metadata: {
         purchaseId,
         userId,
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
         },
         items: [
           {
-            description: description || "Пакет кредитов",
+            description,
             quantity: "1",
             amount: {
               value: amount.toString(),
@@ -61,19 +61,11 @@ export async function POST(req: Request) {
           }
         ]
       }
-    }) as any // временно используем any, пока не исправим типы
+    })
 
-    // Получаем URL для перенаправления
-    const confirmationUrl = payment.confirmation?.confirmation_url
-
-    if (!confirmationUrl) {
-      throw new Error("Не получен URL для подтверждения платежа")
-    }
-
-    // Перенаправляем на страницу оплаты
     return NextResponse.json({
       success: true,
-      redirectUrl: confirmationUrl, // Важно! Изменили название поля
+      paymentUrl: payment.confirmation.confirmation_url,
       paymentId: payment.id
     })
     
