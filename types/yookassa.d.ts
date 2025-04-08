@@ -1,6 +1,13 @@
-declare module 'yookassa' {
+declare module "yookassa" {
   export default class YooKassa {
     constructor(options: { shopId: string; secretKey: string });
+    
+    // Правильный метод для получения платежа
+    getPayment(paymentId: string): Promise<Payment>;
+    
+    // Добавляем метод для получения списка платежей
+    listPayments(params?: any): Promise<PaymentList>;
+    
     createPayment(options: {
       amount: {
         value: string;
@@ -30,18 +37,24 @@ declare module 'yookassa' {
         }>;
       };
     }): Promise<any>;
-    
-    getPayment(paymentId: string): Promise<{
-      status: string;
-      paid: boolean;
-      amount: {
-        value: string;
-        currency: string;
-      };
-      confirmation?: {
-        type: string;
-        confirmation_url: string;
-      };
-    }>;
+  }
+  
+  interface Payment {
+    id: string;
+    status: string;
+    paid: boolean;
+    amount: {
+      value: string;
+      currency: string;
+    };
+    metadata?: Record<string, any>;
+    confirmation?: {
+      type: string;
+      confirmation_url: string;
+    };
+  }
+  
+  interface PaymentList {
+    items: Payment[];
   }
 } 

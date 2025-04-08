@@ -289,4 +289,16 @@ export const markAsCompleted = mutation({
     
     return purchase._id;
   }
+});
+
+// Добавьте эту функцию в ваш файл
+export const getAllPending = query({
+  handler: async (ctx) => {
+    const purchases = await ctx.db
+      .query("creditPurchases")
+      .filter(q => q.eq(q.field("status"), "pending"))
+      .collect();
+    
+    return purchases;
+  }
 }); 
