@@ -11,6 +11,7 @@ export const create = mutation({
     timestamp: v.number(),
     paymentId: v.optional(v.string())
   },
+  
   handler: async (ctx, args) => {
     const purchaseId = await ctx.db.insert("creditPurchases", {
       userId: args.userId,
