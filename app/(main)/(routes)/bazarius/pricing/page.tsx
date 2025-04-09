@@ -14,16 +14,16 @@ import { Spinner } from "@/components/spinner"
 
 // Планы подписки
 const pricingPlans = [
-  {
-    id: "basic",
-    name: "test",
-    price: 1,
-    credits: 1,
-    features: [
-      "1 кредитов для всех сервисов"
-    ],
-    popular: false
-  },
+  // {
+  //   id: "basic",
+  //   name: "test",
+  //   price: 1,
+  //   credits: 1,
+  //   features: [
+  //     "1 кредитов для всех сервисов"
+  //   ],
+  //   popular: false
+  // },
   {
     id: "basic",
     name: "Базовый",
@@ -215,7 +215,6 @@ export default function PricingPage() {
             size="lg" 
             className="px-8 gap-2"
             disabled={!selectedPlan || isProcessing || !isSignedIn}
-            onClick={handlePurchase}
           >
             {isProcessing ? (
               <>
