@@ -1,37 +1,36 @@
-"use client"
+// app/bazarius/payment-success/page.tsx
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Spinner } from "@/components/spinner"
-import { CheckCircle2, XCircle } from "lucide-react"
-import { motion } from "framer-motion"
-import { useUser } from "@clerk/clerk-react"
-import { useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Spinner } from "@/components/spinner";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { useUser } from "@clerk/clerk-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function PaymentSuccessPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const { user } = useUser()
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useUser();
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
-  const purchaseId = searchParams.get("purchaseId") || ""
-  const purchase = useQuery(api.creditPurchases.getById, {
-    purchaseId,
-  })
+  const purchaseId = searchParams.get("purchaseId") || "";
+  const purchase = useQuery(api.creditPurchases.getById, { purchaseId });
 
   useEffect(() => {
-    if (!user || !purchase) return
+    if (!user || !purchase) return;
 
     if (purchase.status === "completed") {
-      setStatus("success")
-      setTimeout(() => router.push("/bazarius"), 3000)
+      setStatus("success");
+      setTimeout(() => router.push("/bazarius"), 3000);
     } else if (purchase.status === "canceled") {
-      setStatus("error")
+      setStatus("error");
     } else {
-      setStatus("loading")
+      setStatus("loading");
     }
-  }, [user, purchase, router])
+  }, [user, purchase, router]);
 
   return (
     <div className="container mx-auto p-8 max-w-md">
@@ -65,10 +64,12 @@ export default function PaymentSuccessPage() {
               <XCircle className="h-8 w-8 text-red-600" />
             </div>
             <h1 className="text-2xl font-bold text-red-600">Оплата не была завершена</h1>
-            <p className="text-muted-foreground">Если вы считаете, что это ошибка — свяжитесь с поддержкой.</p>
+            <p className="text-muted-foreground">
+              Если вы считаете, что это ошибка — свяжитесь с поддержкой.
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

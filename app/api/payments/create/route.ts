@@ -1,15 +1,16 @@
-import { NextResponse } from "next/server"
-import YooKassa from "yookassa"
+// app/api/payments/create/route.ts
+import { NextResponse } from "next/server";
+import YooKassa from "yookassa";
 
 export async function POST(req: Request) {
   try {
-    const { amount, description, purchaseId, userId, returnUrl } = await req.json()
-    const userEmail = req.headers.get("x-user-email") || "customer@example.com"
+    const { amount, description, purchaseId, userId, returnUrl } = await req.json();
+    const userEmail = req.headers.get("x-user-email") || "customer@example.com";
 
     const yooKassa = new YooKassa({
       shopId: process.env.YOOKASSA_SHOP_ID!,
       secretKey: process.env.YOOKASSA_SECRET_KEY!,
-    })
+    });
 
     const payment = await yooKassa.createPayment({
       amount: {
@@ -45,21 +46,21 @@ export async function POST(req: Request) {
           },
         ],
       },
-    })
+    });
 
     return NextResponse.json({
       success: true,
       paymentUrl: payment.confirmation.confirmation_url,
       paymentId: payment.id,
-    })
+    });
   } catch (error: any) {
-    console.error("[CREATE PAYMENT] Ошибка:", error)
+    console.error("[CREATE PAYMENT] Ошибка:", error);
     return NextResponse.json(
       {
         success: false,
         error: error.message || "Ошибка при создании платежа",
       },
       { status: 500 }
-    )
+    );
   }
 }

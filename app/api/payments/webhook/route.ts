@@ -1,48 +1,67 @@
-import { NextRequest, NextResponse } from "next/server"
+// app/api/payments/webhook/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { ConvexHttpClient } from "convex/browser"; // серверный клиент Convex
+import { api } from "@/convex/_generated/api"; // путь зависит от вашей структуры
+
+// Используйте серверную переменную (например, CONVEX_URL)
+const convex = new ConvexHttpClient(process.env.CONVEX_URL!);
 
 export async function POST(req: NextRequest) {
   try {
-    // Считываем JSON из тела запроса
-    const payload = await req.json()
-    console.log("[WEBHOOK] Получен webhook:", payload)
+    // Считываем тело запроса как текст (это нужно для проверки подписи)
+    const bodyText = await req.text();
 
-    // Тип события и объект платежа из уведомления
-    const event = payload?.event
-    const payment = payload?.object
-    const metadata = payment?.metadata || {}
+    // Проверка подписи (если YooKassa отправляет подпись в заголовке, уточните название заголовка)
+    const signatureHeader = req.headers.get("X-Request-Signature");
+    const secret = process.env.YOOKASSA_SECRET_KEY!;
+    const computedSignature = crypto.createHmac("sha256", secret)
+                                    .update(bodyText)
+                                    .digest("hex");
 
-    const purchaseId = metadata.purchaseId
-    const userId = metadata.userId
-    const amount = parseInt(metadata.amount)
-    const paymentId = payment?.id
-
-    if (!purchaseId || !userId || !paymentId) {
-      console.warn("[WEBHOOK] Недостаточно данных")
-      return NextResponse.json({ success: true }) // 200 OK
+    if (signatureHeader !== computedSignature) {
+      console.warn("[WEBHOOK] Недопустимая подпись", { signatureHeader, computedSignature });
+      return NextResponse.json({ success: false }, { status: 401 });
     }
 
-    // Обработка событий
+    // Если подпись прошла проверку, парсим тело запроса в JSON
+    const payload = JSON.parse(bodyText);
+    console.log("[WEBHOOK] Получен webhook:", payload);
+
+    const event = payload.event;
+    const payment = payload.object;
+    const metadata = payment?.metadata || {};
+
+    const purchaseId = metadata.purchaseId;
+    const userId = metadata.userId;
+    const amount = parseInt(metadata.amount);
+    const paymentId = payment?.id;
+
+    if (!purchaseId || !userId || !paymentId) {
+      console.warn("[WEBHOOK] Недостаточно данных");
+      return NextResponse.json({ success: true });
+    }
+
     if (event === "payment.succeeded") {
-      console.log("[WEBHOOK] Событие: оплата успешна")
-      // Вызвать мутации / функции добавления кредитов и пр.
+      console.log("[WEBHOOK] Событие: оплата успешна");
+      // Обновляем статус покупки и начисляем кредиты пользователю
+      await convex.mutation(api.creditPurchases.markAsCompleted, { purchaseId, paymentId });
+      await convex.mutation(api.userCredits.addCredits, { userId, amount });
     }
 
     if (event === "payment.canceled") {
-      console.log("[WEBHOOK] Событие: платёж отменён")
-      // Пометить покупку как canceled
+      console.log("[WEBHOOK] Событие: платёж отменён");
+      await convex.mutation(api.creditPurchases.markAsCanceled, { purchaseId });
     }
 
-    // Возвращаем 200 OK, чтобы YooKassa не слала запрос снова
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[WEBHOOK] Ошибка при обработке:", error)
-    // Даже в случае ошибки возвращаем 200,
-    // чтобы YooKassa не слала повторных запросов
-    return NextResponse.json({ success: true })
+    console.error("[WEBHOOK] Ошибка при обработке:", error);
+    // Даже при ошибке возвращаем 200, чтобы избежать повторов уведомлений от YooKassa
+    return NextResponse.json({ success: true });
   }
 }
 
-// Preflight-запросы (CORS) — если нужны
 export async function OPTIONS() {
   return new Response(null, {
     status: 200,
@@ -51,5 +70,5 @@ export async function OPTIONS() {
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },
-  })
+  });
 }
