@@ -38,7 +38,7 @@ export default function AiBazarGPTPage() {
         { icon: PresentationIcon, text: "Фильтрация по отрасли, бюджету и техническим требованиям" }
       ],
       image: "/aibazargpt/aisearch.png",
-      link: "/aibazargpt/ai-search"
+      link: "/bazarius/ai-search"
     },
     {
       key: "ai-presentation",
