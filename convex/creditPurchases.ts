@@ -302,3 +302,13 @@ export const getAllPending = query({
     return purchases;
   }
 }); 
+
+
+export const markAsCanceled = mutation({
+  args: { purchaseId: v.id("creditPurchases") },
+  handler: async (ctx, { purchaseId }) => {
+    const purchase = await ctx.db.get(purchaseId)
+    if (!purchase) throw new Error("Покупка не найдена")
+    await ctx.db.patch(purchaseId, { status: "canceled" })
+  },
+})

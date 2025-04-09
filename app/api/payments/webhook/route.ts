@@ -8,59 +8,70 @@ export async function POST(req: Request) {
   try {
     const payload = await req.json()
     console.log("[WEBHOOK] Получен webhook:", payload)
-    
-    // Получаем данные из метаданных платежа
+
     const metadata = payload.object?.metadata || {}
-    console.log("[WEBHOOK] Метаданные:", metadata)
-    
+    const event = payload.event
+    const paymentId = payload.object?.id
+
     const purchaseId = metadata.purchaseId
     const userId = metadata.userId
     const amount = parseInt(metadata.amount)
-    
-    console.log("[WEBHOOK] Данные для обработки:", { purchaseId, userId, amount })
-    
-    if (payload.event === "payment.succeeded") {
-      console.log("[WEBHOOK] Начинаем обработку успешного платежа")
-      
+
+    if (!purchaseId || !userId || !paymentId) {
+      console.error("[WEBHOOK] Отсутствуют важные поля")
+      return NextResponse.json({ success: true })
+    }
+
+    // Обработка успешного платежа
+    if (event === "payment.succeeded") {
+      console.log("[WEBHOOK] Платеж успешен, начисляем кредиты")
+
       try {
-        // Обновляем статус покупки
-        console.log("[WEBHOOK] Обновляем статус покупки")
+        // Обновить статус покупки
         await convex.mutation(api.creditPurchases.markAsCompleted, {
           purchaseId,
-          paymentId: payload.object.id
+          paymentId,
         })
-        
-        // Начисляем кредиты
-        console.log("[WEBHOOK] Начисляем кредиты:", { userId, amount })
+
+        // Начислить кредиты пользователю
         await convex.mutation(api.userCredits.addCredits, {
           userId,
-          amount
+          amount,
         })
-        
-        console.log("[WEBHOOK] Платеж успешно обработан")
-      } catch (error) {
-        console.error("[WEBHOOK] Ошибка при обработке платежа:", error)
-        // Даже при ошибке возвращаем 200, чтобы ЮКасса не пыталась повторить
-        return NextResponse.json({ success: true })
+
+        console.log("[WEBHOOK] Успешно завершено")
+      } catch (err) {
+        console.error("[WEBHOOK] Ошибка при успешной обработке:", err)
       }
-    } else {
-      console.log("[WEBHOOK] Пропускаем событие:", payload.event)
     }
-    
+
+    // Обработка отмены/неуспешного платежа
+    if (event === "payment.canceled") {
+      console.log("[WEBHOOK] Платеж отменён")
+
+      try {
+        await convex.mutation(api.creditPurchases.markAsCanceled, {
+          purchaseId,
+        })
+      } catch (err) {
+        console.error("[WEBHOOK] Ошибка при отмене:", err)
+      }
+    }
+
     return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error("[WEBHOOK] Критическая ошибка:", error)
+  } catch (err) {
+    console.error("[WEBHOOK] Ошибка парсинга:", err)
     return NextResponse.json({ success: true })
   }
 }
 
-export async function OPTIONS(req: Request) {
+export async function OPTIONS() {
   return new Response(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
   })
-} 
+}

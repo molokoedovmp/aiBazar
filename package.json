@@ -14,6 +14,7 @@
     "@blocknote/mantine": "^0.15.7",
     "@blocknote/react": "^0.15.7",
     "@clerk/clerk-react": "^5.7.0",
+    "@clerk/nextjs": "^6.14.1",
     "@edgestore/react": "^0.2.2",
     "@edgestore/server": "^0.2.2",
     "@iconify/react": "^5.0.2",
