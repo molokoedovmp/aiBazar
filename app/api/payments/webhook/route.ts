@@ -9,59 +9,46 @@ export async function POST(req: Request) {
     const payload = await req.json()
     console.log("[WEBHOOK] Получен webhook:", payload)
 
-    const metadata = payload.object?.metadata || {}
     const event = payload.event
-    const paymentId = payload.object?.id
+    const payment = payload.object
+    const metadata = payment?.metadata || {}
 
     const purchaseId = metadata.purchaseId
     const userId = metadata.userId
     const amount = parseInt(metadata.amount)
+    const paymentId = payment?.id
 
     if (!purchaseId || !userId || !paymentId) {
-      console.error("[WEBHOOK] Отсутствуют важные поля")
+      console.warn("[WEBHOOK] Недостаточно данных")
       return NextResponse.json({ success: true })
     }
 
-    // Обработка успешного платежа
     if (event === "payment.succeeded") {
-      console.log("[WEBHOOK] Платеж успешен, начисляем кредиты")
+      console.log("[WEBHOOK] Успешная оплата")
 
-      try {
-        // Обновить статус покупки
-        await convex.mutation(api.creditPurchases.markAsCompleted, {
-          purchaseId,
-          paymentId,
-        })
+      await convex.mutation(api.creditPurchases.markAsCompleted, {
+        purchaseId,
+        paymentId,
+      })
 
-        // Начислить кредиты пользователю
-        await convex.mutation(api.userCredits.addCredits, {
-          userId,
-          amount,
-        })
-
-        console.log("[WEBHOOK] Успешно завершено")
-      } catch (err) {
-        console.error("[WEBHOOK] Ошибка при успешной обработке:", err)
-      }
+      await convex.mutation(api.userCredits.addCredits, {
+        userId,
+        amount,
+      })
     }
 
-    // Обработка отмены/неуспешного платежа
     if (event === "payment.canceled") {
-      console.log("[WEBHOOK] Платеж отменён")
+      console.log("[WEBHOOK] Платёж отменён")
 
-      try {
-        await convex.mutation(api.creditPurchases.markAsCanceled, {
-          purchaseId,
-        })
-      } catch (err) {
-        console.error("[WEBHOOK] Ошибка при отмене:", err)
-      }
+      await convex.mutation(api.creditPurchases.markAsCanceled, {
+        purchaseId,
+      })
     }
 
     return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error("[WEBHOOK] Ошибка парсинга:", err)
-    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("[WEBHOOK] Ошибка:", error)
+    return NextResponse.json({ success: true }) // ЮKassa требует 200 OK
   }
 }
 
@@ -69,9 +56,9 @@ export async function OPTIONS() {
   return new Response(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   })
 }
