@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       },
       description,
       metadata: {
+        // Убедитесь, что сюда передаётся настоящий Convex ID, полученный при создании записи покупки!
         purchaseId,
         userId,
         amount,
