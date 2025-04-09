@@ -16,6 +16,16 @@ import { Spinner } from "@/components/spinner"
 const pricingPlans = [
   {
     id: "basic",
+    name: "test",
+    price: 1,
+    credits: 1,
+    features: [
+      "1 кредитов для всех сервисов"
+    ],
+    popular: false
+  },
+  {
+    id: "basic",
     name: "Базовый",
     price: 299,
     credits: 50,
