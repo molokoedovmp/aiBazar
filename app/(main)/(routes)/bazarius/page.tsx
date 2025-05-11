@@ -37,7 +37,23 @@ const services = [
     description: "Автоматическое создание статей для блога с помощью AI",
     link: "/bazarius/ai-blog",
     imageUrl: "/aibazargpt/aiblog.png"
-  }
+  },
+  // {
+  //   id: "genotype-analyzer",
+  //   title: "Анализатор генотипа",
+  //   icon: Zap,
+  //   description: "Определение генетического происхождения и расовых признаков по фотографии",
+  //   link: "/bazarius/genotype-analyzer",
+  //   imageUrl: "/aibazargpt/genotype.png"
+  // },
+  // {
+  //   id: "ai-social",
+  //   title: "Генератор контента",
+  //   icon: Sparkles,
+  //   description: "Создание контента для социальных сетей с помощью AI",
+  //   link: "/bazarius/ai-social",
+  //   imageUrl: "/aibazargpt/aisocial.png"
+  // }
 ]
 
 // Константа для гостевого лимита
