@@ -39,7 +39,7 @@ export const Footer = () => {
             </Link>
           </div>
 
-          <AlertDialog>
+          {/* <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="whitespace-nowrap">
                 Пользовательское соглашение
@@ -183,7 +183,7 @@ export const Footer = () => {
                 <AlertDialogCancel>Закрыть</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
-          </AlertDialog>
+          </AlertDialog> */}
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
