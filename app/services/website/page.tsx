@@ -258,11 +258,11 @@ const Index = () => {
 
           {/* CTA Buttons with Hover Effects */}
           <div className="animate-fade-in flex flex-col sm:flex-row gap-6 justify-center mb-16" style={{ animationDelay: '1s' }}>
-            <Button 
+            <Button
               onClick={scrollToServices}
-              className="group relative bg-white text-black hover:bg-transparent hover:text-white border-2 border-white text-lg px-12 py-6 font-bold tracking-wide transition-all duration-500 overflow-hidden"
+              className="group relative bg-white text-black border-2 border-white text-lg px-12 py-6 font-bold tracking-wide transition-all duration-500 overflow-hidden"
             >
-              <span className="relative z-10">НАШИ УСЛУГИ</span>
+              <span className="relative z-10 group-hover:text-black transition-colors">НАШИ УСЛУГИ</span>
               <div className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
             </Button>
             <Button 
@@ -477,23 +477,17 @@ const Index = () => {
                   <Phone className="w-6 h-6 mr-4" />
                   <div>
                     <div className="font-semibold">Телефон</div>
-                    <div className="text-gray-300">+7 (999) 123-45-67</div>
+                    <div className="text-gray-300">+7 (993) 596-79-52</div>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Mail className="w-6 h-6 mr-4" />
                   <div>
                     <div className="font-semibold">Email</div>
-                    <div className="text-gray-300">info@webdev.ru</div>
+                    <div className="text-gray-300">aiBazaru@yandex.com</div>
                   </div>
                 </div>
-                <div className="flex items-center">
-                  <MapPin className="w-6 h-6 mr-4" />
-                  <div>
-                    <div className="font-semibold">Адрес</div>
-                    <div className="text-gray-300">Москва, ул. Тверская, 1</div>
-                  </div>
-                </div>
+                
               </div>
             </div>
             

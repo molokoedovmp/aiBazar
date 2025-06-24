@@ -29,10 +29,6 @@ const routes = [
     href: '/aibazargpt',
   },
   {
-    label: 'AI Гаджеты',
-    href: '/gadgets',
-  },
-  {
     label: 'Сообщество',
     href: '/blog',
   },
