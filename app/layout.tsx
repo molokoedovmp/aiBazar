@@ -167,18 +167,12 @@ export default function RootLayout({
       <body className={`bg-gray-100 ${inter.className}`}>
         <EdgeStoreProvider>
           <ConvexClientProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-              storageKey="jotion-theme-2"
-            >
+            
               <Toaster position="bottom-center" />
               <ModalProvider />
               {children}
               <Analytics />
-            </ThemeProvider>
+
           </ConvexClientProvider>
         </EdgeStoreProvider>
       </body>

@@ -1,625 +1,570 @@
-'use client'
+"use client";
 
-import { useState } from "react";
-import { useTheme } from "next-themes";
-import {
-  Check,
-  ArrowRight,
-  Info,
-  X,
-  FileText,
-  Building,
-  ShoppingBag,
-  Megaphone,
-  Store,
-  Search,
-  BarChart,
-  Palette,
-  ImageIcon,
-  HelpCircle,
-  Settings,
-  Database
-} from "lucide-react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { toast } from "sonner";
-
+import { useState, useEffect } from "react";
+import { ArrowDown, Code, Smartphone, Search, Zap, Users, Award, Clock, CheckCircle, Phone, Mail, MapPin, Globe, Palette, Settings, TrendingUp, Shield, HeadphonesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction
+} from "@/components/ui/alert-dialog";
 
-const WebsiteServicesPage = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedService, setSelectedService] = useState("");
-  const [activeTab, setActiveTab] = useState("websites");
-  const { theme } = useTheme();
-  
-  const submitFeedback = useMutation(api.feedback.create);
-  
+const Index = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const prevPadding = document.body.style.paddingTop;
+    document.body.style.paddingTop = "0px";
+    return () => {
+      document.body.style.paddingTop = prevPadding;
+    };
+  }, []);
+
+  const scrollToServices = () => {
+    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToPortfolio = () => {
+    document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
+    setLoading(true);
     try {
-      await submitFeedback({
-        name,
-        email,
-        message,
-        service: selectedService
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
-      
-      toast.success("Ваша заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.");
-      
-      setIsDialogOpen(false);
-      setName("");
-      setEmail("");
-      setMessage("");
+      const data = await res.json();
+      if (data.success) {
+        setDialogOpen(true);
+        setFormData({ name: '', email: '', phone: '', message: '' });
+      } else {
+        toast({
+          title: "Ошибка отправки",
+          description: data.error || "Попробуйте позже или свяжитесь другим способом.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
-      console.error("Ошибка при отправке формы:", error);
-      toast.error("Произошла ошибка при отправке формы. Пожалуйста, попробуйте еще раз.");
+      toast({
+        title: "Ошибка отправки",
+        description: "Не удалось отправить сообщение. Попробуйте позже.",
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const openOrderDialog = (serviceName: string) => {
-    setSelectedService(serviceName);
-    setMessage(`Меня интересует услуга: ${serviceName}`);
-    setIsDialogOpen(true);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  // Общие преимущества для всех тарифов
-  const commonFeatures = [
-    "Оптимизированная скорость загрузки и отсутствие лимитов по трафику (не для файлообменников)",
-    "Надежная защита: антивирусные меры, фильтрация спама, серверы на территории РФ",
-    "Регулярное резервное копирование для сохранности ваших данных и быстрого восстановления",
-    "Круглосуточная поддержка по любым вопросам через удобные каналы связи"
-  ];
-
-  // Типы веб-сайтов
-  const websiteTypes = [
+  const services = [
     {
-      icon: <FileText className="h-5 w-5" />,
-      title: "Одностраничные сайты (Лендинги)",
-      services: [
-        {
-          name: "Лендинг Пейдж",
-          description: "Эффективный одностраничный сайт, сфокусированный на конверсии. Идеален для быстрого запуска и продвижения конкретного продукта или услуги.",
-          price: "14 950 ₽",
-          details: "Отличное решение для презентации одного товара или услуги. Структура страницы разработана для максимального вовлечения и стимулирования целевого действия, особенно эффективно при использовании платной рекламы."
-        }
-      ]
+      icon: Code,
+      title: "Веб-разработка",
+      description: "Создание сайтов на современных технологиях с адаптивным дизайном и высокой производительностью",
+      features: ["React, Vue, Angular", "Адаптивная верстка", "Высокая производительность", "Чистый код"],
+      price: "от 15 000 ₽"
     },
     {
-      icon: <Building className="h-5 w-5" />,
-      title: "Корпоративные сайты",
-      services: [
-        {
-          name: "Сайт на базе готового шаблона",
-          description: "Экономичный вариант с оперативным запуском. Выбирайте из 250+ дизайнов, возможность расширения до 450 страниц. Запуск за 3-5 дней.",
-          price: "17 950 ₽",
-          details: "Выберите подходящий дизайн из нашего обширного каталога готовых решений. Мы предлагаем множество вариантов для различных сфер бизнеса."
-        },
-        {
-          name: "Эксклюзивный шаблонный сайт",
-          description: "Готовое решение, которое будет только у вас. После покупки шаблон снимается с продажи. Запуск за 3-7 дней.",
-          price: "19 950 ₽",
-          details: "Профессиональный дизайн, созданный для конкретной ниши. Как только вы его приобретаете, он становится недоступным для других клиентов."
-        },
-        {
-          name: "Индивидуальная разработка",
-          description: "Создаем сайт с нуля по вашему техническому заданию, учитывая все цели, задачи и фирменный стиль. Срок разработки: 14-28 дней.",
-          price: "от 35 000 ₽",
-          details: "Полностью кастомизированное решение. Мы учтем все ваши требования, особенности бизнеса и предоставим уникальный дизайн. Возможно использование ваших бренд-материалов."
-        }
-      ]
+      icon: Smartphone,
+      title: "Мобильная адаптация",
+      description: "Оптимизация для всех устройств - от смартфонов до настольных компьютеров",
+      features: ["Mobile-First подход", "Все разрешения экранов", "Touch-оптимизация", "PWA поддержка"],
+      price: "от 7 000 ₽"
     },
     {
-      icon: <ShoppingBag className="h-5 w-5" />,
-      title: "Интернет-магазины",
-      services: [
-        {
-          name: "Стандартный интернет-магазин",
-          description: "Функциональный магазин для старта онлайн-продаж, рассчитанный на каталог до 5000 позиций.",
-          price: "19 950 ₽",
-          details: "Включает каталог до 5000 товаров, корзину, настройку скидок, опций доставки и платежных систем. Оптимальный набор для начала электронной коммерции."
-        },
-        {
-          name: "Расширенный интернет-магазин",
-          description: "Магазин с каталогом до 15 000 товаров и расширенным функционалом для повышения удобства и продаж.",
-          price: "29 950 ₽",
-          details: "Поддерживает до 15 000 товаров, умный поиск, интеграцию с 1С/МойСклад, бонусную программу, маркетинговые инструменты, мультиссылку и 15+ других дополнений для роста вашего бизнеса."
-        },
-        {
-          name: "Магазин по индивидуальному проекту",
-          description: "Разработка уникального интернет-магазина с нуля под ваши специфические требования.",
-          price: "от 35 000 ₽",
-          details: "Создание эксклюзивного дизайна и функционала, полностью соответствующего вашим бизнес-процессам и целям."
-        }
-      ]
+      icon: Search,
+      title: "SEO-оптимизация",
+      description: "Настройка для поисковых систем и повышение позиций в выдаче Google и Яндекс",
+      features: ["Техническое SEO", "Контентная оптимизация", "Аналитика и отчеты", "Локализация"],
+      price: "от 10 000 ₽"
     },
     {
-      icon: <Megaphone className="h-5 w-5" />,
-      title: "Контент и Маркетинг",
-      services: [
-        {
-          name: "Комплексное наполнение сайта",
-          description: "Полная подготовка сайта к запуску: маркетинговый анализ, тексты, SEO, добавление товаров. Мы берем на себя всю работу по контенту.",
-          price: "от 79 950 ₽",
-          details: "Идеально для тех, кто хочет получить готовый к работе сайт с минимальным личным участием. Мы проведем исследование, напишем контент, оптимизируем его и наполним каталог."
-        }
-      ]
+      icon: Zap,
+      title: "Быстрая загрузка",
+      description: "Оптимизация скорости загрузки страниц для лучшего пользовательского опыта",
+      features: ["Оптимизация изображений", "Минификация кода", "CDN настройка", "Кэширование"],
+      price: "от 5 000 ₽"
+    },
+    {
+      icon: Globe,
+      title: "E-commerce решения",
+      description: "Интернет-магазины с полным функционалом для онлайн-продаж",
+      features: ["Каталог товаров", "Корзина и оплата", "Личный кабинет", "Интеграции"],
+      price: "от 30 000 ₽"
+    },
+    {
+      icon: Palette,
+      title: "UI/UX Дизайн",
+      description: "Создание привлекательного и удобного пользовательского интерфейса",
+      features: ["Wireframes", "Прототипирование", "Дизайн-система", "User Research"],
+      price: "от 12 000 ₽"
+    },
+    {
+      icon: Settings,
+      title: "Техническая поддержка",
+      description: "Постоянное обслуживание и поддержка вашего сайта",
+      features: ["24/7 мониторинг", "Обновления системы", "Резервное копирование", "Техподдержка"],
+      price: "от 3 000 ₽/мес"
+    },
+    {
+      icon: HeadphonesIcon,
+      title: "Консультации",
+      description: "Экспертные консультации по цифровому развитию вашего бизнеса",
+      features: ["Анализ конкурентов", "Стратегия развития", "Техническое ТЗ", "Выбор технологий"],
+      price: "от 1 500 ₽/час"
     }
   ];
 
-  // Услуги для маркетплейсов
-  const marketplaceServices = [
+  const projects = [
     {
-      icon: <Store className="h-5 w-5" />,
-      title: "Выход на маркетплейсы",
-      description: "Начните продавать на ведущих онлайн-площадках и многократно увеличьте охват аудитории.",
-      price: "Бесплатно (подключение)",
-      details: "Само подключение бесплатно, ежемесячное обслуживание составляет 1950 ₽. Предоставляем удобный инструмент для централизованного управления продажами на маркетплейсах."
+      title: "Сайт с ИИ-интеграцией",
+      description: "Веб-платформа с интеграцией искусственного интеллекта для автоматизации и персонализации процессов",
+      image: "/website/ai.png",
+      category: "AI-интеграция",
+      url: "https://www.ai-bazar.ru/"
+    },
+    {
+      title: "Интернет-магазин",
+      description: "E-commerce решение",
+      image: "/website/lesopilka.png",
+      category: "E-commerce",
+      url: "https://vyborplus.ru/"
+    },
+    {
+      title: "Лендинг страница",
+      description: "Продающая страница услуг",
+      image: "/website/kresla.png",
+      category: "Landing",
+      url: "https://www.ruskreslo.ru/index.html"
+    },
+    {
+      title: "Портфолио дизайнера",
+      description: "Креативное портфолио",
+      image: "/website/design.png",
+      category: "Портфолио",
+      url: "https://asinteriordesignstudio.ru/"
     }
   ];
 
-  // Услуги по продвижению
-  const promotionServices = [
-    {
-      icon: <Search className="h-5 w-5" />,
-      title: "Настройка контекстной рекламы (Яндекс.Директ)",
-      price: "от 9 900 ₽",
-      details: "Глубокий анализ конкурентов и вашего предложения для создания максимально эффективной рекламной кампании. Ожидаемый рост конверсии в 2-3 раза!"
-    },
-    {
-      icon: <BarChart className="h-5 w-5" />,
-      title: "Ведение контекстной рекламы (Яндекс.Директ)",
-      price: "от 14 900 ₽",
-      details: "Постоянное управление и оптимизация ваших рекламных кампаний в Яндекс.Директ. Регулярная отчетность и работа над повышением ROI."
-    },
-    {
-      icon: <Search className="h-5 w-5" />,
-      title: "Поисковая оптимизация (SEO)",
-      price: "24 900 ₽",
-      details: "Приведение сайта в соответствие с требованиями поисковых систем, оптимизация под релевантные запросы для увеличения органического трафика."
-    },
-    {
-      icon: <Megaphone className="h-5 w-5" />,
-      title: "Комплексное интернет-продвижение",
-      price: "от 39 900 ₽",
-      details: "Индивидуальная стратегия продвижения, включающая SEO, контекстную рекламу, контент-маркетинг и другие каналы, подобранные под ваши цели и бюджет."
-    }
-  ];
-
-  // Дополнительные услуги
-  const additionalServices = [
-    {
-      icon: <Palette className="h-5 w-5" />,
-      title: "Создание логотипа",
-      price: "от 4 900 ₽",
-      details: "Доступный способ получить качественный логотип. Выберите вариант из нашего каталога, и мы адаптируем его под ваш фирменный стиль и цветовую гамму."
-    },
-    {
-      icon: <ImageIcon className="h-5 w-5" />,
-      title: "Дизайн продающего баннера",
-      price: "от 1 900 ₽",
-      details: "Качественный баннер может существенно повысить эффективность рекламы и продаж. Посмотрите примеры наших работ или обсудите задачу с менеджером."
-    },
-    {
-      icon: <HelpCircle className="h-5 w-5" />,
-      title: "Разработка квиз-формы",
-      price: "от 4 900 ₽",
-      details: "Интерактивные квизы помогают вовлечь посетителей, собрать больше заявок и удержать тех, кто собирался покинуть сайт."
-    },
-    {
-      icon: <BarChart className="h-5 w-5" />,
-      title: "Настройка веб-аналитики",
-      price: "от 3 900 ₽",
-      details: "Установка и настройка Яндекс.Метрики и Google Analytics для точного отслеживания посещаемости, поведения пользователей и эффективности рекламы."
-    },
-    {
-      icon: <Database className="h-5 w-5" />,
-      title: "Интеграция с CRM-системами",
-      price: "от 5 900 ₽",
-      details: "Свяжем ваш сайт с CRM для автоматизации обработки заявок, улучшения работы с клиентами и повышения конверсии."
-    },
-    {
-      icon: <Settings className="h-5 w-5" />,
-      title: "Техническое сопровождение",
-      price: "от 4 900 ₽/мес",
-      details: "Обеспечение стабильной работы сайта: обновления, исправление ошибок, резервное копирование, добавление нового контента и функционала по запросу."
-    }
-  ];
-
-  // Часто задаваемые вопросы (FAQ)
-  const faqs = [
-    {
-      question: "Какие сроки создания сайта?",
-      answer: "Сроки зависят от типа и сложности проекта. Лендинг обычно готов за 3-5 дней, сайт на шаблоне — 5-7 дней. Индивидуальная разработка может потребовать от 2 недель до нескольких месяцев."
-    },
-    {
-      question: "Что включено в базовую стоимость разработки?",
-      answer: "Стандартный пакет включает разработку дизайна (или адаптацию шаблона), верстку, программирование основного функционала, базовую SEO-настройку, тестирование и запуск. Дополнительные работы (контент, интеграции, реклама) оплачиваются отдельно."
-    },
-    {
-      question: "Возможно ли внести правки в дизайн после запуска?",
-      answer: "Да, мы можем доработать дизайн после запуска сайта. Стоимость таких правок будет зависеть от их объема и сложности."
-    },
-    {
-      question: "Вы предоставляете услуги хостинга?",
-      answer: "Да, мы предлагаем надежный хостинг для сайтов, разработанных у нас. Условия и стоимость хостинга обсуждаются индивидуально и могут быть включены в пакет технической поддержки."
-    },
-    {
-      question: "Каков порядок оплаты?",
-      answer: "Стандартная схема работы — предоплата 50% от общей стоимости проекта. Оставшиеся 50% оплачиваются после завершения всех работ и вашего финального утверждения сайта."
-    }
+  const stats = [
+    { icon: Users, number: "50+", text: "Довольных клиентов" },
+    { icon: Award, number: "100+", text: "Завершенных проектов" },
+    { icon: Clock, number: "5+", text: "Лет опыта" },
+    { icon: CheckCircle, number: "24/7", text: "Поддержка клиентов" }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="text-center mb-12 pt-8 animate-fade-in">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 notion-heading">
-          Разработка и Продвижение Веб-сайтов
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          Предлагаем полный спектр услуг по созданию сайтов: от простых лендингов
-          до сложных интернет-магазинов и корпоративных порталов.
-        </p>
-      </div>
-
-      {/* Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-        <TabsList className="w-full grid grid-cols-3 p-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-          <TabsTrigger 
-            value="websites" 
-            className="py-3 px-4 rounded-none border-r border-gray-200 dark:border-gray-700 
-                       data-[state=active]:bg-white data-[state=active]:text-black 
-                       data-[state=active]:dark:bg-white data-[state=active]:dark:text-black 
-                       data-[state=inactive]:bg-gray-100 data-[state=inactive]:dark:bg-gray-800 
-                       data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-white
-                       transition-all"
-            style={{
-              color: activeTab === "websites" ? "#000000" : (theme === 'dark' ? "#ffffff" : "#666666"),
-              backgroundColor: activeTab === "websites" ? "#ffffff" : (theme === 'dark' ? "#333333" : "#f3f3f3")
-            }}
-          >
-            Веб-сайты
-          </TabsTrigger>
-          <TabsTrigger 
-            value="marketing" 
-            className="py-3 px-4 rounded-none border-r border-gray-200 dark:border-gray-700 
-                       data-[state=active]:bg-white data-[state=active]:text-black 
-                       data-[state=active]:dark:bg-white data-[state=active]:dark:text-black 
-                       data-[state=inactive]:bg-gray-100 data-[state=inactive]:dark:bg-gray-800 
-                       data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-white
-                       transition-all"
-            style={{
-              color: activeTab === "marketing" ? "#000000" : (theme === 'dark' ? "#ffffff" : "#666666"),
-              backgroundColor: activeTab === "marketing" ? "#ffffff" : (theme === 'dark' ? "#333333" : "#f3f3f3")
-            }}
-          >
-            Продвижение
-          </TabsTrigger>
-          <TabsTrigger 
-            value="additional" 
-            className="py-3 px-4 rounded-none
-                       data-[state=active]:bg-white data-[state=active]:text-black 
-                       data-[state=active]:dark:bg-white data-[state=active]:dark:text-black 
-                       data-[state=inactive]:bg-gray-100 data-[state=inactive]:dark:bg-gray-800 
-                       data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-white
-                       transition-all"
-            style={{
-              color: activeTab === "additional" ? "#000000" : (theme === 'dark' ? "#ffffff" : "#666666"),
-              backgroundColor: activeTab === "additional" ? "#ffffff" : (theme === 'dark' ? "#333333" : "#f3f3f3")
-            }}
-          >
-            Доп. Услуги
-          </TabsTrigger>
-        </TabsList>
-        
-        {/* Website Services Tab */}
-        <TabsContent 
-          value="websites" 
-          className="mt-8 animate-fade-in"
-        >
-          {websiteTypes.map((type, typeIndex) => (
-            <div key={typeIndex} className="mb-12 animate-slide-up" style={{ animationDelay: `${typeIndex * 100}ms` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="notion-icon-wrapper">
-                  {type.icon}
-                </div>
-                <h2 className="notion-heading text-xl">{type.title}</h2>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                {type.services.map((service, serviceIndex) => (
-                  <Card key={serviceIndex} className="notion-card flex flex-col h-full border-notion-border hover:border-notion">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{service.name}</CardTitle>
-                      <CardDescription>{service.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <p className="text-2xl font-bold mb-4">{service.price}</p>
-                      <p className="text-muted-foreground text-sm">{service.details}</p>
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        className="w-full notion-button"
-                        onClick={() => openOrderDialog(service.name)}
-                      >
-                        Заказать
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
+      <section
+        className="bg-black text-white flex flex-col justify-between items-center relative overflow-hidden"
+        style={{ minHeight: "calc(100vh - 4rem)" }}
+      >
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Grid Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="grid grid-cols-12 h-full">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="border-r border-white/20 h-full"></div>
+              ))}
             </div>
-          ))}
-          
-          {/* Common Features */}
-          <div className="bg-notion-muted rounded-lg p-8 mb-12 animate-slide-up" style={{ animationDelay: '400ms' }}>
-            <h2 className="notion-heading text-lg mb-6">Преимущества для всех тарифов</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {commonFeatures.map((feature, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="rounded-full bg-black p-1 mt-0.5">
-                    <Check className="h-3 w-3 text-white" />
-                  </div>
-                  <p className="text-muted-foreground">{feature}</p>
-                </div>
+            <div className="absolute inset-0">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div key={i} className="border-b border-white/10 h-12"></div>
               ))}
             </div>
           </div>
 
-          {/* Marketplace Services */}
-          <div className="mb-12 animate-slide-up" style={{ animationDelay: '500ms' }}>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="notion-icon-wrapper">
-                <Store className="h-5 w-5" />
+          {/* Floating Geometric Shapes */}
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 border-2 border-white/20 rotate-45 animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-white/10 animate-bounce" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-1/3 left-1/6 w-24 h-24 border border-white/30 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-2/3 right-1/3 w-8 h-8 bg-white/20 rotate-45 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+
+          {/* Large Diagonal Lines */}
+          <div className="absolute -top-1/2 -left-1/4 w-96 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent rotate-45 animate-pulse"></div>
+          <div className="absolute -bottom-1/2 -right-1/4 w-96 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent rotate-45 animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+
+          {/* Corner Accents */}
+          <div className="absolute top-0 left-0 w-32 h-32 border-l-4 border-t-4 border-white/30"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 border-r-4 border-t-4 border-white/30"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 border-l-4 border-b-4 border-white/30"></div>
+          <div className="absolute bottom-0 right-0 w-32 h-32 border-r-4 border-b-4 border-white/30"></div>
+        </div>
+
+        {/* Navigation Indicators */}
+        <div className="absolute left-8 top-1/2 transform -translate-y-1/2 space-y-4 z-10">
+          <div className="w-1 h-8 bg-white"></div>
+          <div className="w-1 h-4 bg-white/50"></div>
+          <div className="w-1 h-4 bg-white/30"></div>
+          <div className="w-1 h-4 bg-white/30"></div>
+        </div>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 text-center flex-1 flex flex-col justify-center relative z-10">
+          {/* Animated Badge */}
+          
+          {/* Main Title with Staggered Animation */}
+          <div className="space-y-4 mb-8">
+            <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-none">
+              <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                СОЗДАЕМ
               </div>
-              <h2 className="notion-heading text-xl">Интеграция с Маркетплейсами</h2>
+              <div className="animate-fade-in flex items-center justify-center gap-4" style={{ animationDelay: '0.4s' }}>
+                <div className="w-16 h-1 bg-white"></div>
+                <span className="text-white">САЙТЫ</span>
+                <div className="w-16 h-1 bg-white"></div>
+              </div>
+              <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                БУДУЩЕГО
+              </div>
+            </h1>
+          </div>
+
+          {/* Subtitle with Typewriter Effect */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90 leading-relaxed">
+              Профессиональная веб-разработка для вашего бизнеса. 
+              <br />
+              <span className="font-light">От идеи до запуска — воплощаем digital-проекты любой сложности.</span>
+            </p>
+          </div>
+
+          {/* CTA Buttons with Hover Effects */}
+          <div className="animate-fade-in flex flex-col sm:flex-row gap-6 justify-center mb-16" style={{ animationDelay: '1s' }}>
+            <Button 
+              onClick={scrollToServices}
+              className="group relative bg-white text-black hover:bg-transparent hover:text-white border-2 border-white text-lg px-12 py-6 font-bold tracking-wide transition-all duration-500 overflow-hidden"
+            >
+              <span className="relative z-10">НАШИ УСЛУГИ</span>
+              <div className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+            </Button>
+            <Button 
+              onClick={scrollToPortfolio}
+              className="group relative bg-transparent text-white hover:bg-white hover:text-black border-2 border-white text-lg px-12 py-6 font-bold tracking-wide transition-all duration-500 overflow-hidden"
+            >
+              <span className="relative z-10">ПОРТФОЛИО</span>
+              <div className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+            </Button>
+          </div>
+
+          {/* Statistics Bar */}
+          <div className="animate-fade-in grid grid-cols-4 gap-4 max-w-2xl mx-auto mb-16" style={{ animationDelay: '1.2s' }}>
+            <div className="text-center border-r border-white/30 last:border-r-0">
+              <div className="text-2xl font-bold">100+</div>
+              <div className="text-xs opacity-70">ПРОЕКТОВ</div>
             </div>
-            
-            {marketplaceServices.map((service, index) => (
-              <Card key={index} className="notion-card overflow-hidden border-notion-border hover:border-notion">
-                <CardContent className="p-0">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="p-6 flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="notion-icon-wrapper">
-                          {service.icon}
-                        </div>
-                        <h3 className="font-semibold text-lg">{service.title}</h3>
-                      </div>
-                      <p className="text-muted-foreground mb-4">{service.description}</p>
-                      <p className="text-sm">{service.details}</p>
-                    </div>
-                    <div className="bg-secondary md:w-64 p-6 flex flex-col justify-between">
-                      <div>
-                        <Badge className="bg-black text-white hover:bg-black/90 mb-2">Подключение бесплатно</Badge>
-                        <p className="text-xl font-bold">{service.price}</p>
-                      </div>
-                      <Button 
-                        className="mt-6 notion-button"
-                        onClick={() => openOrderDialog(service.title)}
-                      >
-                        Заказать
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="text-center border-r border-white/30 last:border-r-0">
+              <div className="text-2xl font-bold">5+</div>
+              <div className="text-xs opacity-70">ЛЕТ ОПЫТА</div>
+            </div>
+            <div className="text-center border-r border-white/30 last:border-r-0">
+              <div className="text-2xl font-bold">50+</div>
+              <div className="text-xs opacity-70">КЛИЕНТОВ</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">24/7</div>
+              <div className="text-xs opacity-70">ПОДДЕРЖКА</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="animate-fade-in pb-8" style={{ animationDelay: '1.4s' }}>
+          <div className="flex flex-col items-center space-y-2">
+            <div className="text-sm font-medium tracking-widest opacity-70">SCROLL</div>
+            <div className="w-px h-16 bg-gradient-to-b from-white to-transparent"></div>
+            <div className="animate-bounce">
+              <ArrowDown className="w-6 h-6 text-white" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+     {/* Services Section */}
+     <section id="services" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
+              НАШИ УСЛУГИ
+            </h2>
+            <div className="w-24 h-1 bg-black mx-auto mb-6"></div>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Предлагаем полный спектр услуг по созданию и развитию веб-проектов. 
+              От концепции до реализации — мы воплотим ваши идеи в жизнь.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            {services.map((service, index) => (
+              <div 
+                key={index}
+                className="group p-8 border-2 border-black hover:bg-black hover:text-white transition-all duration-300 cursor-pointer transform hover:scale-105"
+              >
+                <service.icon className="w-12 h-12 mb-6 group-hover:text-white transition-colors duration-300" />
+                <h3 className="text-xl font-bold mb-4">{service.title}</h3>
+                <p className="text-gray-600 group-hover:text-gray-300 transition-colors duration-300 mb-4">
+                  {service.description}
+                </p>
+                <ul className="text-sm text-gray-600 group-hover:text-gray-300 mb-4 space-y-1">
+                  {service.features.map((feature, i) => (
+                    <li key={i} className="flex items-center">
+                      <div className="w-2 h-2 bg-black group-hover:bg-white mr-2 flex-shrink-0"></div>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <div className="text-lg font-bold border-t border-gray-300 group-hover:border-gray-600 pt-4">
+                  {service.price}
+                </div>
+              </div>
             ))}
           </div>
-        </TabsContent>
-        
-        {/* Marketing Services Tab */}
-        <TabsContent 
-          value="marketing" 
-          className="mt-8 animate-fade-in"
-        >
-          <div className="mb-8">
-            <h2 className="notion-heading text-2xl mb-8">Услуги по Продвижению Сайта</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              {promotionServices.map((service, index) => (
-                <Card key={index} className="notion-card h-full border-notion-border hover:border-notion">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="notion-icon-wrapper">
-                        {service.icon}
-                      </div>
-                      <h3 className="font-semibold">{service.title}</h3>
-                    </div>
-                    <p className="text-2xl font-bold mb-4">{service.price}</p>
-                    <p className="text-muted-foreground text-sm mb-6">{service.details}</p>
-                    <Button 
-                      className="w-full mt-auto notion-button"
-                      onClick={() => openOrderDialog(service.title)}
-                    >
-                      Заказать
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-          
-          {/* CTA Banner */}
-          <Card className="bg-black text-white rounded-lg overflow-hidden border-none mb-12">
-            <CardContent className="p-8 md:p-12">
-              <div className="max-w-2xl">
-                <h2 className="text-2xl md:text-3xl font-bold mb-4">Хотите сделать ваш сайт удобнее, эффективнее и прибыльнее?</h2>
-                <p className="text-gray-300 text-lg mb-6">Время для улучшений!</p>
-                <Button 
-                  variant="outline"
-                  className="bg-white text-black hover:bg-gray-100 border-none"
-                  onClick={() => openOrderDialog("Консультация по улучшению сайта")}
-                >
-                  Запросить консультацию
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Additional Services Tab */}
-        <TabsContent 
-          value="additional" 
-          className="mt-8 animate-fade-in"
-        >
-          <div>
-            <h2 className="notion-heading text-2xl mb-8">Дополнительные Услуги</h2>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {additionalServices.map((service, index) => (
-                <Card key={index} className="notion-card flex flex-col h-full border-notion-border hover:border-notion">
-                  <CardContent className="p-6 flex-grow">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="notion-icon-wrapper">
-                        {service.icon}
-                      </div>
-                      <h3 className="font-semibold">{service.title}</h3>
-                    </div>
-                    <p className="text-2xl font-bold mb-4">{service.price}</p>
-                    <p className="text-muted-foreground text-sm">{service.details}</p>
-                  </CardContent>
-                  <CardFooter className="pt-0 px-6 pb-6">
-                    <Button 
-                      className="w-full notion-button"
-                      onClick={() => openOrderDialog(service.title)}
-                    >
-                      Заказать
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      {/* FAQ Section */}
-      <div className="mt-16 border-t border-notion-border pt-12">
-        <h2 className="notion-heading text-2xl mb-8">Часто задаваемые вопросы</h2>
-        
-        <Accordion type="single" collapsible className="w-full">
-          {faqs.map((faq, index) => (
-            <AccordionItem 
-              key={index} 
-              value={`item-${index}`}
-              className="border-t-0 border-x-0 border-b border-notion-border"
-            >
-              <AccordionTrigger className="py-4 text-lg font-medium hover:no-underline text-left">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground pb-6">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
 
-      {/* Order Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[450px] border-notion-border p-0 overflow-hidden">
-          <div className="bg-black text-white p-6">
-            <DialogTitle className="text-xl">Заявка на услугу</DialogTitle>
-            <DialogDescription className="text-gray-300 mt-2">
-              Пожалуйста, заполните форму. Мы скоро свяжемся с вами для уточнения деталей.
-            </DialogDescription>
+          {/* Additional Services Info */}
+          <div className="bg-black text-white p-8 md:p-12">
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <TrendingUp className="w-12 h-12 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Современные технологии</h3>
+                <p className="text-gray-300">Используем только актуальные и надежные решения</p>
+              </div>
+              <div className="text-center">
+                <Shield className="w-12 h-12 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Гарантия качества</h3>
+                <p className="text-gray-300">Предоставляем гарантию на все выполненные работы</p>
+              </div>
+              <div className="text-center">
+                <Clock className="w-12 h-12 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Соблюдение сроков</h3>
+                <p className="text-gray-300">Всегда укладываемся в оговоренные временные рамки</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Portfolio Section */}
+      <section id="portfolio" className="py-20 bg-black text-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              НАШИ РАБОТЫ
+            </h2>
+            <div className="w-24 h-1 bg-white mx-auto"></div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            {projects.map((project, index) => (
+              <a
+                key={index}
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative overflow-hidden cursor-pointer block"
+                tabIndex={0}
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-black bg-opacity-80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <div className="text-center">
+                    <span className="inline-block px-3 py-1 bg-white text-black text-sm font-semibold mb-3">
+                      {project.category}
+                    </span>
+                    <h3 className="text-2xl font-bold mb-2">{project.title}</h3>
+                    <p className="text-gray-300">{project.description}</p>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold text-black mb-8">
+                О НАС
+              </h2>
+              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+                Мы — команда профессиональных веб-разработчиков, создающих качественные 
+                и современные сайты для бизнеса любого масштаба.
+              </p>
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                Наш подход основан на глубоком понимании потребностей клиента и 
+                использовании передовых технологий для достижения максимального результата.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-black mr-4"></div>
+                  <span className="text-lg">Индивидуальный подход к каждому проекту</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-black mr-4"></div>
+                  <span className="text-lg">Современные технологии и стандарты</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-black mr-4"></div>
+                  <span className="text-lg">Постоянная поддержка и обслуживание</span>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center p-6 border-2 border-black hover:bg-black hover:text-white transition-all duration-300">
+                  <stat.icon className="w-12 h-12 mx-auto mb-4" />
+                  <div className="text-3xl font-bold mb-2">{stat.number}</div>
+                  <div className="text-sm font-medium">{stat.text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-20 bg-black text-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              СВЯЖИТЕСЬ С НАМИ
+            </h2>
+            <div className="w-24 h-1 bg-white mx-auto mb-6"></div>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Готовы обсудить ваш проект? Оставьте заявку, и мы свяжемся с вами в течение часа
+            </p>
           </div>
           
-          <form className="p-6 space-y-4" onSubmit={handleSubmit}>
+          <div className="grid lg:grid-cols-2 gap-16">
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium mb-1"
-              >
-                Ваше имя
-              </label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Как к вам обращаться?"
-                className="border-notion-border focus-visible:ring-black"
-                required
-              />
+              <h3 className="text-2xl font-bold mb-8">Контактная информация</h3>
+              <div className="space-y-6">
+                <div className="flex items-center">
+                  <Phone className="w-6 h-6 mr-4" />
+                  <div>
+                    <div className="font-semibold">Телефон</div>
+                    <div className="text-gray-300">+7 (999) 123-45-67</div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Mail className="w-6 h-6 mr-4" />
+                  <div>
+                    <div className="font-semibold">Email</div>
+                    <div className="text-gray-300">info@webdev.ru</div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <MapPin className="w-6 h-6 mr-4" />
+                  <div>
+                    <div className="font-semibold">Адрес</div>
+                    <div className="text-gray-300">Москва, ул. Тверская, 1</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium mb-1"
-              >
-                Контактный Email
-              </label>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <Input
+                  name="name"
+                  placeholder="Ваше имя"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="bg-white text-black border-0 rounded-none h-12"
+                />
+                <Input
+                  name="phone"
+                  placeholder="Телефон"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  className="bg-white text-black border-0 rounded-none h-12"
+                />
+              </div>
               <Input
-                id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@mail.com"
-                className="border-notion-border focus-visible:ring-black"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
                 required
+                className="bg-white text-black border-0 rounded-none h-12"
               />
-            </div>
-            <div>
-              <label
-                htmlFor="message"
-                className="block text-sm font-medium mb-1"
-              >
-                Комментарий (услуга)
-              </label>
               <Textarea
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Уточните детали или задайте вопрос"
-                className="border-notion-border focus-visible:ring-black resize-none min-h-[120px]"
+                name="message"
+                placeholder="Расскажите о вашем проекте"
+                value={formData.message}
+                onChange={handleChange}
                 required
+                rows={5}
+                className="bg-white text-black border-0 rounded-none resize-none"
               />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="border-notion-border"
-              >
-                Отмена
-              </Button>
-              <Button
+              <Button 
                 type="submit"
-                disabled={isSubmitting}
-                className="notion-button"
+                className="w-full bg-white text-black hover:bg-gray-200 rounded-none h-12 text-lg font-semibold transition-all duration-300"
+                disabled={loading}
               >
-                {isSubmitting ? "Отправка..." : "Отправить заявку"}
-                {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
+                {loading ? "Отправка..." : "ОТПРАВИТЬ ЗАЯВКУ"}
               </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+            {/* AlertDialog для успешной отправки */}
+            <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Спасибо!</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Ваше сообщение успешно отправлено. Мы свяжемся с вами в ближайшее время.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction onClick={() => setDialogOpen(false)}>
+                    Закрыть
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </section>
+
+      
     </div>
   );
 };
 
-export default WebsiteServicesPage;
+export default Index;

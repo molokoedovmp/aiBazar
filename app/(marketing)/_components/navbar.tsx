@@ -189,7 +189,7 @@ export const Navbar = () => {
 
       <div className="flex items-center gap-x-2">
         {/* Переключатель темы */}
-        <ModeToggle />
+
 
         {isLoading && <Spinner />}
 
