@@ -147,10 +147,10 @@ const AITools = () => {
               <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full animate-ping"></div>
             </div>
             
-            <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tighter leading-none">
+            <h1 className="text-3xl md:text-7xl font-black mb-8 tracking-tighter leading-none">
               <span className="block">AI</span>
               <span className="block text-white drop-shadow-2xl">ИНСТРУМЕНТЫ</span>
-              <span className="block text-4xl md:text-6xl mt-4 font-light">БУДУЩЕГО</span>
+              <span className="block text-3xl md:text-6xl mt-4 font-light">БУДУЩЕГО</span>
             </h1>
             
             <p className="text-xl md:text-2xl mb-12 max-w-4xl mx-auto opacity-90 leading-relaxed">

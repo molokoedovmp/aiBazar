@@ -12,6 +12,7 @@ export default defineSchema({
     content: v.optional(v.string()),
     coverImage: v.optional(v.string()),
     views: v.optional(v.number()),
+    previewText: v.optional(v.string()),
     readTime: v.optional(v.number()),
     icon: v.optional(v.string()),
     isPublished: v.boolean(),
