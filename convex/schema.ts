@@ -11,6 +11,8 @@ export default defineSchema({
     parentDocument: v.optional(v.id("documents")),
     content: v.optional(v.string()),
     coverImage: v.optional(v.string()),
+    views: v.optional(v.number()),
+    readTime: v.optional(v.number()),
     icon: v.optional(v.string()),
     isPublished: v.boolean(),
   })

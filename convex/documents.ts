@@ -472,3 +472,35 @@ export const getDocumentStats = query({
   }
 });
 
+// Вспомогательная функция для извлечения previewText из content
+function extractPreviewText(content?: string, lines: number = 3): string {
+  if (!content) return '';
+  try {
+    const blocks = JSON.parse(content);
+    if (Array.isArray(blocks)) {
+      const paragraphs = blocks.filter(
+        (block) => block.type === 'paragraph' && typeof block.props?.text === 'string'
+      );
+      const texts = paragraphs.map((p) => p.props.text);
+      return texts.slice(0, lines).join('\n').slice(0, 240);
+    }
+  } catch {
+    // Если не JSON, просто обрезаем строку
+    return content.slice(0, 240);
+  }
+  return '';
+}
+
+export const getPublishedDocumentsWithPreview = query({
+  handler: async (ctx) => {
+    const publishedDocuments = await ctx.db
+      .query("documents")
+      .filter((q) => q.eq(q.field("isPublished"), true))
+      .collect();
+    return publishedDocuments.map(doc => ({
+      ...doc,
+      previewText: extractPreviewText(doc.content)
+    }));
+  },
+});
+

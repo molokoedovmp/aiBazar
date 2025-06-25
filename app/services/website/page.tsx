@@ -231,7 +231,7 @@ const Index = () => {
           {/* Animated Badge */}
           
           {/* Main Title with Staggered Animation */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-8 mt-16">
             <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-none">
               <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 СОЗДАЕМ
