@@ -3,14 +3,21 @@
 import { useConvexAuth, useQuery } from "convex/react";
 import { SignInButton, UserButton } from "@clerk/clerk-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/spinner";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
-import { Menu, X, ShoppingBag, Briefcase, Globe, Code } from "lucide-react";
+import {
+  ShoppingBag,
+  Briefcase,
+  Globe,
+  Code,
+  Grid2X2,
+  User,
+  Users,
+  Home,
+} from "lucide-react";
 import { api } from "@/convex/_generated/api";
 
 import {
@@ -23,317 +30,296 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
 const routes = [
-  {
-    label: 'Bazarius',
-    href: '/aibazargpt',
-  },
-  {
-    label: 'Сообщество',
-    href: '/blog',
-  },
-  {
-    label: 'О нас',
-    href: '/about',
-  },
+  { label: "Главная", href: "/" },
+  { label: "Bazarius", href: "/aibazargpt" },
+  { label: "Сообщество", href: "/blog" },
+  { label: "О нас", href: "/about" },
 ];
 
 export const Navbar = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
-  
-  // Получаем категории из базы данных
+
+  // Категории из БД
   const categories = useQuery(api.categories.get) || [];
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
   return (
-    <header
-      className="fixed top-0 left-0 right-0 flex items-center justify-between p-6 text-white z-50 h-16 bg-black border-b border-white/20 shadow-sm"
-    >
-      <Logo />
+    <>
+      {/* ВЕРХНЯЯ ПАНЕЛЬ — ТОЛЬКО ДЕСКТОП. Делаем absolute, чтобы ехала поверх контента */}
+      <header className="hidden md:block absolute top-0 left-0 right-0 z-50 h-16 border-b border-white/15 bg-black/60 text-white backdrop-blur supports-[backdrop-filter]:bg-black/40">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+          <Logo />
 
-      {/* Десктопное меню (скрыто на мобильных) */}
-      <div className="hidden md:block">
-        <NavigationMenu>
-          <NavigationMenuList>
-            {/* Магазин нейросетей с выпадающим меню категорий */}
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="text-white hover:text-gray-300 bg-transparent hover:bg-transparent">
-                Магазин Нейросетей
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                  {categories.map((category) => (
-                    <li key={category._id}>
+          {/* Десктопное меню */}
+          <NavigationMenu>
+            <NavigationMenuList>
+              {/* Каталог нейросетей */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/5 hover:text-white">
+                  Каталог Нейросетей
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                    {categories.map((category: any) => (
+                      <li key={category._id}>
+                        <NavigationMenuLink asChild>
+                          <Link
+                            href={`/category/${category._id}`}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+                          >
+                            <div className="flex items-center gap-2">
+                              {category.icon && (
+                                <div className="h-4 w-4 flex-shrink-0">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke={theme === "dark" ? "white" : "black"}
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-full w-full"
+                                    dangerouslySetInnerHTML={{
+                                      __html: atob(category.icon.split(",")[1] ?? ""),
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              <span className="text-sm font-medium leading-none">
+                                {category.name}
+                              </span>
+                            </div>
+                            <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
+                              {category.description || "Категория AI инструментов"}
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                    ))}
+                    <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          href={`/category/${category._id}`}
+                          href="/bazar"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
                         >
                           <div className="flex items-center gap-2">
-                            {category.icon && (
-                              <div className="h-4 w-4 flex-shrink-0">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke={theme === 'dark' ? 'white' : 'black'}
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="w-full h-full"
-                                  dangerouslySetInnerHTML={{ __html: atob(category.icon.split(',')[1]) }}
-                                />
-                              </div>
-                            )}
+                            <ShoppingBag className="h-4 w-4" />
                             <span className="text-sm font-medium leading-none">
-                              {category.name}
+                              Все инструменты
                             </span>
                           </div>
                           <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
-                            {category.description || "Категория AI инструментов"}
+                            Просмотреть все доступные AI инструменты
                           </p>
                         </Link>
                       </NavigationMenuLink>
                     </li>
-                  ))}
-                  <li>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href="/bazar"
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ShoppingBag className="h-4 w-4" />
-                          <span className="text-sm font-medium leading-none">
-                            Все инструменты
-                          </span>
-                        </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
-                          Просмотреть все доступные AI инструменты
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            {/* Выпадающее меню для "Услуги" */}
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="text-white hover:text-gray-300 bg-transparent hover:bg-transparent">
-                Услуги
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
-                  <li>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href="/services/website"
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4" />
-                          <span className="text-sm font-medium leading-none">Создание сайтов</span>
-                        </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
-                          Разработка лендингов, корпоративных сайтов и интернет-магазинов
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                  <li>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href="/services"
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          <span className="text-sm font-medium leading-none">Все услуги</span>
-                        </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
-                          Полный список наших услуг
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            {/* Остальные пункты меню */}
-            {routes.map((route) => (
-              <NavigationMenuItem key={route.href}>
-                <Link href={route.href} legacyBehavior passHref>
-                  <NavigationMenuLink className={cn(
-                    navigationMenuTriggerStyle(),
-                    "text-white hover:text-gray-300 bg-transparent hover:bg-transparent"
-                  )}>
-                    {route.label}
-                  </NavigationMenuLink>
-                </Link>
+                  </ul>
+                </NavigationMenuContent>
               </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-      </div>
 
-      <div className="flex items-center gap-x-2">
-        {/* Переключатель темы */}
+              {/* Услуги */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/5 hover:text-white">
+                  Услуги
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/services/website"
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            <span className="text-sm font-medium leading-none">Создание сайтов</span>
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
+                            Разработка лендингов, корпоративных сайтов и интернет-магазинов
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/services"
+                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="h-4 w-4" />
+                            <span className="text-sm font-medium leading-none">Все услуги</span>
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-gray-500 dark:text-gray-400">
+                            Полный список наших услуг
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
 
+              {/* Остальные пункты */}
+              {routes.map((route) => (
+                <NavigationMenuItem key={route.href}>
+                  <Link href={route.href} legacyBehavior passHref>
+                    <NavigationMenuLink
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent text-white hover:bg-white/5 hover:text-white"
+                      )}
+                    >
+                      {route.label}
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
 
-        {isLoading && <Spinner />}
-
-        {/* Если не аутентифицирован - кнопка "Войти" */}
-        {!isAuthenticated && !isLoading && (
-          <SignInButton mode="modal">
-            <Button
-              size="sm"
-              className="text-white bg-transparent border border-white hover:border-gray-300 hover:text-gray-300"
-            >
-              Войти
-            </Button>
-          </SignInButton>
-          
-        )}
-
-        {/* Если аутентифицирован - кнопка на документы и иконка профиля */}
-        {isAuthenticated && !isLoading && (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="text-white hover:text-gray-300"
-            >
-              <Link href="/documents">Войти</Link>
-            </Button>
-            <UserButton afterSignOutUrl="/" />
-          </>
-        )}
-
-        {/* Кнопка открытия мобильного меню (видна только на мобильных) */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden text-white hover:text-gray-300"
-          onClick={toggleMobileMenu}
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
-      </div>
-
-      {/* Мобильное меню (видно только когда mobileMenuOpen === true) */}
-      {mobileMenuOpen && (
-        <div className="absolute top-16 left-0 w-full bg-black flex flex-col items-start gap-2 p-4 md:hidden border-b border-gray-800">
-          {/* Основные разделы */}
-          <div className="w-full border-b border-gray-800 pb-3">
-            <div className="flex items-center gap-2 px-3 py-2 text-gray-400 text-sm">
-              <ShoppingBag className="h-4 w-4" />
-              <span>Магазин</span>
-            </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-              className="text-white hover:text-gray-300 w-full justify-start pl-6"
-          >
-            <Link href="/bazar" onClick={toggleMobileMenu}>
-                Все инструменты
-            </Link>
-          </Button>
-            
-            {categories.map((category) => (
-          <Button
-                key={category._id}
-            variant="ghost"
-            size="sm"
-            asChild
-                className="text-white hover:text-gray-300 w-full justify-start pl-6"
-              >
-                <Link 
-                  href={`/category/${category._id}`} 
-                  onClick={toggleMobileMenu}
-                  className="flex items-center gap-2"
+          {/* Правый блок (десктоп) */}
+          <div className="flex items-center gap-2">
+            {isLoading && <Spinner />}
+            {!isAuthenticated && !isLoading && (
+              <SignInButton mode="modal">
+                <Button
+                  size="sm"
+                  className="border border-white/30 bg-transparent text-white hover:border-white/60 hover:text-white"
                 >
-                  {category.icon && (
-                    <div className="h-4 w-4 flex-shrink-0">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={theme === 'dark' ? 'white' : 'black'}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="w-full h-full"
-                        dangerouslySetInnerHTML={{ __html: atob(category.icon.split(',')[1]) }}
-                      />
-                    </div>
-                  )}
-                  <span>{category.name}</span>
-            </Link>
-          </Button>
-            ))}
-          </div>
-          
-          {/* Услуги */}
-          <div className="w-full border-b border-gray-800 pb-3">
-            <div className="flex items-center gap-2 px-3 py-2 text-gray-400 text-sm">
-              <Briefcase className="h-4 w-4" />
-              <span>Услуги</span>
-            </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-              className="text-white hover:text-gray-300 w-full justify-start pl-6"
-            >
-              <Link href="/services/website" onClick={toggleMobileMenu}>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <span>Создание сайтов</span>
-                </div>
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-              className="text-white hover:text-gray-300 w-full justify-start pl-6"
-            >
-              <Link href="/services" onClick={toggleMobileMenu}>
-                <div className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  <span>Все услуги</span>
-                </div>
-            </Link>
-          </Button>
-          </div>
-          
-          {/* Остальные пункты меню */}
-          <div className="w-full">
-            {routes.map((route) => (
-          <Button
-                key={route.href}
-            variant="ghost"
-            size="sm"
-            asChild
-                className="text-white hover:text-gray-300 w-full justify-start"
-          >
-                <Link href={route.href} onClick={toggleMobileMenu}>
-                  {route.label}
-            </Link>
-          </Button>
-            ))}
+                  Войти
+                </Button>
+              </SignInButton>
+            )}
+            {isAuthenticated && !isLoading && (
+              <>
+                <Button variant="ghost" size="sm" asChild className="text-white hover:text-white/80">
+                  <Link href="/documents">Личный кабинет</Link>
+                </Button>
+                <UserButton afterSignOutUrl="/" />
+              </>
+            )}
           </div>
         </div>
-      )}
-    </header>
+      </header>
+
+      {/* НИЖНЯЯ МОБИЛЬНАЯ НАВИГАЦИЯ (мобайл) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[60] border-t border-white/10 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/60">
+        <div className="mx-auto grid max-w-7xl grid-cols-5 gap-1 px-2 py-1.5" role="navigation" aria-label="Нижняя навигация">
+          {/* Главная */}
+          <Link href="/" className="flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-white/90 hover:bg-white/5">
+            <Home className="h-5 w-5" />
+            <span>Главная</span>
+          </Link>
+
+          {/* Каталог (BottomSheet) */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button className="flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-white/90 hover:bg-white/5">
+                <Grid2X2 className="h-5 w-5" />
+                <span>Каталог</span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[70vh] border-white/10 bg-black text-white">
+              <SheetHeader>
+                <SheetTitle className="text-left">Каталог нейросетей</SheetTitle>
+              </SheetHeader>
+
+              <div className="mt-4 space-y-2 overflow-y-auto pb-24">
+                <Link
+                  href="/bazar"
+                  className="flex items-center justify-between rounded-lg border border-white/10 px-3 py-2 hover:bg-white/5"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className="h-4 w-4" />
+                    <span className="text-sm">Все инструменты</span>
+                  </div>
+                  <span className="text-xs text-white/50">Перейти</span>
+                </Link>
+
+                <div className="grid grid-cols-1 gap-2">
+                  {categories.map((category: any) => (
+                    <Link
+                      key={category._id}
+                      href={`/category/${category._id}`}
+                      className="flex items-center justify-between rounded-lg border border-white/10 px-3 py-2 hover:bg-white/5"
+                    >
+                      <div className="flex items-center gap-2">
+                        {category.icon ? (
+                          <div className="h-4 w-4">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke={theme === "dark" ? "white" : "black"}
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-full w-full"
+                              dangerouslySetInnerHTML={{
+                                __html: atob(category.icon.split(",")[1] ?? ""),
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <Grid2X2 className="h-4 w-4" />
+                        )}
+                        <span className="text-sm">{category.name}</span>
+                      </div>
+                      <span className="text-xs text-white/50">Открыть</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Войти / Кабинет */}
+          {!isAuthenticated ? (
+            <SignInButton mode="modal">
+              <button className="flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-white/90 hover:bg-white/5">
+                <User className="h-5 w-5" />
+                <span>Войти</span>
+              </button>
+            </SignInButton>
+          ) : (
+            <Link href="/documents" className="flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-white/90 hover:bg-white/5">
+              <User className="h-5 w-5" />
+              <span>Кабинет</span>
+            </Link>
+          )}
+
+          {/* Сообщество */}
+          <Link href="/blog" className="flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-white/90 hover:bg-white/5">
+            <Users className="h-5 w-5" />
+            <span>Сообщество</span>
+          </Link>
+
+          {/* Bazarius */}
+          <Link href="/aibazargpt" className="flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs text-white/90 hover:bg-white/5">
+            <Code className="h-5 w-5" />
+            <span>Bazarius</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Убираем глобальный верхний padding. Оставляем только нижний для мобайла */}
+      <style jsx global>{`
+        @media (max-width: 767px) {
+          :root { --navbar-bottom-height: 60px; }
+          body { padding-bottom: calc(var(--navbar-bottom-height) + env(safe-area-inset-bottom)); }
+        }
+      `}</style>
+    </>
   );
 };
