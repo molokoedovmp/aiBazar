@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/sheet";
 
 const routes = [
-  // { label: "Bazarius", href: "/aibazargpt" },
+  { label: "Bazarius", href: "/aibazargpt" },
   { label: "Сообщество", href: "/blog" },
   { label: "О нас", href: "/about" },
 ];
@@ -54,7 +54,7 @@ export const Navbar = () => {
   return (
     <>
       {/* ВЕРХНЯЯ ПАНЕЛЬ — ТОЛЬКО ДЕСКТОП. Фиксированная при скроллинге */}
-      <header className="hidden md:block fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/15 bg-black/60 text-white backdrop-blur supports-[backdrop-filter]:bg-black/40">
+      <header className="hidden md:block fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/15 bg-black text-white backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <Logo />
 
@@ -247,7 +247,7 @@ export const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="bottom" className="h-[70vh] border-white/10 bg-black text-white">
               <SheetHeader>
-                <SheetTitle className="text-left">Каталог нейросетей</SheetTitle>
+                <SheetTitle className="text-left text-white">Каталог нейросетей</SheetTitle>
               </SheetHeader>
 
               <div className="mt-4 space-y-2 overflow-y-auto pb-24 max-h-[60vh]">
@@ -309,7 +309,7 @@ export const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="bottom" className="h-[70vh] border-white/10 bg-black text-white">
               <SheetHeader>
-                <SheetTitle className="text-left">Наши услуги</SheetTitle>
+                <SheetTitle className="text-left text-white">Наши услуги</SheetTitle>
               </SheetHeader>
 
               <div className="mt-4 space-y-2 overflow-y-auto pb-24 max-h-[60vh]">
