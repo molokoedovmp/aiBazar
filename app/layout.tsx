@@ -164,7 +164,7 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#da532c" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className={`bg-gray-100 ${inter.className}`}>
+      <body className={`bg-black ${inter.className}`}>
         <EdgeStoreProvider>
           <ConvexClientProvider>
             
