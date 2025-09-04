@@ -142,6 +142,7 @@ export default function CommunityBlog() {
           </div>
         </div>
 
+
         <div className="container mx-auto px-[1cm] relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-center">
             {/* Hero Text */}
