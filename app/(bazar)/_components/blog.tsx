@@ -125,9 +125,9 @@ export default function CommunityBlog() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero + Featured Article Section */}
-      <section className="bg-black text-white py-32 relative overflow-hidden">
+      <section className="bg-black text-white py-16 sm:py-28 md:py-32 relative overflow-hidden">
         {/* Animated Background Elements */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 hidden sm:block">
           <div className="absolute top-20 left-10 w-32 h-32 border-2 border-white/10 rotate-45 animate-pulse"></div>
           <div className="absolute top-40 right-20 w-24 h-24 border border-white/20 rotate-12 animate-bounce"></div>
           <div className="absolute bottom-20 left-20 w-16 h-16 bg-white/5 rotate-45 animate-pulse"></div>
@@ -142,11 +142,11 @@ export default function CommunityBlog() {
           </div>
         </div>
 
-        <div className="container mx-auto px-2 sm:px-4 relative z-10">
+        <div className="container mx-auto px-[1cm] relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-center">
             {/* Hero Text */}
             <div className="text-left animate-fade-in md:col-span-2 mb-8 md:mb-0 pl-6 sm:pl-0">
-              <h1 className="text-4xl sm:text-5xl md:text-4xl lg:text-5xl font-black mb-6 md:mb-8 tracking-tighter leading-none">
+              <h1 className="text-3xl sm:text-5xl md:text-5xl font-black mb-6 md:mb-8 tracking-tighter leading-none">
                 <span className="block">ОТКРОЙ ДЛЯ СЕБЯ</span>
                 <span className="block">МИР AI</span>
                 <span className="block">И СОВРЕМЕННЫХ ТЕХНОЛОГИЙ</span>
@@ -159,14 +159,14 @@ export default function CommunityBlog() {
             {/* Featured Article */}
             {featuredArticle && (
               <div className="md:col-span-3 w-full flex justify-center px-2 sm:px-0">
-                <Card className="bg-white text-black border-4 border-white hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] w-full max-w-xl sm:max-w-2xl md:max-w-3xl min-h-[320px] sm:min-h-[380px] md:min-h-[420px] flex flex-col justify-center overflow-hidden">
+                <Card className="bg-white text-black border-2 sm:border-4 border-white rounded-xl hover:shadow-2xl transition-all duration-300 transform md:hover:scale-[1.03] w-full max-w-xl sm:max-w-2xl md:max-w-3xl min-h-[320px] sm:min-h-[380px] md:min-h-[420px] flex flex-col justify-center overflow-hidden">
                   <CardContent className="p-0 h-full">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0 h-full min-h-full">
-                      <div className="h-40 sm:h-64 md:h-full flex items-stretch justify-stretch p-0 m-0">
+                      <div className="h-52 sm:h-64 md:h-full flex items-stretch justify-stretch p-0 m-0">
                         {featuredArticle.coverImage ? (
                           <img src={featuredArticle.coverImage} alt="cover" className="object-cover w-full h-full" />
                         ) : (
-                          <div className="text-8xl font-black text-gray-300 opacity-50">IMG</div>
+                          <div className="text-6xl sm:text-8xl font-black text-gray-300 opacity-50">IMG</div>
                         )}
                       </div>
                       <div className="p-4 sm:p-6 md:p-10 flex flex-col h-full justify-between">
@@ -200,7 +200,7 @@ export default function CommunityBlog() {
                         </div>
                         <div className="mt-6 flex items-end">
                           <Link href={`/preview/${featuredArticle._id}`} className="w-full">
-                            <Button className="w-full bg-black text-white hover:bg-gray-800 font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-base sm:text-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2 justify-center">
+                            <Button className="w-full bg-black text-white hover:bg-gray-800 font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-base sm:text-lg transition-all duration-300 transform md:hover:scale-105 flex items-center gap-2 justify-center">
                               ЧИТАТЬ СТАТЬЮ
                               <ArrowRight className="w-6 h-6" />
                             </Button>
@@ -227,9 +227,9 @@ export default function CommunityBlog() {
 
       {/* Articles Grid */}
       <section className="py-10 sm:py-16 md:py-20 bg-white">
-        <div className="container mx-auto px-2 sm:px-4">
+        <div className="container mx-auto px-[1cm]">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-4xl md:text-6xl font-black text-black mb-3 sm:mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-black mb-3 sm:mb-4 tracking-tight">
               {search ? `РЕЗУЛЬТАТЫ ПОИСКА` : "ВСЕ СТАТЬИ"}
             </h2>
             <div className="w-16 sm:w-24 h-1 bg-black mx-auto"></div>
@@ -241,17 +241,17 @@ export default function CommunityBlog() {
             {/* Поиск и фильтры под заголовком */}
             <div className="max-w-2xl mx-auto mt-6 sm:mt-8 flex flex-col md:flex-row gap-3 md:gap-4 items-center justify-center">
               <div className="relative w-full">
-                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   type="text"
                   placeholder="Поиск статей, тем, авторов..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="pl-16 pr-6 py-6 text-lg border-2 border-black rounded-xl focus:ring-4 focus:ring-black/20 bg-white"
+                  className="pl-12 pr-6 py-5 text-lg border-2 border-black rounded-xl focus:ring-4 focus:ring-black/20 bg-white"
                 />
               </div>
               <Select value={sort} onValueChange={setSort}>
-                <SelectTrigger className="w-full md:w-64 py-6 text-lg border-2 border-black rounded-xl bg-white">
+                <SelectTrigger className="w-full md:w-64 py-5 text-lg border-2 border-black rounded-xl bg-white">
                   <SelectValue placeholder="Сортировка" />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,7 +265,7 @@ export default function CommunityBlog() {
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 lg:gap-8 items-stretch">
             {(documents === undefined || allReviews === undefined)
               ? Array.from({ length: 6 }).map((_, i) => (
                   <Card key={i} className="border-2 border-black bg-white animate-pulse">
@@ -287,26 +287,26 @@ export default function CommunityBlog() {
                   </Card>
                 ))
               : paginated.map((doc) => (
-                  <Link key={doc._id} href={`/preview/${doc._id}`}>
-                    <Card className="border-2 border-black hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-white group">
-                      <CardContent className="p-0">
-                        <div className="bg-gray-100 h-40 sm:h-48 flex items-center justify-center border-b-2 border-black">
+                  <Link key={doc._id} href={`/preview/${doc._id}`} className="h-full">
+                    <Card className="h-full flex flex-col border-2 border-black rounded-xl hover:shadow-xl transition-all duration-300 transform md:hover:scale-105 bg-white group">
+                      <CardContent className="p-0 h-full flex flex-col">
+                        <div className="bg-gray-100 h-40 sm:h-44 flex items-center justify-center border-b-2 border-black">
                           {doc.coverImage ? (
                             <img src={doc.coverImage} alt="cover" className="object-cover w-full h-full" />
                           ) : (
-                            <div className="text-4xl font-black text-gray-300 opacity-50">IMG</div>
+                            <div className="text-5xl sm:text-6xl font-black text-gray-300 opacity-50">IMG</div>
                           )}
                         </div>
-                        <div className="p-4 sm:p-6">
+                        <div className="p-4 sm:p-5 flex flex-col grow">
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-gray-400 text-xs">
                               {new Date(doc._creationTime).toLocaleDateString("ru-RU")}
                             </span>
                           </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-black mb-1 leading-tight group-hover:text-gray-700 transition-colors">
+                          <h3 className="text-lg sm:text-xl font-bold text-black mb-1 leading-tight group-hover:text-gray-700 transition-colors line-clamp-2 break-words">
                             {doc.title}
                           </h3>
-                          <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 leading-relaxed">
+                          <p className="text-gray-600 text-[11px] sm:text-sm mb-2 sm:mb-3 leading-relaxed line-clamp-3">
                             {doc.previewText}
                           </p>
                           <div className="flex flex-wrap items-center justify-between text-gray-500 text-xs mb-3 sm:mb-4 gap-y-2">
@@ -325,7 +325,7 @@ export default function CommunityBlog() {
                               <span>{doc.views || "—"}</span>
                             </div>
                           </div>
-                          <Button className="w-full bg-black text-white hover:bg-gray-800 font-bold py-2 sm:py-2.5 rounded-lg text-xs sm:text-base transition-all duration-300 transform group-hover:scale-105">
+                          <Button className="mt-auto w-full bg-black text-white hover:bg-gray-800 font-bold py-2 sm:py-2.5 rounded-lg text-xs sm:text-base transition-all duration-300 transform md:group-hover:scale-105">
                             ЧИТАТЬ
                           </Button>
                         </div>
@@ -383,7 +383,7 @@ export default function CommunityBlog() {
 
       {/* CTA Section */}
       <section className="py-10 sm:py-16 md:py-20 bg-black text-white">
-        <div className="container mx-auto px-2 sm:px-4 text-center">
+        <div className="container mx-auto px-[2cm] text-center">
           <h2 className="text-2xl sm:text-4xl md:text-6xl font-black mb-6 sm:mb-8 tracking-tight">
             ЕСТЬ ЧЕМ ПОДЕЛИТЬСЯ?
           </h2>

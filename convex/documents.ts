@@ -389,14 +389,11 @@ export const get = query({
 // Запрос для получения статистики по документам
 export const getDocumentStats = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    
-    if (!identity) {
-      throw new Error("Не авторизован");
-    }
-    
-    // Получаем все документы
-    const documents = await ctx.db.query("documents").collect();
+    // Получаем только опубликованные документы для публичной статистики
+    const documents = await ctx.db
+      .query("documents")
+      .filter((q) => q.eq(q.field("isPublished"), true))
+      .collect();
     
     // Статистика по типам документов
     const documentTypes = {

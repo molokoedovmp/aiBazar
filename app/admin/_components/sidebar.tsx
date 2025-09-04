@@ -39,7 +39,6 @@ const routes = [
   { label: "Категории", icon: FolderTree, href: "/admin/categories" },
   { label: "Оплата инструментов", icon: Banknote, href: "/admin/payment" },
   { label: "Базариус", icon: Briefcase, href: "/admin/bazarius" },
-  { label: "Гаджеты", icon: Cpu, href: "/admin/gadgets" },
   { label: "Настройки", icon: Settings, href: "/admin/settings" },
 ];
 

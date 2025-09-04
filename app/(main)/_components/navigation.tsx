@@ -197,11 +197,11 @@ export const Navigation = () => {
             isSearch
             onClick={search.onOpen}
           />
-          <Item
+          {/* <Item
             label="Настройки"
             icon={Settings}
             onClick={settings.onOpen}
-          />
+          /> */}
           <Item
             label="Избранное"
             icon={Star}
