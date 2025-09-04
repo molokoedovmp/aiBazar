@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ChevronRight, Star, ExternalLink, ShoppingCart } from "lucide-react"
 import Image from "next/image"
@@ -43,6 +43,41 @@ function SkeletonTab() {
 export default function FeaturePage() {
   const [activeTab, setActiveTab] = useState(0)
   const aiTools = useQuery(api.aiTools.get) as Tool[] | undefined
+  const mobileCardRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [mobileIndex, setMobileIndex] = useState(0)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+
+  // Отслеживаем активный слайд по скроллу
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const onScroll = () => {
+      const cards = mobileCardRefs.current
+      if (!cards || cards.length === 0) return
+      // Находим карточку, которая ближе всего к центру контейнера
+      const containerCenter = container.scrollLeft + container.clientWidth / 2
+      let closestIndex = 0
+      let closestDelta = Infinity
+      cards.forEach((el, idx) => {
+        if (!el) return
+        const rect = el.getBoundingClientRect()
+        const containerRect = container.getBoundingClientRect()
+        const elCenter = rect.left - containerRect.left + rect.width / 2 + container.scrollLeft
+        const delta = Math.abs(elCenter - containerCenter)
+        if (delta < closestDelta) {
+          closestDelta = delta
+          closestIndex = idx
+        }
+      })
+      setMobileIndex(closestIndex)
+    }
+
+    container.addEventListener('scroll', onScroll, { passive: true })
+    // начальная установка
+    onScroll()
+    return () => container.removeEventListener('scroll', onScroll)
+  }, [])
 
   const toolsToShow = aiTools
     ? aiTools
@@ -72,7 +107,73 @@ export default function FeaturePage() {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+      {/* Mobile carousel */}
+      <div className="md:hidden">
+        <div className="px-4">
+          <div ref={scrollContainerRef} className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-4 px-4">
+            {toolsToShow.map((tool, index) => (
+              <div
+                key={tool._id}
+                ref={(el) => { mobileCardRefs.current[index] = el }}
+                className="snap-center shrink-0 w-[85%] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 relative"
+              >
+                <div className="relative h-[360px] w-full">
+                  <Image
+                    src={tool.coverImage || "/default.png"}
+                    alt={tool.name}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/60">
+                    <h3 className="text-xl font-bold text-white mb-1">{tool.name}</h3>
+                    <p className="text-white/80 text-sm line-clamp-2 mb-3">{tool.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-3 py-1 rounded-full shadow-lg">
+                        <span className="text-xs font-semibold text-white">{formatPrice(tool.price)}</span>
+                      </div>
+                      <div className="flex items-center bg-white/90 px-2 py-1 rounded-full">
+                        <Star className="h-4 w-4 text-black mr-1" />
+                        <span className="text-black">{tool.rating?.toFixed(1) || 'N/A'}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-3">
+                      {tool.price && tool.price > 0 ? (
+                        <PaymentDialog price={tool.price} title="aitools" tool={tool}>
+                          <Button className="bg-white text-black hover:bg-gray-200">
+                            <ShoppingCart className="h-4 w-4 mr-2" />Купить
+                          </Button>
+                        </PaymentDialog>
+                      ) : null}
+                      <Button variant="outline" className="bg-white border-gray-300 text-black hover:bg-gray-100" asChild>
+                        <Link href={tool.url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4 mr-2" />Смотреть
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Dots */}
+          <div className="flex justify-center gap-2 mt-2">
+            {toolsToShow.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setMobileIndex(i)
+                  mobileCardRefs.current[i]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+                }}
+                className={`h-2 w-2 rounded-full ${mobileIndex === i ? 'bg-black dark:bg-white' : 'bg-gray-300 dark:bg-gray-600'}`}
+                aria-label={`Показать ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
         <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
           {toolsToShow.map((tool, index) => (
             <motion.div

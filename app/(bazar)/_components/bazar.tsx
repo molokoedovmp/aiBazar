@@ -321,7 +321,19 @@ export default function Bazar() {
           ) : (
             filteredCategories?.map((category) => {
               const toolsInCategory = filteredTools.filter(tool => tool.categoryId === category._id)
-              const displayTools = toolsInCategory.slice(0, 6)
+              // Показываем не больше двух полных рядов, чтобы не было пустоты и бесконечного скролла
+              const getColumns = () => {
+                if (typeof window === 'undefined') return 2
+                const w = window.innerWidth
+                if (w >= 1024) return 6 // lg:grid-cols-6
+                if (w >= 768) return 4   // md:grid-cols-4
+                if (w >= 640) return 3   // sm:grid-cols-3
+                return 2                 // grid-cols-2
+              }
+              const columns = getColumns()
+              const rowsToShow = 2
+              const displayCount = Math.min(toolsInCategory.length, columns * rowsToShow)
+              const displayTools = toolsInCategory.slice(0, displayCount)
               
               if (displayTools.length === 0) return null
 
@@ -333,9 +345,8 @@ export default function Bazar() {
                         <Icon icon={category.icon} className="mr-2 h-5 w-5" />
                       )}
                       {category.name}
-                      <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"></span>
                     </h2>
-                    {toolsInCategory.length > 5 && (
+                    {toolsInCategory.length > displayCount && (
                       <Button 
                         variant="link" 
                         onClick={() => router.push(`/category/${category._id}`)}
