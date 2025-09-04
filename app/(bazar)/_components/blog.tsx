@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
@@ -71,7 +71,8 @@ export default function CommunityBlog() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [showGuide, setShowGuide] = useState(false)
   const [page, setPage] = useState(1)
-  const perPage = 6
+  const [columns, setColumns] = useState(2)
+  const perPage = columns * 3
   const [sort, setSort] = useState("date_desc")
   const documents = useQuery(api.documents.getPublishedDocuments)
   const allReviews = useQuery(api.reviews.get)
@@ -121,6 +122,23 @@ export default function CommunityBlog() {
   // Пагинация
   const pageCount = Math.ceil(sorted.length / perPage)
   const paginated = sorted.slice((page - 1) * perPage, page * perPage)
+
+  // Определяем число колонок по ширине окна, чтобы заполнять ряды без пустот
+  useEffect(() => {
+    const updateColumns = () => {
+      const width = window.innerWidth
+      if (width >= 1280) {
+        setColumns(4)
+      } else if (width >= 768) {
+        setColumns(3)
+      } else {
+        setColumns(2)
+      }
+    }
+    updateColumns()
+    window.addEventListener('resize', updateColumns)
+    return () => window.removeEventListener('resize', updateColumns)
+  }, [])
 
   return (
     <div className="min-h-screen bg-white">
@@ -266,7 +284,7 @@ export default function CommunityBlog() {
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 lg:gap-8 items-stretch">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 lg:gap-8 items-stretch">
             {(documents === undefined || allReviews === undefined)
               ? Array.from({ length: 6 }).map((_, i) => (
                   <Card key={i} className="border-2 border-black bg-white animate-pulse">
@@ -337,9 +355,10 @@ export default function CommunityBlog() {
           </div>
           {/* Пагинация */}
           {pageCount > 1 && (
-            <div className="flex justify-center mt-12">
-              <Pagination>
-                <PaginationContent>
+            <div className="flex justify-center mt-16 sm:mt-20 overflow-x-auto whitespace-nowrap px-2">
+              <div className="min-w-max mx-auto">
+                <Pagination>
+                  <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -362,8 +381,9 @@ export default function CommunityBlog() {
                       className={page === pageCount ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
           )}
           {filtered.length === 0 && search && (

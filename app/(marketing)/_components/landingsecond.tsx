@@ -35,7 +35,7 @@ export function Landingsecond() {
 
         {/* HERO */}
         {/* Делает фон всегда тёмным и на десктопе */}
-        <section className="relative w-full overflow-hidden bg-black">
+        <section className="relative w-full overflow-hidden bg-black min-h-screen">
           {/* ===== Мобильный фон: ЧЁРНЫЙ + робот позади ===== */}
           <div className="lg:hidden absolute inset-0 z-0">
             <div className="absolute inset-0 bg-black" />
@@ -45,8 +45,8 @@ export function Landingsecond() {
                 className="w-full h-full"
               />
             </div>
-            <div className="absolute inset-0 bg-black/75" />
-            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent" />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent" />
           </div>
 
           {/* Декор (поверх фона) */}
@@ -84,10 +84,10 @@ export function Landingsecond() {
 
           {/* ===== Контент ===== */}
           {/* Делаем текст белым и на десктопе, чтобы сочетался с чёрным фоном */}
-          <div className="container mx-auto px-4 py-8 md:py-12 relative z-[2] text-white">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+          <div className="container mx-auto px-4 py-8 md:py-12 lg:py-0 relative z-[2] text-white">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:items-center min-h-screen">
               {/* Левая колонка — текст (контент не менялся) */}
-              <div className="flex flex-col justify-center">
+              <div className="flex flex-col justify-center lg:mt-0">
                 <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/10 text-white mb-2 w-fit">
                   AI-инструменты и сервисы
                 </div>
