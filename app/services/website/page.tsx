@@ -29,9 +29,12 @@ const Index = () => {
 
   useEffect(() => {
     const prevPadding = document.body.style.paddingTop;
+    const prevMargin = document.body.style.marginTop;
     document.body.style.paddingTop = "0px";
+    document.body.style.marginTop = "0px";
     return () => {
       document.body.style.paddingTop = prevPadding;
+      document.body.style.marginTop = prevMargin;
     };
   }, []);
 
@@ -179,11 +182,11 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" style={{ marginTop: 0, paddingTop: 0 }}>
       {/* Hero Section */}
       <section
         className="bg-black text-white flex flex-col justify-between items-center relative overflow-hidden"
-        style={{ minHeight: "calc(100vh - 4rem)" }}
+        style={{ minHeight: "100vh", paddingTop: "4rem" }}
       >
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">

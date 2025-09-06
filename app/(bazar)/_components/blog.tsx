@@ -284,7 +284,7 @@ export default function CommunityBlog() {
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 lg:gap-8 items-stretch">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 lg:gap-8 items-stretch">
             {(documents === undefined || allReviews === undefined)
               ? Array.from({ length: 6 }).map((_, i) => (
                   <Card key={i} className="border-2 border-black bg-white animate-pulse">

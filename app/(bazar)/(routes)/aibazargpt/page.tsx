@@ -160,7 +160,7 @@ const AITools = () => {
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <Button
-                className="bg-white text-black hover:bg-gray-200 text-lg px-12 py-8 rounded-none font-bold transition-all duration-300 transform hover:scale-105 shadow-2xl"
+                className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 rounded-none font-bold transition-all duration-300 transform hover:scale-105 shadow-2xl"
                 onClick={handleStartClick}
               >
                 <Play className="mr-3 w-6 h-6" />
@@ -391,16 +391,16 @@ const AITools = () => {
               Присоединяйтесь к тысячам пользователей, которые уже используют наши AI инструменты 
               для повышения продуктивности и автоматизации рутинных задач.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
-                className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 rounded-none font-semibold transition-all duration-300"
+                className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 rounded-none font-semibold transition-all duration-300 w-48"
                 onClick={handleStartClick}
               >
                 СОЗДАТЬ АККАУНТ
               </Button>
               <Link href="/blog" passHref legacyBehavior>
                 <a>
-                  <Button className="border-2 border-white text-white hover:bg-white hover:text-black text-lg px-8 py-6 rounded-none font-semibold transition-all duration-300">
+                  <Button className="border-2 border-white text-white hover:bg-white hover:text-black text-lg px-8 py-6 rounded-none font-semibold transition-all duration-300 w-48">
                     УЗНАТЬ БОЛЬШЕ
                   </Button>
                 </a>
