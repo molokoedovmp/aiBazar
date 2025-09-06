@@ -9,9 +9,14 @@ import { useRouter } from "next/navigation";
 import React from "react";
 
 const AITools = () => {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
   const router = useRouter();
   const [showSignIn, setShowSignIn] = React.useState(false);
+
+  // Отладочная информация
+  React.useEffect(() => {
+    console.log('Auth status:', { isSignedIn, user });
+  }, [isSignedIn, user]);
 
   const handleStartClick = (e: React.MouseEvent) => {
     e.preventDefault();

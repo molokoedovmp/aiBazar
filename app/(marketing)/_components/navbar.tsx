@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/sheet";
 
 const routes = [
-  // { label: "Bazarius", href: "/aibazargpt" },
+  { label: "Bazarius", href: "/aibazargpt" },
   { label: "Сообщество", href: "/blog" },
   { label: "О нас", href: "/about" },
 ];
