@@ -33,11 +33,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'aiBazar',
     description: 'aiBazar - это сервис, который предоставляет доступ к различным AI-инструментам и сервисам.',
-    url: 'https://aibazar.com', // Замените на ваш реальный URL
+    url: 'https://ai-bazar.ru', // Замените на ваш реальный URL
     siteName: 'aiBazar',
     images: [
       {
-        url: 'https://aibazar.com/og-image.jpg', // Замените на путь к вашему изображению для превью
+        url: 'https://ai-bazar.ru/og-image.jpg', // Замените на путь к вашему изображению для превью
         width: 1200,
         height: 630,
         alt: 'aiBazar Preview',
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   },
   // Добавлен canonical URL
   alternates: {
-    canonical: 'https://aibazar.com', // Замените на ваш реальный URL
+    canonical: 'https://ai-bazar.ru', // Замените на ваш реальный URL
   },
   // Добавлены дополнительные важные метатеги
   robots: {
@@ -93,12 +93,12 @@ export default function RootLayout({
               {
                 "@context": "https://schema.org",
                 "@type": "WebSite",
-                "url": "https://aibazar.com/",
+                "url": "https://ai-bazar.ru/",
                 "name": "aiBazar",
                 "description": "aiBazar - это сервис, который предоставляет доступ к различным AI-инструментам и сервисам.",
                 "potentialAction": {
                   "@type": "SearchAction",
-                  "target": "https://aibazar.com/search?q={search_term_string}",
+                  "target": "https://ai-bazar.ru/search?q={search_term_string}",
                   "query-input": "required name=search_term_string"
                 }
               }
