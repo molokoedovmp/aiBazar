@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/clerk-react"
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, MessageCircle, AlertTriangle } from "lucide-react"
+import { ExternalLink, MessageCircle, AlertTriangle, Bot } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
 
@@ -37,6 +37,10 @@ export function PaymentDialog({ price, children, title, tool }: PaymentDialogPro
     window.open("https://t.me/aibazaru", "_blank")
   }
 
+  const handleTelegramBotPayment = () => {
+    window.open("https://t.me/aiBazaru_bot", "_blank")
+  }
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -53,6 +57,20 @@ export function PaymentDialog({ price, children, title, tool }: PaymentDialogPro
           </p>
         </AlertDialogHeader>
         <div className="flex flex-col gap-4 py-4">
+          <Button 
+            onClick={handleTelegramBotPayment}
+            className="h-14 text-base bg-green-600 hover:bg-green-700 transition-colors justify-start"
+            size="lg"
+          >
+            <div className="flex items-center gap-3">
+              <Bot size={20} />
+              <div className="text-left">
+                <div>Оплатить через Telegram бота</div>
+                <div className="text-sm opacity-80 font-normal">Новая функция в тестировании</div>
+              </div>
+            </div>
+          </Button>
+          
           <Button 
             onClick={handleTelegramPayment}
             className="h-14 text-base bg-blue-600 hover:bg-blue-700 transition-colors justify-start"
