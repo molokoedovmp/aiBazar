@@ -37,9 +37,9 @@ export function PaymentDialog({ price, children, title, tool }: PaymentDialogPro
     window.open("https://t.me/aibazaru", "_blank")
   }
 
-  // const handleTelegramBotPayment = () => {
-  //   window.open("https://t.me/aiBazaru_bot", "_blank")
-  // }
+  const handleTelegramBotPayment = () => {
+    window.open("https://t.me/aiBazaru_bot", "_blank")
+  }
 
   return (
     <AlertDialog>
@@ -57,7 +57,7 @@ export function PaymentDialog({ price, children, title, tool }: PaymentDialogPro
           </p>
         </AlertDialogHeader>
         <div className="flex flex-col gap-4 py-4">
-          {/* <Button 
+          <Button 
             onClick={handleTelegramBotPayment}
             className="h-14 text-base bg-green-600 hover:bg-green-700 transition-colors justify-start"
             size="lg"
@@ -69,7 +69,7 @@ export function PaymentDialog({ price, children, title, tool }: PaymentDialogPro
                 <div className="text-sm opacity-80 font-normal">Новая функция в тестировании</div>
               </div>
             </div>
-          </Button> */}
+          </Button>
           
           <Button 
             onClick={handleTelegramPayment}
