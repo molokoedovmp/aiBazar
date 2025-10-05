@@ -38,7 +38,7 @@ export function PaymentDialog({ price, children, title, tool }: PaymentDialogPro
   }
 
   const handleTelegramBotPayment = () => {
-    window.open("https://t.me/aiBazaru_bot", "_blank")
+    window.open("https://t.me/AnonPaySubBot", "_blank")
   }
 
   return (
